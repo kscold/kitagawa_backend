@@ -10,7 +10,6 @@ node_modules/
 *.log
 .env.local
 .env.development
-tsconfig.json
 .nvmrc
 .DS_Store
 test/
@@ -19,4 +18,11 @@ test/
 .prettierrc
 .eslintrc.js
 documentation/
+ssl/
+scripts/
+postman/
+.claude/
 Kitagawa_Product_APIs.postman_collection.json
+README.md
+deploy.sh
+cloudbuild.yaml
