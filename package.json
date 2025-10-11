@@ -1,0 +1,62 @@
+{
+    "name": "kitagawa-be",
+    "version": "1.0.0",
+    "description": "Kitagawa Products Backend API",
+    "main": "dist/main.js",
+    "engines": {
+        "node": ">=20.0.0"
+    },
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/main.js",
+        "start:dev": "ts-node src/main.ts",
+        "start:https": "ts-node src/main.https.ts",
+        "start:debug": "ts-node --inspect src/main.ts",
+        "start:prod": "node dist/main.js",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "generate:token": "ts-node scripts/generate-admin-token.ts",
+        "deploy": "yarn build && gcloud functions deploy kitagawa-api --runtime nodejs20 --trigger-http --allow-unauthenticated --entry-point api --region asia-northeast3 --source . --set-env-vars MONGODB_URI=$MONGODB_URI,NODE_ENV=production,PORT=8080 --max-instances=10 --memory=512MB --timeout=60s"
+    },
+    "keywords": [
+        "nestjs",
+        "kitagawa",
+        "gcp",
+        "serverless"
+    ],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@google-cloud/functions-framework": "^4.0.0",
+        "@nestjs/common": "^11.1.6",
+        "@nestjs/config": "^4.0.2",
+        "@nestjs/core": "^11.1.6",
+        "@nestjs/jwt": "^11.0.1",
+        "@nestjs/mongoose": "^11.0.3",
+        "@nestjs/passport": "^11.0.5",
+        "@nestjs/platform-express": "^11.1.6",
+        "@nestjs/swagger": "^11.2.0",
+        "@types/node": "^24.7.1",
+        "axios": "^1.12.2",
+        "bcrypt": "^6.0.0",
+        "cheerio": "^1.1.2",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.2",
+        "express": "^5.1.0",
+        "mongoose": "^8.19.1",
+        "passport": "^0.7.0",
+        "passport-jwt": "^4.0.1",
+        "puppeteer": "^24.24.0",
+        "reflect-metadata": "^0.2.2",
+        "rxjs": "^7.8.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3"
+    },
+    "devDependencies": {
+        "@nestjs/cli": "^11.0.10",
+        "@nestjs/testing": "^11.1.6",
+        "@types/bcrypt": "^6.0.0",
+        "@types/express": "^5.0.3",
+        "@types/passport-jwt": "^4.0.1",
+        "prettier": "^3.6.2"
+    }
+}

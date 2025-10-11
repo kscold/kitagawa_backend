@@ -1,0 +1,35 @@
+steps:
+  # Install dependencies
+  - name: 'node:22'
+    entrypoint: npm
+    args: ['install']
+
+  # Build TypeScript
+  - name: 'node:22'
+    entrypoint: npm
+    args: ['run', 'build']
+
+  # Deploy to Cloud Functions
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args:
+      - gcloud
+      - functions
+      - deploy
+      - kitagawa-api
+      - --runtime=nodejs22
+      - --trigger-http
+      - --allow-unauthenticated
+      - --entry-point=api
+      - --region=asia-northeast3
+      - --memory=512MB
+      - --timeout=60s
+      - --max-instances=10
+      - --set-env-vars=NODE_ENV=production,PORT=8080,MONGODB_URI=${_MONGODB_URI}
+    secretEnv: ['MONGODB_URI']
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/tokyo-receiver-444903-m4/secrets/MONGODB_URI/versions/latest
+      env: 'MONGODB_URI'
+
+timeout: 1200s

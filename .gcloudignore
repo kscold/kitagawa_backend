@@ -1,0 +1,22 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud. It follows the same syntax as .gitignore
+
+.gcloudignore
+.git
+.gitignore
+node_modules/
+.vscode/
+.idea/
+*.log
+.env.local
+.env.development
+tsconfig.json
+.nvmrc
+.DS_Store
+test/
+*.test.ts
+*.spec.ts
+.prettierrc
+.eslintrc.js
+documentation/
+Kitagawa_Product_APIs.postman_collection.json

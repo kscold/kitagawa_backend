@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.history/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.cache/
+temp/
+tmp/
+.serverless/
+
+# SSL certificates (for development)
+ssl/
+*.key
+*.cert
+*.pem
+
+# yarn
+yarn.lock
+
+# Claude
+claude.md
+.claude
+
+# scripts
+scripts/
+
+# postman
+postman/
+
+# documentation
+documentation/
