@@ -3,16 +3,22 @@ import { Document } from 'mongoose';
 
 export type CategoryDocument = CategoryModel & Document;
 
-// 카테고리 구조를 저장하기 위한 스키마
-@Schema({ timestamps: true })
+// 카테고리 레벨 (2단계만 존재)
+export enum CategoryLevel {
+    LEVEL_1 = 1, // 대분류 (NC ROTARY TABLE, VISE, CHUCK, CYLINDER, WORK GRIPPER)
+    LEVEL_2 = 2, // 중분류 (4축 표준사양, VE Power Vise, 유압 중공척 등)
+}
+
+// 2단계 카테고리 스키마
+@Schema({ timestamps: true, collection: 'categories' })
 export class CategoryModel {
-    @Prop({ required: true, unique: true })
-    name: string; // 카테고리명 예: "Chucks"
+    @Prop({ required: true })
+    name: string; // 카테고리명 (영문) 예: "NC ROTARY TABLE", "4축 표준사양"
 
     @Prop({ required: true })
     nameKo: string; // 한국어 카테고리명
 
-    @Prop()
+    @Prop({ required: true })
     slug: string; // URL용 슬러그
 
     @Prop()
@@ -21,14 +27,19 @@ export class CategoryModel {
     @Prop()
     descriptionKo: string;
 
-    @Prop()
-    parentCategory: string; // 부모 카테고리 (null이면 최상위)
+    // 계층 구조
+    @Prop({ required: true, enum: CategoryLevel })
+    level: CategoryLevel; // 1: 대분류, 2: 중분류
 
-    @Prop([String])
-    subCategories: string[]; // 하위 카테고리 목록
+    @Prop({ type: String, default: null })
+    parentName: string | null; // 부모 카테고리명 (level 2일 경우 대분류명)
 
+    @Prop({ type: String, default: null })
+    mainCategory: string | null; // 대분류명 (빠른 검색용)
+
+    // 메타데이터
     @Prop()
-    iconUrl: string; // 카테고리 아이콘 이미지
+    iconUrl: string; // 카테고리 아이콘
 
     @Prop()
     imageUrl: string; // 카테고리 대표 이미지
@@ -39,11 +50,15 @@ export class CategoryModel {
     @Prop({ default: true })
     isActive: boolean;
 
-    @Prop()
-    sourceUrl: string; // Kitagawa 원본 페이지 URL
+    @Prop({ default: 0 })
+    productCount: number; // 해당 카테고리의 제품 수
 }
 
 export const CategorySchema = SchemaFactory.createForClass(CategoryModel);
 
-CategorySchema.index({ slug: 1 });
-CategorySchema.index({ parentCategory: 1 });
+// 인덱스 설정
+CategorySchema.index({ slug: 1 }, { unique: true }); // slug는 unique 인덱스
+CategorySchema.index({ level: 1 });
+CategorySchema.index({ mainCategory: 1 });
+CategorySchema.index({ parentName: 1 });
+CategorySchema.index({ name: 1 });
