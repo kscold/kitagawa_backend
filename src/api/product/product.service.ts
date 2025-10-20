@@ -1,94 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Injectable, NotFoundException, Logger, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
-import { Product, ProductDocument } from '../../schemas/product.schema';
+import { ProductDocument } from '../../schemas/product.schema';
+import { ProductRepository } from './repository/product.repository';
 
+/**
+ * Product Service
+ * 비즈니스 로직, 에러 핸들링, 로깅 담당
+ */
 @Injectable()
 export class ProductService {
-    constructor(@InjectModel(Product.name) private productModel: Model<ProductDocument>) {}
+    private readonly logger = new Logger(ProductService.name);
+    private readonly isDevelopment: boolean;
 
-    /**
-     * 추천 제품 조회
-     */
-    async getFeaturedProducts(limit: number = 8): Promise<ProductDocument[]> {
-        const result: ProductDocument[] = (await this.productModel
-            .find({ isFeatured: true, isActive: true })
-            .sort({ priority: -1, createdAt: -1 })
-            .limit(limit)
-            .exec()) as any;
-        return result;
+    constructor(
+        private readonly productRepository: ProductRepository,
+        private readonly configService: ConfigService,
+    ) {
+        this.isDevelopment = this.configService.get('NODE_ENV') !== 'production';
     }
 
     /**
-     * 인기 제품 조회 (조회수 기준)
+     * 모든 제품 조회 (필터, 페이지네이션 포함)
      */
-    async getPopularProducts(limit: number = 8): Promise<ProductDocument[]> {
-        const result: ProductDocument[] = (await this.productModel
-            .find({ isActive: true })
-            .sort({ viewCount: -1, createdAt: -1 })
-            .limit(limit)
-            .exec()) as any;
-        return result;
-    }
-
-    /**
-     * 최신 제품 조회
-     */
-    async getRecentProducts(limit: number = 8): Promise<ProductDocument[]> {
-        const result: ProductDocument[] = (await this.productModel
-            .find({ isActive: true })
-            .sort({ createdAt: -1 })
-            .limit(limit)
-            .exec()) as any;
-        return result;
-    }
-
-    /**
-     * 카테고리 목록 조회
-     */
-    async getCategories(): Promise<any[]> {
-        const categories: any = (await this.productModel
-            .aggregate([
-                { $match: { isActive: true } },
-                {
-                    $group: {
-                        _id: {
-                            mainCategory: '$category.mainCategory',
-                            subCategory: '$category.subCategory',
-                        },
-                        count: { $sum: 1 },
-                        products: { $push: { productCode: '$productCode', productName: '$productName' } },
-                    },
-                },
-                {
-                    $group: {
-                        _id: '$_id.mainCategory',
-                        subCategories: {
-                            $push: {
-                                name: '$_id.subCategory',
-                                count: '$count',
-                                products: '$products',
-                            },
-                        },
-                        totalCount: { $sum: '$count' },
-                    },
-                },
-                { $sort: { _id: 1 } },
-            ])
-            .exec()) as any;
-
-        return categories.map((cat: any) => ({
-            mainCategory: cat._id,
-            totalCount: cat.totalCount,
-            subCategories: cat.subCategories,
-        }));
-    }
-
-    /**
-     * 모든 제품 조회 (total count 포함)
-     */
-    async findAll(filters?: {
+    async findAll(filters: {
         category?: string;
         subCategory?: string;
         tag?: string;
@@ -96,101 +31,223 @@ export class ProductService {
         limit?: number;
         skip?: number;
     }): Promise<{ products: ProductDocument[]; total: number }> {
-        const query: Record<string, any> = {};
+        const methodName = 'findAll';
 
-        if (filters?.category) {
-            query['category.mainCategory'] = filters.category;
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - filters: ${JSON.stringify(filters)}`);
+            }
+
+            const result = await this.productRepository.findAllWithPagination(filters);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - total: ${result.total}, count: ${result.products.length}`);
+            }
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 목록 조회 중 오류가 발생했습니다');
         }
+    }
 
-        if (filters?.subCategory) {
-            query['category.subCategory'] = filters.subCategory;
+    /**
+     * 추천 제품 조회
+     */
+    async getFeaturedProducts(limit: number = 8): Promise<ProductDocument[]> {
+        const methodName = 'getFeaturedProducts';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - limit: ${limit}`);
+            }
+
+            const products = await this.productRepository.findFeatured(limit);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - count: ${products.length}`);
+            }
+
+            return products;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('추천 제품 조회 중 오류가 발생했습니다');
         }
+    }
 
-        if (filters?.tag) {
-            query.tags = filters.tag;
+    /**
+     * 인기 제품 조회 (조회수 기준)
+     */
+    async getPopularProducts(limit: number = 8): Promise<ProductDocument[]> {
+        const methodName = 'getPopularProducts';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - limit: ${limit}`);
+            }
+
+            const products = await this.productRepository.findPopular(limit);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - count: ${products.length}`);
+            }
+
+            return products;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('인기 제품 조회 중 오류가 발생했습니다');
         }
+    }
 
-        if (filters?.isActive !== undefined) {
-            query.isActive = filters.isActive;
+    /**
+     * 최신 제품 조회
+     */
+    async getRecentProducts(limit: number = 8): Promise<ProductDocument[]> {
+        const methodName = 'getRecentProducts';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - limit: ${limit}`);
+            }
+
+            const products = await this.productRepository.findRecent(limit);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - count: ${products.length}`);
+            }
+
+            return products;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('최신 제품 조회 중 오류가 발생했습니다');
         }
+    }
 
-        // Total count
-        const total = await this.productModel.countDocuments(query).exec();
+    /**
+     * 카테고리 목록 조회
+     */
+    async getCategories(): Promise<any[]> {
+        const methodName = 'getCategories';
 
-        let queryBuilder = this.productModel.find(query);
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청`);
+            }
 
-        if (filters?.skip) {
-            queryBuilder = queryBuilder.skip(filters.skip);
+            const categories = await this.productRepository.findCategories();
+
+            const result = categories.map((cat: any) => ({
+                mainCategory: cat._id,
+                totalCount: cat.totalCount,
+                subCategories: cat.subCategories,
+            }));
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - count: ${result.length}`);
+            }
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('카테고리 조회 중 오류가 발생했습니다');
         }
-
-        if (filters?.limit) {
-            queryBuilder = queryBuilder.limit(filters.limit);
-        }
-
-        const products: ProductDocument[] = (await queryBuilder.exec()) as any;
-        return { products, total };
     }
 
     /**
      * 제품 코드로 조회 (조회수 증가)
      */
     async findByCode(productCode: string, incrementView: boolean = true): Promise<ProductDocument> {
-        const product: ProductDocument | null = (await this.productModel.findOne({ productCode }).exec()) as any;
+        const methodName = 'findByCode';
 
-        if (!product) {
-            throw new NotFoundException(`Product with code ${productCode} not found`);
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}, incrementView: ${incrementView}`);
+            }
+
+            const product = await this.productRepository.findByCode(productCode);
+
+            if (!product) {
+                throw new NotFoundException(`제품 코드 '${productCode}'에 해당하는 제품을 찾을 수 없습니다`);
+            }
+
+            // 조회수 증가
+            if (incrementView) {
+                await this.productRepository.incrementViewCount(productCode);
+            }
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - productCode: ${productCode}`);
+            }
+
+            return product;
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 조회 중 오류가 발생했습니다');
         }
-
-        // 조회수 증가
-        if (incrementView) {
-            await this.productModel.updateOne({ productCode }, { $inc: { viewCount: 1 } }).exec();
-            product.viewCount = (product.viewCount || 0) + 1;
-        }
-
-        return product;
     }
 
     /**
-     * 제품 ID로 조회 (조회수 증가)
+     * 제품 ID로 조회
      */
-    async findById(id: string, incrementView: boolean = true): Promise<ProductDocument> {
-        const product: ProductDocument | null = (await this.productModel.findById(id).exec()) as any;
+    async findById(id: string): Promise<ProductDocument> {
+        const methodName = 'findById';
 
-        if (!product) {
-            throw new NotFoundException(`Product with id ${id} not found`);
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - id: ${id}`);
+            }
+
+            const product = await this.productRepository.findById(id);
+
+            if (!product) {
+                throw new NotFoundException(`ID '${id}'에 해당하는 제품을 찾을 수 없습니다`);
+            }
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - id: ${id}`);
+            }
+
+            return product;
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 조회 중 오류가 발생했습니다');
         }
-
-        // 조회수 증가
-        if (incrementView) {
-            await this.productModel.updateOne({ _id: id }, { $inc: { viewCount: 1 } }).exec();
-            product.viewCount = (product.viewCount || 0) + 1;
-        }
-
-        return product;
     }
 
     /**
-     * 제품 검색
+     * 카테고리별 제품 조회
      */
-    async search(keyword: string): Promise<ProductDocument[]> {
-        const result: ProductDocument[] = (await this.productModel
-            .find({
-                $or: [
-                    { productName: { $regex: keyword, $options: 'i' } },
-                    { productNameKo: { $regex: keyword, $options: 'i' } },
-                    { description: { $regex: keyword, $options: 'i' } },
-                    { tags: { $regex: keyword, $options: 'i' } },
-                ],
-                isActive: true,
-            })
-            .exec()) as any;
-        return result;
+    async findByCategory(mainCategory: string, subCategory?: string): Promise<ProductDocument[]> {
+        const methodName = 'findByCategory';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - mainCategory: ${mainCategory}, subCategory: ${subCategory}`);
+            }
+
+            const products = await this.productRepository.findByCategory(mainCategory, subCategory);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - count: ${products.length}`);
+            }
+
+            return products;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('카테고리별 제품 조회 중 오류가 발생했습니다');
+        }
     }
 
     /**
-     * 고급 검색 (total count 포함)
+     * 고급 검색
      */
-    async advancedSearch(options: {
+    async advancedSearch(params: {
         keyword?: string;
         category?: string;
         subCategory?: string;
@@ -199,157 +256,182 @@ export class ProductService {
         limit?: number;
         skip?: number;
     }): Promise<{ products: ProductDocument[]; total: number }> {
-        const query: Record<string, any> = { isActive: true };
+        const methodName = 'advancedSearch';
 
-        // 키워드 검색
-        if (options.keyword) {
-            query.$or = [
-                { productName: { $regex: options.keyword, $options: 'i' } },
-                { productNameKo: { $regex: options.keyword, $options: 'i' } },
-                { description: { $regex: options.keyword, $options: 'i' } },
-                { tags: { $regex: options.keyword, $options: 'i' } },
-                { productCode: { $regex: options.keyword, $options: 'i' } },
-            ];
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - params: ${JSON.stringify(params)}`);
+            }
+
+            const result = await this.productRepository.advancedSearch(params);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - total: ${result.total}, count: ${result.products.length}`);
+            }
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 검색 중 오류가 발생했습니다');
         }
-
-        // 카테고리 필터
-        if (options.category) {
-            query['category.mainCategory'] = options.category;
-        }
-
-        if (options.subCategory) {
-            query['category.subCategory'] = options.subCategory;
-        }
-
-        // 태그 필터
-        if (options.tags && options.tags.length > 0) {
-            query.tags = { $in: options.tags };
-        }
-
-        // Total count
-        const total = await this.productModel.countDocuments(query).exec();
-
-        let queryBuilder = this.productModel.find(query);
-
-        // 정렬
-        switch (options.sort) {
-            case 'recent':
-                queryBuilder = queryBuilder.sort({ createdAt: -1 });
-                break;
-            case 'popular':
-                queryBuilder = queryBuilder.sort({ viewCount: -1 });
-                break;
-            case 'name':
-                queryBuilder = queryBuilder.sort({ productName: 1 });
-                break;
-            default:
-                queryBuilder = queryBuilder.sort({ priority: -1, createdAt: -1 });
-        }
-
-        // 페이징
-        if (options.skip) {
-            queryBuilder = queryBuilder.skip(options.skip);
-        }
-
-        if (options.limit) {
-            queryBuilder = queryBuilder.limit(options.limit);
-        }
-
-        const products: ProductDocument[] = (await queryBuilder.exec()) as any;
-        return { products, total };
-    }
-
-    /**
-     * 카테고리별 제품 조회
-     */
-    async findByCategory(mainCategory: string, subCategory?: string): Promise<ProductDocument[]> {
-        const query: Record<string, any> = {
-            'category.mainCategory': mainCategory,
-            isActive: true,
-        };
-
-        if (subCategory) {
-            query['category.subCategory'] = subCategory;
-        }
-
-        const result: ProductDocument[] = (await this.productModel.find(query).exec()) as any;
-        return result;
     }
 
     /**
      * 매칭 제품 조회
+     * TODO: 매칭 로직 구현 필요
      */
-    async findMatchingProducts(productCode: string): Promise<any[]> {
-        const product = await this.findByCode(productCode);
-        return product.matchingProducts || [];
+    async findMatchingProducts(productCode: string): Promise<ProductDocument[]> {
+        const methodName = 'findMatchingProducts';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}`);
+            }
+
+            // 제품 존재 여부 확인
+            await this.findByCode(productCode, false);
+
+            // TODO: 실제 매칭 로직 구현
+            // 현재는 빈 배열 반환
+            const matchingProducts: ProductDocument[] = [];
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - count: ${matchingProducts.length}`);
+            }
+
+            return matchingProducts;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('매칭 제품 조회 중 오류가 발생했습니다');
+        }
     }
 
     /**
-     * 제품 다운로드 링크 조회
+     * 다운로드 링크 조회
      */
     async getDownloads(productCode: string, model?: string): Promise<any[]> {
-        const product = await this.findByCode(productCode);
+        const methodName = 'getDownloads';
 
-        if (model) {
-            return product.downloads.filter((d) => d.model === model);
-        }
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}, model: ${model}`);
+            }
 
-        return product.downloads;
-    }
+            const product = await this.findByCode(productCode, false);
 
-    /**
-     * 제품 수 카운트
-     */
-    async count(filters?: any): Promise<number> {
-        return this.productModel.countDocuments(filters || {}).exec();
-    }
+            let downloads = product.downloads || [];
 
-    /**
-     * 제품 생성 (관리자용)
-     */
-    async create(productData: Partial<Product>): Promise<ProductDocument> {
-        const product = new this.productModel(productData);
-        const result: ProductDocument = (await product.save()) as any;
-        return result;
-    }
+            // 모델 필터 적용
+            if (model) {
+                downloads = downloads.filter((download) => download.model === model || download.model === 'All');
+            }
 
-    /**
-     * 제품 업데이트 (관리자용)
-     */
-    async update(productCode: string, productData: Partial<Product>): Promise<ProductDocument> {
-        const product: ProductDocument | null = (await this.productModel
-            .findOneAndUpdate({ productCode }, productData, { new: true })
-            .exec()) as any;
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - count: ${downloads.length}`);
+            }
 
-        if (!product) {
-            throw new NotFoundException(`Product with code ${productCode} not found`);
-        }
-
-        return product;
-    }
-
-    /**
-     * 제품 삭제 (관리자용)
-     */
-    async delete(productCode: string): Promise<void> {
-        const result = await this.productModel.deleteOne({ productCode }).exec();
-
-        if (result.deletedCount === 0) {
-            throw new NotFoundException(`Product with code ${productCode} not found`);
+            return downloads;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('다운로드 링크 조회 중 오류가 발생했습니다');
         }
     }
 
     /**
-     * 제품 비활성화
+     * 시리즈별 제품 조회
      */
-    async deactivate(productCode: string): Promise<ProductDocument> {
-        return this.update(productCode, { isActive: false });
+    async findBySeries(
+        seriesSlug: string,
+        filters?: { limit?: number; skip?: number },
+    ): Promise<{ products: ProductDocument[]; total: number }> {
+        const methodName = 'findBySeries';
+
+        try {
+            // slug를 series 이름으로 변환 (예: "mr-series" -> "MR series")
+            const seriesName = seriesSlug
+                .split('-')
+                .map((word, index) => {
+                    // 첫 번째 단어는 대문자로
+                    if (index === 0) {
+                        return word.toUpperCase();
+                    }
+                    // "series"는 소문자 유지
+                    if (word.toLowerCase() === 'series') {
+                        return 'series';
+                    }
+                    // 숫자는 그대로
+                    if (/^\d+$/.test(word)) {
+                        return word;
+                    }
+                    // 나머지는 대문자로
+                    return word.toUpperCase();
+                })
+                .join(' ');
+
+            if (this.isDevelopment) {
+                this.logger.log(
+                    `[${methodName}] 요청 - seriesSlug: ${seriesSlug}, seriesName: ${seriesName}, filters: ${JSON.stringify(filters)}`,
+                );
+            }
+
+            const result = await this.productRepository.findAllWithPagination({
+                series: seriesName,
+                ...filters,
+            });
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - total: ${result.total}, count: ${result.products.length}`);
+            }
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('시리즈별 제품 조회 중 오류가 발생했습니다');
+        }
     }
 
     /**
-     * 제품 활성화
+     * 제품 검색 (영어, 한글, 자음 지원)
      */
-    async activate(productCode: string): Promise<ProductDocument> {
-        return this.update(productCode, { isActive: true });
+    async searchProducts(
+        keyword: string,
+        filters?: {
+            category?: string;
+            subCategory?: string;
+            limit?: number;
+            skip?: number;
+        },
+    ): Promise<{ products: ProductDocument[]; total: number }> {
+        const methodName = 'searchProducts';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - keyword: ${keyword}, filters: ${JSON.stringify(filters)}`);
+            }
+
+            // 키워드 유효성 검증
+            if (!keyword || keyword.trim().length === 0) {
+                throw new InternalServerErrorException('검색 키워드는 필수입니다');
+            }
+
+            const result = await this.productRepository.searchProducts({
+                keyword: keyword.trim(),
+                category: filters?.category,
+                subCategory: filters?.subCategory,
+                limit: filters?.limit,
+                skip: filters?.skip,
+            });
+
+            if (this.isDevelopment) {
+                this.logger.log(
+                    `[${methodName}] 성공 - keyword: ${keyword}, total: ${result.total}, count: ${result.products.length}`,
+                );
+            }
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 검색 중 오류가 발생했습니다');
+        }
     }
 }

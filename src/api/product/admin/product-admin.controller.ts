@@ -1,9 +1,14 @@
-import { Controller, Post, Patch, Delete, Param, Body, UseGuards, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
+import { PaginationQueryDto } from '../../../common/dto/pagination/pagination-query.dto';
+import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
+import { ProductFilterRequestDto } from '../dto/request/product-filter-request.dto';
+import { CreateProductRequestDto } from '../dto/request/create-product-request.dto';
+import { UpdateProductRequestDto } from '../dto/request/update-product-request.dto';
 
-import { ProductService } from '../product.service';
+import { ProductAdminService } from './product-admin.service';
 
 /**
  * 제품 관리자 API
@@ -14,7 +19,77 @@ import { ProductService } from '../product.service';
 @UseGuards(AdminJwtAuthGuard)
 @ApiBearerAuth()
 export class ProductAdminController {
-    constructor(private readonly productService: ProductService) {}
+    constructor(private readonly productAdminService: ProductAdminService) {}
+
+    /**
+     * 제품 목록 조회 (관리자 전용)
+     */
+    @Get()
+    @ApiOperation({
+        summary: '제품 목록 조회 (관리자)',
+        description: '모든 제품 목록을 조회합니다 (비활성화 제품 포함)',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '조회 성공',
+        schema: {
+            example: {
+                success: true,
+                code: 200,
+                message: '제품 목록 조회 성공',
+                data: {
+                    items: [],
+                    pagination: {
+                        currentPage: 1,
+                        totalPages: 1,
+                        totalItems: 0,
+                        itemsPerPage: 10,
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                    },
+                },
+            },
+        },
+    })
+    async findAll(
+        @Query() paginationQuery: PaginationQueryDto,
+        @Query() filterDto: ProductFilterRequestDto,
+    ) {
+        const { products, total } = await this.productAdminService.findAll({
+            ...filterDto,
+            limit: paginationQuery.limit,
+            skip: paginationQuery.offset,
+        });
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '제품 목록 조회 성공',
+            data: PaginationResponseDto.fromPageLimit(products, total, paginationQuery.page, paginationQuery.limit),
+        };
+    }
+
+    /**
+     * 제품 상세 조회 (관리자 전용)
+     */
+    @Get(':productCode')
+    @ApiOperation({
+        summary: '제품 상세 조회 (관리자)',
+        description: '제품 코드로 상세 정보를 조회합니다 (비활성화 제품 포함)',
+    })
+    @ApiParam({ name: 'productCode', description: '제품 코드' })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '조회 성공',
+    })
+    async findOne(@Param('productCode') productCode: string) {
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '제품 조회 성공',
+            data: await this.productAdminService.findByCode(productCode),
+        };
+    }
 
     /**
      * 제품 생성 (관리자 전용)
@@ -24,22 +99,25 @@ export class ProductAdminController {
         summary: '제품 생성',
         description: '새로운 제품을 생성합니다 (관리자 인증 필요)',
     })
-    @ApiResponse({
+    @ApiBody({ type: CreateProductRequestDto })
+    @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 생성 성공',
     })
-    @ApiResponse({
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '잘못된 요청 (중복된 제품 코드 등)',
+    })
+    @SwaggerResponse({
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async create(@Body() productData: any) {
-        const product = await this.productService.create(productData);
-
+    async create(@Body() productData: CreateProductRequestDto) {
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품이 생성되었습니다',
-            data: product,
+            data: await this.productAdminService.create(productData),
         };
     }
 
@@ -52,22 +130,25 @@ export class ProductAdminController {
         description: '제품 정보를 수정합니다 (관리자 인증 필요)',
     })
     @ApiParam({ name: 'productCode', description: '제품 코드' })
-    @ApiResponse({
+    @ApiBody({ type: UpdateProductRequestDto })
+    @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 수정 성공',
     })
-    @ApiResponse({
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async update(@Param('productCode') productCode: string, @Body() productData: any) {
-        const product = await this.productService.update(productCode, productData);
-
+    async update(@Param('productCode') productCode: string, @Body() productData: UpdateProductRequestDto) {
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품이 수정되었습니다',
-            data: product,
+            data: await this.productAdminService.update(productCode, productData),
         };
     }
 
@@ -77,24 +158,29 @@ export class ProductAdminController {
     @Delete(':productCode')
     @ApiOperation({
         summary: '제품 삭제',
-        description: '제품을 삭제합니다 (관리자 인증 필요)',
+        description: '제품을 영구 삭제합니다 (관리자 인증 필요)',
     })
     @ApiParam({ name: 'productCode', description: '제품 코드' })
-    @ApiResponse({
+    @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 삭제 성공',
     })
-    @ApiResponse({
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
     async delete(@Param('productCode') productCode: string) {
-        await this.productService.delete(productCode);
+        await this.productAdminService.delete(productCode);
 
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품이 삭제되었습니다',
+            data: null,
         };
     }
 
@@ -104,25 +190,31 @@ export class ProductAdminController {
     @Patch(':productCode/deactivate')
     @ApiOperation({
         summary: '제품 비활성화',
-        description: '제품을 비활성화합니다 (관리자 인증 필요)',
+        description: '제품을 비활성화합니다. 비활성화된 제품은 일반 사용자에게 노출되지 않습니다 (관리자 인증 필요)',
     })
     @ApiParam({ name: 'productCode', description: '제품 코드' })
-    @ApiResponse({
+    @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 비활성화 성공',
     })
-    @ApiResponse({
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '이미 비활성화된 제품',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
     async deactivate(@Param('productCode') productCode: string) {
-        const product = await this.productService.deactivate(productCode);
-
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품이 비활성화되었습니다',
-            data: product,
+            data: await this.productAdminService.deactivate(productCode),
         };
     }
 
@@ -132,25 +224,31 @@ export class ProductAdminController {
     @Patch(':productCode/activate')
     @ApiOperation({
         summary: '제품 활성화',
-        description: '제품을 활성화합니다 (관리자 인증 필요)',
+        description: '제품을 활성화합니다. 활성화된 제품은 일반 사용자에게 노출됩니다 (관리자 인증 필요)',
     })
     @ApiParam({ name: 'productCode', description: '제품 코드' })
-    @ApiResponse({
+    @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 활성화 성공',
     })
-    @ApiResponse({
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '이미 활성화된 제품',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
     async activate(@Param('productCode') productCode: string) {
-        const product = await this.productService.activate(productCode);
-
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품이 활성화되었습니다',
-            data: product,
+            data: await this.productAdminService.activate(productCode),
         };
     }
 }

@@ -5,20 +5,16 @@ import { ProductController } from './product.controller';
 import { ProductAdminController } from './admin/product-admin.controller';
 
 import { ProductService } from './product.service';
+import { ProductAdminService } from './admin/product-admin.service';
+import { ProductRepository } from './repository/product.repository';
 
 import { AdminJwtModule } from '../../common/module/admin-jwt.module';
 import { Product, ProductSchema } from '../../schemas/product.schema';
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),
-        AdminJwtModule, // Admin JWT 모듈 추가
-    ],
-    controllers: [
-        ProductController, // Public API (인증 없음)
-        ProductAdminController, // Admin API (JWT 인증 필요)
-    ],
-    providers: [ProductService],
+    imports: [MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]), AdminJwtModule],
+    controllers: [ProductController, ProductAdminController],
+    providers: [ProductRepository, ProductService, ProductAdminService],
     exports: [ProductService],
 })
 export class ProductModule {}
