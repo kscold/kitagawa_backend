@@ -90,6 +90,37 @@ export class ProductAdminService {
     }
 
     /**
+     * 슬러그로 제품 조회 (관리자용)
+     */
+    async findBySlug(slug: string): Promise<ProductDocument> {
+        const methodName = 'findBySlug';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
+            }
+
+            const product = await this.productRepository.findBySlug(slug);
+
+            if (!product) {
+                throw new NotFoundException(`슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+            }
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
+            }
+
+            return product;
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 조회 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
      * 제품 생성
      */
     async create(productData: any): Promise<ProductDocument> {
@@ -97,13 +128,13 @@ export class ProductAdminService {
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - productCode: ${productData.productCode}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${productData.slug}`);
             }
 
-            // 중복 체크
-            const existingProduct = await this.productRepository.findByCode(productData.productCode);
+            // 중복 체크 (slug 기반)
+            const existingProduct = await this.productRepository.findBySlug(productData.slug);
             if (existingProduct) {
-                throw new BadRequestException(`제품 코드 '${productData.productCode}'는 이미 존재합니다`);
+                throw new BadRequestException(`슬러그 '${productData.slug}'는 이미 존재합니다`);
             }
 
             // 제품 생성
@@ -121,7 +152,7 @@ export class ProductAdminService {
             });
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - productCode: ${newProduct.productCode}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${newProduct.slug}`);
             }
 
             return newProduct;
@@ -135,23 +166,24 @@ export class ProductAdminService {
     }
 
     /**
-     * 제품 수정
+     * 제품 수정 (slug 기반)
      */
-    async update(productCode: string, productData: any): Promise<ProductDocument> {
+    async update(slug: string, productData: any): Promise<ProductDocument> {
         const methodName = 'update';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             // 제품 존재 확인
-            const product = await this.productRepository.findByCode(productCode);
+            const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 코드 '${productCode}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new NotFoundException(`슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
-            // productCode는 수정 불가능하므로 제거
+            // slug와 productCode는 수정 불가능하므로 제거
+            delete productData.slug;
             delete productData.productCode;
 
             // 메타데이터 업데이트
@@ -162,7 +194,7 @@ export class ProductAdminService {
             };
 
             // 제품 수정
-            const updatedProduct = await this.productRepository.update(productCode, {
+            const updatedProduct = await this.productRepository.updateBySlug(slug, {
                 ...productData,
                 metadata: updatedMetadata,
             });
@@ -172,7 +204,7 @@ export class ProductAdminService {
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - productCode: ${productCode}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
 
             return updatedProduct;
@@ -186,30 +218,30 @@ export class ProductAdminService {
     }
 
     /**
-     * 제품 삭제
+     * 제품 삭제 (slug 기반)
      */
-    async delete(productCode: string): Promise<void> {
+    async delete(slug: string): Promise<void> {
         const methodName = 'delete';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             // 제품 존재 확인
-            const product = await this.productRepository.findByCode(productCode);
+            const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 코드 '${productCode}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new NotFoundException(`슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // 제품 삭제 (Hard Delete)
-            const deleted = await this.productRepository.delete(productCode);
+            const deleted = await this.productRepository.deleteBySlug(slug);
             if (!deleted) {
                 throw new InternalServerErrorException('제품 삭제에 실패했습니다');
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - productCode: ${productCode}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
         } catch (error) {
             if (error instanceof NotFoundException || error instanceof BadRequestException) {
@@ -221,20 +253,20 @@ export class ProductAdminService {
     }
 
     /**
-     * 제품 비활성화
+     * 제품 비활성화 (slug 기반)
      */
-    async deactivate(productCode: string): Promise<ProductDocument> {
+    async deactivate(slug: string): Promise<ProductDocument> {
         const methodName = 'deactivate';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             // 제품 존재 확인
-            const product = await this.productRepository.findByCode(productCode);
+            const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 코드 '${productCode}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new NotFoundException(`슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // 이미 비활성화 상태인 경우
@@ -243,13 +275,13 @@ export class ProductAdminService {
             }
 
             // 제품 비활성화
-            const updatedProduct = await this.productRepository.toggleActive(productCode, false);
+            const updatedProduct = await this.productRepository.toggleActiveBySlug(slug, false);
             if (!updatedProduct) {
                 throw new InternalServerErrorException('제품 비활성화에 실패했습니다');
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - productCode: ${productCode}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
 
             return updatedProduct;
@@ -263,20 +295,20 @@ export class ProductAdminService {
     }
 
     /**
-     * 제품 활성화
+     * 제품 활성화 (slug 기반)
      */
-    async activate(productCode: string): Promise<ProductDocument> {
+    async activate(slug: string): Promise<ProductDocument> {
         const methodName = 'activate';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             // 제품 존재 확인
-            const product = await this.productRepository.findByCode(productCode);
+            const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 코드 '${productCode}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new NotFoundException(`슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // 이미 활성화 상태인 경우
@@ -285,13 +317,13 @@ export class ProductAdminService {
             }
 
             // 제품 활성화
-            const updatedProduct = await this.productRepository.toggleActive(productCode, true);
+            const updatedProduct = await this.productRepository.toggleActiveBySlug(slug, true);
             if (!updatedProduct) {
                 throw new InternalServerErrorException('제품 활성화에 실패했습니다');
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - productCode: ${productCode}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
 
             return updatedProduct;

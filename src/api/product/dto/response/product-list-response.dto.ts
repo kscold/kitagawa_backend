@@ -12,6 +12,12 @@ export class ProductItemDto {
     _id: string;
 
     @ApiProperty({
+        example: 'mr-series',
+        description: '제품 슬러그 (URL 친화적)',
+    })
+    slug: string;
+
+    @ApiProperty({
         example: 'MR Series',
         description: '제품명 (영어)',
     })

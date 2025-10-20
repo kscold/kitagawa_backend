@@ -65,7 +65,10 @@ export class MatchingProduct {
 @Schema({ timestamps: true })
 export class Product {
     @Prop({ required: true, unique: true })
-    productCode: string; // 예: "BR-PLUS Series"
+    productCode: string; // 예: "BR-PLUS Series" (레거시 호환용)
+
+    @Prop({ required: true, unique: true })
+    slug: string; // URL 친화적인 슬러그 (예: "br-plus-series", "ck-ckr-series")
 
     @Prop({ required: true })
     productName: string; // 제품명
@@ -141,6 +144,7 @@ export class Product {
 export const ProductSchema = SchemaFactory.createForClass(Product);
 
 // 인덱스 생성
+ProductSchema.index({ slug: 1 }, { unique: true });
 ProductSchema.index({ 'category.mainCategory': 1, 'category.subCategory': 1 });
 ProductSchema.index({ tags: 1 });
 ProductSchema.index({ isActive: 1 });

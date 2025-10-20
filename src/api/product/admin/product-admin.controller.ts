@@ -74,28 +74,6 @@ export class ProductAdminController {
     }
 
     /**
-     * 제품 상세 조회 (관리자 전용)
-     */
-    @Get(':productCode')
-    @ApiOperation({
-        summary: '제품 상세 조회 (관리자)',
-        description: '제품 코드로 상세 정보를 조회합니다 (비활성화 제품 포함)',
-    })
-    @ApiParam({ name: 'productCode', description: '제품 코드' })
-    @SwaggerResponse({
-        status: HttpStatus.OK,
-        description: '조회 성공',
-    })
-    async findOne(@Param('productCode') productCode: string) {
-        return {
-            success: true,
-            code: HttpStatus.OK,
-            message: '제품 조회 성공',
-            data: await this.productAdminService.findByCode(productCode),
-        };
-    }
-
-    /**
      * 제품 생성 (관리자 전용)
      */
     @Post()
@@ -126,14 +104,44 @@ export class ProductAdminController {
     }
 
     /**
+     * 제품 조회 (관리자 전용)
+     */
+    @Get(':slug')
+    @ApiOperation({
+        summary: '제품 상세 조회 (관리자)',
+        description: '제품 슬러그로 상세 정보를 조회합니다 (관리자 인증 필요)',
+    })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '제품 조회 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async findOne(@Param('slug') slug: string) {
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '제품 조회 성공',
+            data: await this.productAdminService.findBySlug(slug),
+        };
+    }
+
+    /**
      * 제품 업데이트 (관리자 전용)
      */
-    @Patch(':productCode')
+    @Patch(':slug')
     @ApiOperation({
         summary: '제품 수정',
         description: '제품 정보를 수정합니다 (관리자 인증 필요)',
     })
-    @ApiParam({ name: 'productCode', description: '제품 코드' })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
     @ApiBody({ type: UpdateProductRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
@@ -147,24 +155,24 @@ export class ProductAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async update(@Param('productCode') productCode: string, @Body() productData: UpdateProductRequestDto) {
+    async update(@Param('slug') slug: string, @Body() productData: UpdateProductRequestDto) {
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품이 수정되었습니다',
-            data: await this.productAdminService.update(productCode, productData),
+            data: await this.productAdminService.update(slug, productData),
         };
     }
 
     /**
      * 제품 삭제 (관리자 전용)
      */
-    @Delete(':productCode')
+    @Delete(':slug')
     @ApiOperation({
         summary: '제품 삭제',
         description: '제품을 영구 삭제합니다 (관리자 인증 필요)',
     })
-    @ApiParam({ name: 'productCode', description: '제품 코드' })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 삭제 성공',
@@ -177,8 +185,8 @@ export class ProductAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async delete(@Param('productCode') productCode: string) {
-        await this.productAdminService.delete(productCode);
+    async delete(@Param('slug') slug: string) {
+        await this.productAdminService.delete(slug);
 
         return {
             success: true,
@@ -191,12 +199,12 @@ export class ProductAdminController {
     /**
      * 제품 비활성화 (관리자 전용)
      */
-    @Patch(':productCode/deactivate')
+    @Patch(':slug/deactivate')
     @ApiOperation({
         summary: '제품 비활성화',
         description: '제품을 비활성화합니다. 비활성화된 제품은 일반 사용자에게 노출되지 않습니다 (관리자 인증 필요)',
     })
-    @ApiParam({ name: 'productCode', description: '제품 코드' })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 비활성화 성공',
@@ -213,24 +221,24 @@ export class ProductAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async deactivate(@Param('productCode') productCode: string) {
+    async deactivate(@Param('slug') slug: string) {
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품이 비활성화되었습니다',
-            data: await this.productAdminService.deactivate(productCode),
+            data: await this.productAdminService.deactivate(slug),
         };
     }
 
     /**
      * 제품 활성화 (관리자 전용)
      */
-    @Patch(':productCode/activate')
+    @Patch(':slug/activate')
     @ApiOperation({
         summary: '제품 활성화',
         description: '제품을 활성화합니다. 활성화된 제품은 일반 사용자에게 노출됩니다 (관리자 인증 필요)',
     })
-    @ApiParam({ name: 'productCode', description: '제품 코드' })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 활성화 성공',
@@ -247,12 +255,12 @@ export class ProductAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async activate(@Param('productCode') productCode: string) {
+    async activate(@Param('slug') slug: string) {
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품이 활성화되었습니다',
-            data: await this.productAdminService.activate(productCode),
+            data: await this.productAdminService.activate(slug),
         };
     }
 }

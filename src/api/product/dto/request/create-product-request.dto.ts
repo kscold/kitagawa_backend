@@ -106,7 +106,12 @@ export class MatchingProductDto {
  * 제품 생성 요청 DTO
  */
 export class CreateProductRequestDto {
-    @ApiProperty({ description: '제품 코드 (고유값)', example: 'BR-PLUS-001' })
+    @ApiProperty({ description: '제품 슬러그 (URL 친화적, 고유값)', example: 'br-plus-series' })
+    @IsString()
+    @IsNotEmpty()
+    slug: string;
+
+    @ApiProperty({ description: '제품 코드 (레거시 호환용)', example: 'BR-PLUS-001' })
     @IsString()
     @IsNotEmpty()
     productCode: string;

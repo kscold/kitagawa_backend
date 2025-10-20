@@ -221,6 +221,42 @@ export class ProductService {
     }
 
     /**
+     * 슬러그로 제품 조회 (단일 제품 상세 조회용) - 주 메서드
+     */
+    async findBySlug(slug: string, incrementView = true): Promise<ProductDocument> {
+        const methodName = 'findBySlug';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
+            }
+
+            const product = await this.productRepository.findBySlug(slug);
+
+            if (!product) {
+                throw new NotFoundException(`슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+            }
+
+            // 조회수 증가
+            if (incrementView) {
+                await this.productRepository.incrementViewCount(slug);
+            }
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
+            }
+
+            return product;
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 조회 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
      * 카테고리별 제품 조회
      */
     async findByCategory(mainCategory: string, subCategory?: string): Promise<ProductDocument[]> {

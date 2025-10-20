@@ -97,7 +97,15 @@ export class ProductRepository {
     }
 
     /**
-     * 제품 코드로 조회
+     * 슬러그로 조회 (주 메서드)
+     */
+    async findBySlug(slug: string): Promise<ProductDocument | null> {
+        const query: any = this.productModel.findOne({ slug });
+        return (await query.exec()) as ProductDocument | null;
+    }
+
+    /**
+     * 제품 코드로 조회 (레거시 호환용)
      */
     async findByCode(productCode: string): Promise<ProductDocument | null> {
         const query: any = this.productModel.findOne({ productCode });
@@ -113,10 +121,10 @@ export class ProductRepository {
     }
 
     /**
-     * 조회수 증가
+     * 조회수 증가 (slug 기반)
      */
-    async incrementViewCount(productCode: string): Promise<void> {
-        await this.productModel.updateOne({ productCode }, { $inc: { viewCount: 1 } }).exec();
+    async incrementViewCount(slug: string): Promise<void> {
+        await this.productModel.updateOne({ slug }, { $inc: { viewCount: 1 } }).exec();
     }
 
     /**
@@ -404,7 +412,7 @@ export class ProductRepository {
     }
 
     /**
-     * 제품 수정
+     * 제품 수정 (레거시 - productCode 기반)
      */
     async update(productCode: string, productData: Partial<Product>): Promise<ProductDocument | null> {
         const query: any = this.productModel.findOneAndUpdate({ productCode }, { $set: productData }, { new: true });
@@ -412,7 +420,15 @@ export class ProductRepository {
     }
 
     /**
-     * 제품 삭제 (Hard Delete)
+     * 제품 수정 (slug 기반)
+     */
+    async updateBySlug(slug: string, productData: Partial<Product>): Promise<ProductDocument | null> {
+        const query: any = this.productModel.findOneAndUpdate({ slug }, { $set: productData }, { new: true });
+        return (await query.exec()) as ProductDocument | null;
+    }
+
+    /**
+     * 제품 삭제 (레거시 - productCode 기반)
      */
     async delete(productCode: string): Promise<boolean> {
         const result = await this.productModel.deleteOne({ productCode }).exec();
@@ -420,10 +436,26 @@ export class ProductRepository {
     }
 
     /**
-     * 제품 활성화/비활성화 토글
+     * 제품 삭제 (slug 기반)
+     */
+    async deleteBySlug(slug: string): Promise<boolean> {
+        const result = await this.productModel.deleteOne({ slug }).exec();
+        return result.deletedCount > 0;
+    }
+
+    /**
+     * 제품 활성화/비활성화 토글 (레거시 - productCode 기반)
      */
     async toggleActive(productCode: string, isActive: boolean): Promise<ProductDocument | null> {
         const query: any = this.productModel.findOneAndUpdate({ productCode }, { $set: { isActive } }, { new: true });
+        return (await query.exec()) as ProductDocument | null;
+    }
+
+    /**
+     * 제품 활성화/비활성화 토글 (slug 기반)
+     */
+    async toggleActiveBySlug(slug: string, isActive: boolean): Promise<ProductDocument | null> {
+        const query: any = this.productModel.findOneAndUpdate({ slug }, { $set: { isActive } }, { new: true });
         return (await query.exec()) as ProductDocument | null;
     }
 }
