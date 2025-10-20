@@ -22,7 +22,6 @@ ssl/
 scripts/
 postman/
 .claude/
-Kitagawa_Product_APIs.postman_collection.json
 README.md
 deploy.sh
 cloudbuild.yaml
