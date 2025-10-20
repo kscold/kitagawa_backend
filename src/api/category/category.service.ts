@@ -51,10 +51,7 @@ export class CategoryService {
     }
 
     // Level 2 카테고리의 시리즈 정보 조회
-    private async getSeriesForLevel2Category(
-        mainCategory: string,
-        subCategory: string,
-    ): Promise<SeriesInfoDto[]> {
+    private async getSeriesForLevel2Category(mainCategory: string, subCategory: string): Promise<SeriesInfoDto[]> {
         const products = await this.productModel
             .find({
                 'category.mainCategory': mainCategory,
@@ -188,10 +185,7 @@ export class CategoryService {
     async searchCategories(query: string) {
         return await this.categoryModel
             .find({
-                $or: [
-                    { name: { $regex: query, $options: 'i' } },
-                    { nameKo: { $regex: query, $options: 'i' } },
-                ],
+                $or: [{ name: { $regex: query, $options: 'i' } }, { nameKo: { $regex: query, $options: 'i' } }],
                 isActive: true,
             })
             .sort({ level: 1, order: 1 })

@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { ProductModule } from './api/product/product.module';
 import { CrawlerModule } from './api/crawler/crawler.module';
 import { AuthModule } from './api/auth/auth.module';
-
-import { databaseConfig } from './config/database.config';
+import { ContactModule } from './api/contact/contact.module';
+import { CompanyModule } from './api/company/company.module';
+import { HomeSettingsModule } from './api/home-settings/home-settings.module';
+import { CategoryModule } from './api/category/category.module';
+import { ResourceModule } from './api/resource/resource.module';
 
 @Module({
     imports: [
@@ -14,10 +17,20 @@ import { databaseConfig } from './config/database.config';
             isGlobal: true,
             envFilePath: '.env',
         }),
-        MongooseModule.forRoot(databaseConfig.uri, databaseConfig.options),
+        MongooseModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => ({
+                uri: configService.get<string>('MONGODB_URI'),
+            }),
+        }),
         AuthModule,
         ProductModule,
         CrawlerModule,
+        ContactModule,
+        CompanyModule,
+        HomeSettingsModule,
+        CategoryModule,
+        ResourceModule,
     ],
 })
 export class AppModule {}

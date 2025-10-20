@@ -201,7 +201,9 @@ export class HomeSettingsAdminService {
             const invalidUrls = imageUrls.filter((url) => !currentUrls.includes(url));
 
             if (invalidUrls.length > 0) {
-                throw new BadRequestException(`존재하지 않는 이미지 URL이 포함되어 있습니다: ${invalidUrls.join(', ')}`);
+                throw new BadRequestException(
+                    `존재하지 않는 이미지 URL이 포함되어 있습니다: ${invalidUrls.join(', ')}`,
+                );
             }
 
             // 개수 확인

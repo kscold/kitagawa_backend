@@ -1,5 +1,12 @@
 import { Controller, Get, Patch, Post, Delete, Body, Param, UseGuards, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import {
+    ApiTags,
+    ApiOperation,
+    ApiResponse as SwaggerResponse,
+    ApiParam,
+    ApiBearerAuth,
+    ApiBody,
+} from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 import { HomeSettingsAdminService } from './home-settings-admin.service';

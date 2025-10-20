@@ -10,7 +10,11 @@ export class LocationInfo {
     @ApiProperty({ description: '장소명 (한글)', example: '본사' })
     nameKo: string;
 
-    @ApiProperty({ description: '장소 타입', example: 'headquarters', enum: ['headquarters', 'service_center', 'factory'] })
+    @ApiProperty({
+        description: '장소 타입',
+        example: 'headquarters',
+        enum: ['headquarters', 'service_center', 'factory'],
+    })
     type: 'headquarters' | 'service_center' | 'factory';
 
     @ApiProperty({ description: '주소', example: '서울 금천구 가산디지털1로 168 우림라이온스벨리 B동 803호' })

@@ -27,9 +27,10 @@ export class LoggingInterceptor implements NestInterceptor {
         const tokenDisplay = authToken ? `Bearer ${authToken.substring(0, 20)}...` : '';
 
         // Body (POST/PATCH/PUT 요청일 때)
-        const bodyString = ['POST', 'PATCH', 'PUT'].includes(method) && Object.keys(body || {}).length > 0
-            ? JSON.stringify(body, null, 2)
-            : '';
+        const bodyString =
+            ['POST', 'PATCH', 'PUT'].includes(method) && Object.keys(body || {}).length > 0
+                ? JSON.stringify(body, null, 2)
+                : '';
 
         // 로그 메시지 생성
         let logMessage = `

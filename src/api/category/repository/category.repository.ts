@@ -89,10 +89,7 @@ export class CategoryRepository {
      * 특정 부모의 하위 카테고리 조회
      */
     async findByParentName(parentName: string): Promise<CategoryDocument[]> {
-        return (await this.categoryModel
-            .find({ parentName })
-            .sort({ order: 1 })
-            .exec()) as CategoryDocument[];
+        return (await this.categoryModel.find({ parentName }).sort({ order: 1 }).exec()) as CategoryDocument[];
     }
 
     /**
@@ -108,9 +105,6 @@ export class CategoryRepository {
      * 대분류별 카테고리 조회
      */
     async findByMainCategory(mainCategory: string): Promise<CategoryDocument[]> {
-        return (await this.categoryModel
-            .find({ mainCategory })
-            .sort({ order: 1 })
-            .exec()) as CategoryDocument[];
+        return (await this.categoryModel.find({ mainCategory }).sort({ order: 1 }).exec()) as CategoryDocument[];
     }
 }

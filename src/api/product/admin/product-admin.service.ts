@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, Logger, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import {
+    Injectable,
+    NotFoundException,
+    Logger,
+    InternalServerErrorException,
+    BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ProductDocument } from '../../../schemas/product.schema';

@@ -26,7 +26,14 @@ export class TransformResponseInterceptor<T> implements NestInterceptor<T, any> 
         return next.handle().pipe(
             map((data) => {
                 // 이미 표준 형식인 경우 (success, code, message, data 모두 있음)
-                if (data && typeof data === 'object' && 'success' in data && 'code' in data && 'message' in data && 'data' in data) {
+                if (
+                    data &&
+                    typeof data === 'object' &&
+                    'success' in data &&
+                    'code' in data &&
+                    'message' in data &&
+                    'data' in data
+                ) {
                     return data;
                 }
 
@@ -75,5 +82,4 @@ export class TransformResponseInterceptor<T> implements NestInterceptor<T, any> 
             }),
         );
     }
-
 }

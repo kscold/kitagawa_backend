@@ -122,7 +122,8 @@ export class AuthController {
                 code: 200,
                 message: '로그인 성공',
                 data: {
-                    accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OGVhNWU0ZWZiOWEzNDFkZmYyZjYwOWQiLCJ1c2VybmFtZSI6ImtpdGFnYXdhIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM3Mjg4MTg0LCJleHAiOjE3MzcyOTE3ODR9.abc123def456',
+                    accessToken:
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OGVhNWU0ZWZiOWEzNDFkZmYyZjYwOWQiLCJ1c2VybmFtZSI6ImtpdGFnYXdhIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM3Mjg4MTg0LCJleHAiOjE3MzcyOTE3ODR9.abc123def456',
                     admin: {
                         _id: '507f1f77bcf86cd799439011',
                         username: 'kitagawa',

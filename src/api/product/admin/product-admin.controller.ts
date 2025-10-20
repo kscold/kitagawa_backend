@@ -1,5 +1,12 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import {
+    ApiTags,
+    ApiOperation,
+    ApiResponse as SwaggerResponse,
+    ApiParam,
+    ApiBearerAuth,
+    ApiBody,
+} from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 import { PaginationQueryDto } from '../../../common/dto/pagination/pagination-query.dto';
@@ -51,10 +58,7 @@ export class ProductAdminController {
             },
         },
     })
-    async findAll(
-        @Query() paginationQuery: PaginationQueryDto,
-        @Query() filterDto: ProductFilterRequestDto,
-    ) {
+    async findAll(@Query() paginationQuery: PaginationQueryDto, @Query() filterDto: ProductFilterRequestDto) {
         const { products, total } = await this.productAdminService.findAll({
             ...filterDto,
             limit: paginationQuery.limit,

@@ -1,7 +1,8 @@
-import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { CrawlerService } from './crawler.service';
 import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
+import { SwaggerResponse } from '../../common/decorator/swagger-response.decorator';
 
 @ApiTags('Crawler - Admin')
 @Controller('crawler-admin')
@@ -14,7 +15,25 @@ export class CrawlerController {
      * 모든 카테고리 크롤링
      */
     @Post('crawl-all')
-    @ApiOperation({ summary: '모든 카테고리와 제품 크롤링 (관리자용)' })
+    @ApiOperation({
+        summary: '모든 카테고리와 제품 크롤링 (관리자용)',
+        description: '키타가와 웹사이트의 모든 카테고리와 제품을 크롤링합니다.',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '크롤링 성공',
+        schema: {
+            example: {
+                success: true,
+                code: 200,
+                message: 'Successfully crawled 10 categories, saved 150 products',
+                data: {
+                    categories: 10,
+                    products: 150,
+                },
+            },
+        },
+    })
     async crawlAll() {
         // 1단계: 메인 페이지에서 모든 카테고리 추출
         const categories = await this.crawlerService.crawlAllCategories();
@@ -43,6 +62,7 @@ export class CrawlerController {
 
         return {
             success: true,
+            code: HttpStatus.OK,
             message: `Successfully crawled ${categories.length} categories, saved ${totalProducts} products`,
             data: {
                 categories: categories.length,
@@ -55,12 +75,42 @@ export class CrawlerController {
      * 특정 URL 크롤링
      */
     @Post('crawl')
-    @ApiOperation({ summary: '특정 제품 URL 크롤링 (관리자용)' })
-    @ApiBody({ schema: { properties: { url: { type: 'string' } } } })
+    @ApiOperation({
+        summary: '특정 제품 URL 크롤링 (관리자용)',
+        description: '특정 제품 페이지 URL을 크롤링하여 데이터를 수집합니다.',
+    })
+    @ApiBody({
+        schema: {
+            properties: {
+                url: {
+                    type: 'string',
+                    example: 'https://www.kitagawa.com/en/mtools/chuck/br_series.html',
+                    description: '크롤링할 제품 페이지 URL',
+                },
+            },
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '크롤링 성공',
+        schema: {
+            example: {
+                success: true,
+                code: 200,
+                message: 'Crawling completed',
+                data: {
+                    name: 'BR Series Chuck',
+                    category: 'Chuck',
+                    url: 'https://www.kitagawa.com/en/mtools/chuck/br_series.html',
+                },
+            },
+        },
+    })
     async crawlUrl(@Body('url') url: string) {
         const product = await this.crawlerService.crawlProductPage(url);
         return {
             success: true,
+            code: HttpStatus.OK,
             message: 'Crawling completed',
             data: product,
         };
@@ -70,11 +120,26 @@ export class CrawlerController {
      * BR/BR-PLUS Series 크롤링
      */
     @Post('crawl/br-plus-series')
-    @ApiOperation({ summary: 'BR-PLUS Series 제품 크롤링 (관리자용)' })
+    @ApiOperation({
+        summary: 'BR-PLUS Series 제품 크롤링 (관리자용)',
+        description: 'BR-PLUS 시리즈 제품들을 크롤링합니다.',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '크롤링 성공',
+        schema: {
+            example: {
+                success: true,
+                code: 200,
+                message: 'BR-PLUS Series crawling completed',
+            },
+        },
+    })
     async crawlBRPlusSeries() {
         await this.crawlerService.crawlBRPlusSeries();
         return {
             success: true,
+            code: HttpStatus.OK,
             message: 'BR-PLUS Series crawling completed',
         };
     }
@@ -83,11 +148,34 @@ export class CrawlerController {
      * 특정 URL 크롤링 (단일 제품)
      */
     @Post('crawl/url')
-    @ApiOperation({ summary: '특정 URL 크롤링 (관리자용)' })
+    @ApiOperation({
+        summary: '특정 URL 크롤링 (관리자용)',
+        description: '특정 URL의 제품 정보를 크롤링합니다.',
+    })
     @ApiBody({
         schema: {
             properties: {
-                url: { type: 'string', example: 'https://www.kitagawa.com/en/mtools/chuck/br_series.html' },
+                url: {
+                    type: 'string',
+                    example: 'https://www.kitagawa.com/en/mtools/chuck/br_series.html',
+                    description: '크롤링할 URL',
+                },
+            },
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '크롤링 성공',
+        schema: {
+            example: {
+                success: true,
+                code: 200,
+                message: 'Product crawled successfully',
+                data: {
+                    name: 'BR Series Chuck',
+                    category: 'Chuck',
+                    url: 'https://www.kitagawa.com/en/mtools/chuck/br_series.html',
+                },
             },
         },
     })
@@ -95,6 +183,7 @@ export class CrawlerController {
         const product = await this.crawlerService.crawlProductPage(url);
         return {
             success: true,
+            code: HttpStatus.OK,
             message: product ? 'Product crawled successfully' : 'Failed to crawl product',
             data: product,
         };
