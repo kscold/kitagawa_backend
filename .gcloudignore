@@ -1,27 +1,44 @@
 # This file specifies files that are *not* uploaded to Google Cloud
-# using gcloud. It follows the same syntax as .gitignore
-
 .gcloudignore
 .git
 .gitignore
+
+# Node.js dependencies:
 node_modules/
+
+# TypeScript build output
+dist/
+
+# Environment files
+.env
+.env.*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+
+# IDE
 .vscode/
 .idea/
-*.log
-.env.local
-.env.development
-.nvmrc
-.DS_Store
-test/
-*.test.ts
-*.spec.ts
-.prettierrc
-.eslintrc.js
-documentation/
-ssl/
-scripts/
-postman/
-.claude/
-README.md
-deploy.sh
-cloudbuild.yaml
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+.tmp/
+temp/
+tmp/
+.cache/
+
+# CSV files
+*.csv
