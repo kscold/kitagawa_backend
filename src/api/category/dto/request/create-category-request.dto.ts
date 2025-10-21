@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsEnum, IsOptional, IsNumber, IsBoolean, IsUrl, Min } from 'class-validator';
+
 import { CategoryLevel } from '../../../../schemas/category.schema';
 
 /**

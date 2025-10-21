@@ -2,9 +2,10 @@ import { Controller, Get, Post, Body, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse } from '@nestjs/swagger';
 
 import { ContactService } from './contact.service';
+
 import { CreateContactRequestDto } from './dto/request/create-contact-request.dto';
-import { ContactInfoResponseDto } from './dto/response/contact-info-response.dto';
 import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
+import { ContactInfoResponseDto } from './dto/response/contact-info-response.dto';
 
 /**
  * Contact Public API

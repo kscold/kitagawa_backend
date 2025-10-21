@@ -34,20 +34,6 @@ export class CategoryDto {
 }
 
 /**
- * 모델별 사양 DTO
- */
-export class ModelSpecificationDto {
-    @ApiProperty({ description: '모델명', example: 'BR05' })
-    @IsString()
-    @IsNotEmpty()
-    model: string;
-
-    @ApiProperty({ description: '사양 정보 (동적 객체)', example: { diameter: '100mm', weight: '5kg' } })
-    @IsObject()
-    specifications: Record<string, any>;
-}
-
-/**
  * 다운로드 링크 DTO
  */
 export class DownloadLinkDto {
@@ -73,48 +59,16 @@ export class DownloadLinkDto {
 }
 
 /**
- * 매칭 제품 DTO
- */
-export class MatchingProductDto {
-    @ApiPropertyOptional({ description: '제품 타입', example: 'Cylinder' })
-    @IsString()
-    @IsOptional()
-    type?: string;
-
-    @ApiPropertyOptional({ description: '모델명', example: 'CYL-100' })
-    @IsString()
-    @IsOptional()
-    model?: string;
-
-    @ApiPropertyOptional({ description: '제품명', example: 'Hydraulic Cylinder' })
-    @IsString()
-    @IsOptional()
-    productName?: string;
-
-    @ApiPropertyOptional({ description: '제품 상세 URL', example: 'https://example.com/product' })
-    @IsUrl()
-    @IsOptional()
-    url?: string;
-
-    @ApiPropertyOptional({ description: '이미지 URL', example: 'https://example.com/image.jpg' })
-    @IsUrl()
-    @IsOptional()
-    imageUrl?: string;
-}
-
-/**
  * 제품 생성 요청 DTO
  */
 export class CreateProductRequestDto {
-    @ApiProperty({ description: '제품 슬러그 (URL 친화적, 고유값)', example: 'br-plus-series' })
+    @ApiProperty({
+        description: '제품 슬러그 (URL 친화적인 고유 식별자)',
+        example: 'brbr-plus-series',
+    })
     @IsString()
     @IsNotEmpty()
     slug: string;
-
-    @ApiProperty({ description: '제품 코드 (레거시 호환용)', example: 'BR-PLUS-001' })
-    @IsString()
-    @IsNotEmpty()
-    productCode: string;
 
     @ApiProperty({ description: '제품명', example: 'BR-PLUS Series Chuck' })
     @IsString()
@@ -130,16 +84,6 @@ export class CreateProductRequestDto {
     @ValidateNested()
     @Type(() => CategoryDto)
     category: CategoryDto;
-
-    @ApiPropertyOptional({ description: '제품 설명' })
-    @IsString()
-    @IsOptional()
-    description?: string;
-
-    @ApiPropertyOptional({ description: '한국어 설명' })
-    @IsString()
-    @IsOptional()
-    descriptionKo?: string;
 
     @ApiPropertyOptional({ description: '원본 Kitagawa 페이지 URL' })
     @IsUrl()
@@ -162,32 +106,12 @@ export class CreateProductRequestDto {
     @IsOptional()
     specificationHtml?: string;
 
-    @ApiPropertyOptional({ description: '모델별 사양 정보', type: [ModelSpecificationDto] })
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => ModelSpecificationDto)
-    @IsOptional()
-    models?: ModelSpecificationDto[];
-
-    @ApiPropertyOptional({ description: '사용 가능한 모델 목록', type: [String] })
-    @IsArray()
-    @IsString({ each: true })
-    @IsOptional()
-    availableModels?: string[];
-
     @ApiPropertyOptional({ description: '다운로드 링크', type: [DownloadLinkDto] })
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => DownloadLinkDto)
     @IsOptional()
     downloads?: DownloadLinkDto[];
-
-    @ApiPropertyOptional({ description: '매칭 제품', type: [MatchingProductDto] })
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => MatchingProductDto)
-    @IsOptional()
-    matchingProducts?: MatchingProductDto[];
 
     @ApiPropertyOptional({ description: '추가 정보', example: { feature1: 'value1' } })
     @IsObject()

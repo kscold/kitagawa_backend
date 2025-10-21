@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+
 import { HomeSettingsDocument } from '../../schemas/home-settings.schema';
+
 import { HomeSettingsRepository } from './repository/home-settings.repository';
 
 /**

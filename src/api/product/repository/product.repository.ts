@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { Product, ProductDocument } from '../../../schemas/product.schema';
 import { createSearchQuery } from '../../../common/utils/korean-search.util';
+
+import { Product, ProductDocument } from '../../../schemas/product.schema';
 
 /**
  * Product Repository
@@ -97,18 +98,10 @@ export class ProductRepository {
     }
 
     /**
-     * 슬러그로 조회 (주 메서드)
+     * slug로 제품 조회 (slug로도 사용됨)
      */
     async findBySlug(slug: string): Promise<ProductDocument | null> {
         const query: any = this.productModel.findOne({ slug });
-        return (await query.exec()) as ProductDocument | null;
-    }
-
-    /**
-     * 제품 코드로 조회 (레거시 호환용)
-     */
-    async findByCode(productCode: string): Promise<ProductDocument | null> {
-        const query: any = this.productModel.findOne({ productCode });
         return (await query.exec()) as ProductDocument | null;
     }
 
@@ -141,7 +134,7 @@ export class ProductRepository {
                             subCategory: '$category.subCategory',
                         },
                         count: { $sum: 1 },
-                        products: { $push: { productCode: '$productCode', productName: '$productName' } },
+                        products: { $push: { slug: '$slug', productName: '$productName' } },
                     },
                 },
                 {
@@ -195,10 +188,7 @@ export class ProductRepository {
 
         // 키워드 검색
         if (params.keyword) {
-            query.$or = [
-                { productName: new RegExp(params.keyword, 'i') },
-                { productCode: new RegExp(params.keyword, 'i') },
-            ];
+            query.$or = [{ productName: new RegExp(params.keyword, 'i') }, { slug: new RegExp(params.keyword, 'i') }];
         }
 
         // 카테고리 필터
@@ -279,7 +269,7 @@ export class ProductRepository {
         baseQuery.$or = [
             { productName: searchRegex },
             { productNameKo: searchRegex },
-            { productCode: searchRegex },
+            { slug: searchRegex },
             { 'category.series': searchRegex },
             { 'category.mainCategory': searchRegex },
             { 'category.subCategory': searchRegex },
@@ -340,7 +330,7 @@ export class ProductRepository {
                                 $cond: [
                                     {
                                         $regexMatch: {
-                                            input: '$productCode',
+                                            input: '$slug',
                                             regex: `^${params.keyword}$`,
                                             options: 'i',
                                         },
@@ -350,7 +340,7 @@ export class ProductRepository {
                                         $cond: [
                                             {
                                                 $regexMatch: {
-                                                    input: '$productCode',
+                                                    input: '$slug',
                                                     regex: `^${params.keyword}`,
                                                     options: 'i',
                                                 },
@@ -360,7 +350,7 @@ export class ProductRepository {
                                                 $cond: [
                                                     {
                                                         $regexMatch: {
-                                                            input: '$productCode',
+                                                            input: '$slug',
                                                             regex: params.keyword,
                                                             options: 'i',
                                                         },
@@ -412,49 +402,25 @@ export class ProductRepository {
     }
 
     /**
-     * 제품 수정 (레거시 - productCode 기반)
+     * 제품 수정 (레거시 - slug 기반)
      */
-    async update(productCode: string, productData: Partial<Product>): Promise<ProductDocument | null> {
-        const query: any = this.productModel.findOneAndUpdate({ productCode }, { $set: productData }, { new: true });
-        return (await query.exec()) as ProductDocument | null;
-    }
-
-    /**
-     * 제품 수정 (slug 기반)
-     */
-    async updateBySlug(slug: string, productData: Partial<Product>): Promise<ProductDocument | null> {
+    async update(slug: string, productData: Partial<Product>): Promise<ProductDocument | null> {
         const query: any = this.productModel.findOneAndUpdate({ slug }, { $set: productData }, { new: true });
         return (await query.exec()) as ProductDocument | null;
     }
 
     /**
-     * 제품 삭제 (레거시 - productCode 기반)
-     */
-    async delete(productCode: string): Promise<boolean> {
-        const result = await this.productModel.deleteOne({ productCode }).exec();
-        return result.deletedCount > 0;
-    }
-
-    /**
      * 제품 삭제 (slug 기반)
      */
-    async deleteBySlug(slug: string): Promise<boolean> {
+    async delete(slug: string): Promise<boolean> {
         const result = await this.productModel.deleteOne({ slug }).exec();
         return result.deletedCount > 0;
     }
 
     /**
-     * 제품 활성화/비활성화 토글 (레거시 - productCode 기반)
-     */
-    async toggleActive(productCode: string, isActive: boolean): Promise<ProductDocument | null> {
-        const query: any = this.productModel.findOneAndUpdate({ productCode }, { $set: { isActive } }, { new: true });
-        return (await query.exec()) as ProductDocument | null;
-    }
-
-    /**
      * 제품 활성화/비활성화 토글 (slug 기반)
      */
-    async toggleActiveBySlug(slug: string, isActive: boolean): Promise<ProductDocument | null> {
+    async toggleActive(slug: string, isActive: boolean): Promise<ProductDocument | null> {
         const query: any = this.productModel.findOneAndUpdate({ slug }, { $set: { isActive } }, { new: true });
         return (await query.exec()) as ProductDocument | null;
     }

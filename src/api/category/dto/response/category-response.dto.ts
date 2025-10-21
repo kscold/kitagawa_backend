@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+
+import { SeriesInfoDto } from './series-info.dto';
 import { StandardResponseDto } from '../../../../common/dto/response/standard-response.dto';
 import { Level1CategoryResponseDto } from './level1-category-response.dto';
-import { SeriesInfoDto } from './series-info.dto';
 
 /**
  * 하위 카테고리 DTO (Level 2)

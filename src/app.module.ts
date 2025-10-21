@@ -2,14 +2,14 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+import { AuthModule } from './api/auth/auth.module';
 import { ProductModule } from './api/product/product.module';
 import { CrawlerModule } from './api/crawler/crawler.module';
-import { AuthModule } from './api/auth/auth.module';
 import { ContactModule } from './api/contact/contact.module';
 import { CompanyModule } from './api/company/company.module';
-import { HomeSettingsModule } from './api/home-settings/home-settings.module';
 import { CategoryModule } from './api/category/category.module';
 import { ResourceModule } from './api/resource/resource.module';
+import { HomeSettingsModule } from './api/home-settings/home-settings.module';
 
 @Module({
     imports: [

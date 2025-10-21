@@ -6,8 +6,10 @@ import {
     NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { HomeSettingsDocument, HomeImage } from '../../../schemas/home-settings.schema';
+
 import { HomeSettingsRepository } from '../repository/home-settings.repository';
+
+import { HomeSettingsDocument, HomeImage } from '../../../schemas/home-settings.schema';
 
 /**
  * HomeSettings Admin Service

@@ -14,7 +14,6 @@
         "start:debug": "ts-node --inspect src/main.ts",
         "start:prod": "node dist/main.js",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "generate:token": "ts-node scripts/generate-admin-token.ts",
         "deploy": "yarn build && gcloud functions deploy kitagawa-api --runtime nodejs20 --trigger-http --allow-unauthenticated --entry-point api --region asia-northeast3 --source . --set-env-vars MONGODB_URI=$MONGODB_URI,NODE_ENV=production,PORT=8080 --max-instances=10 --memory=512MB --timeout=60s"
     },
     "keywords": [
@@ -41,6 +40,7 @@
         "cheerio": "^1.1.2",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.2",
+        "dotenv": "^17.2.3",
         "express": "^5.1.0",
         "mongoose": "^8.19.1",
         "passport": "^0.7.0",

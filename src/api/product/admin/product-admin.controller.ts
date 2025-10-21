@@ -88,7 +88,7 @@ export class ProductAdminController {
     })
     @SwaggerResponse({
         status: HttpStatus.BAD_REQUEST,
-        description: '잘못된 요청 (중복된 제품 코드 등)',
+        description: '잘못된 요청 (중복된 제품 슬러그 등)',
     })
     @SwaggerResponse({
         status: HttpStatus.UNAUTHORIZED,
@@ -111,7 +111,7 @@ export class ProductAdminController {
         summary: '제품 상세 조회 (관리자)',
         description: '제품 슬러그로 상세 정보를 조회합니다 (관리자 인증 필요)',
     })
-    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-r' })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 조회 성공',
@@ -141,7 +141,7 @@ export class ProductAdminController {
         summary: '제품 수정',
         description: '제품 정보를 수정합니다 (관리자 인증 필요)',
     })
-    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-r' })
     @ApiBody({ type: UpdateProductRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
@@ -172,7 +172,7 @@ export class ProductAdminController {
         summary: '제품 삭제',
         description: '제품을 영구 삭제합니다 (관리자 인증 필요)',
     })
-    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-r' })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 삭제 성공',
@@ -204,7 +204,7 @@ export class ProductAdminController {
         summary: '제품 비활성화',
         description: '제품을 비활성화합니다. 비활성화된 제품은 일반 사용자에게 노출되지 않습니다 (관리자 인증 필요)',
     })
-    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-r' })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 비활성화 성공',
@@ -238,7 +238,7 @@ export class ProductAdminController {
         summary: '제품 활성화',
         description: '제품을 활성화합니다. 활성화된 제품은 일반 사용자에게 노출됩니다 (관리자 인증 필요)',
     })
-    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-ckr-series' })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-r' })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 활성화 성공',

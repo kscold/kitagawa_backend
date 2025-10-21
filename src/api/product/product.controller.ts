@@ -38,7 +38,7 @@ export class ProductController {
 
 검색 대상:
 - 제품명 (영어/한글)
-- 제품 코드
+- 제품 슬러그
 - 시리즈명
 - 카테고리명
 - 태그
@@ -61,7 +61,7 @@ export class ProductController {
                             _id: '507f1f77bcf86cd799439011',
                             productName: 'MR Series',
                             productNameKo: 'MR 시리즈',
-                            productCode: 'mr',
+                            slug: 'mr',
                             series: 'MR series',
                             mainCategory: 'Chuck',
                             subCategory: 'Hydraulic Hollow Chuck',
@@ -129,7 +129,7 @@ export class ProductController {
                         _id: '507f1f77bcf86cd799439011',
                         productName: 'MR Series',
                         productNameKo: 'MR 시리즈',
-                        productCode: 'mr',
+                        slug: 'mr',
                         series: 'MR series',
                         mainCategory: 'Chuck',
                         subCategory: 'Hydraulic Hollow Chuck',
@@ -143,7 +143,7 @@ export class ProductController {
                         _id: '507f1f77bcf86cd799439012',
                         productName: 'BB Series',
                         productNameKo: 'BB 시리즈',
-                        productCode: 'bb',
+                        slug: 'bb',
                         series: 'BB series',
                         mainCategory: 'Chuck',
                         subCategory: 'Power Chuck',
@@ -197,7 +197,7 @@ export class ProductController {
                         _id: '507f1f77bcf86cd799439013',
                         productName: 'Popular Product 1',
                         productNameKo: '인기 제품 1',
-                        productCode: 'pp-001',
+                        slug: 'pp-001',
                         series: 'PP series',
                         mainCategory: 'Chuck',
                         subCategory: 'Power Chuck',
@@ -251,7 +251,7 @@ export class ProductController {
                         _id: '507f1f77bcf86cd799439014',
                         productName: 'New Product 1',
                         productNameKo: '신제품 1',
-                        productCode: 'np-001',
+                        slug: 'np-001',
                         series: 'NP series',
                         mainCategory: 'Chuck',
                         subCategory: 'Hydraulic Chuck',
@@ -277,17 +277,17 @@ export class ProductController {
     }
 
     /**
-     * 제품 상세 조회 (슬러그 기반) - 주 엔드포인트
+     * 제품 상세 조회 (slug 기반) - 주 엔드포인트
      * 주의: 이 엔드포인트는 가장 마지막에 위치해야 합니다 (catch-all 역할)
      */
     @Get(':slug')
     @ApiOperation({
-        summary: '제품 상세 조회 (슬러그)',
+        summary: '제품 상세 조회',
         description: `
 제품 슬러그로 특정 제품의 상세 정보를 조회합니다 (인증 불필요).
 
-슬러그는 카테고리 API에서 반환되는 시리즈 슬러그입니다.
-예: "ck-ckr-series", "mr-series", "tail-spindle"
+slug는 URL slug로도 사용됩니다.
+예: "ck-r", "mr", "tail-spindle"
 
 포함 정보:
 - 제품 기본 정보 (이름, 코드, 이미지)
@@ -300,8 +300,8 @@ export class ProductController {
     })
     @ApiParam({
         name: 'slug',
-        description: '제품 슬러그 (kebab-case)',
-        example: 'ck-ckr-series',
+        description: '제품 슬러그 (URL slug)',
+        example: 'ck-r',
     })
     @SwaggerResponse({
         status: HttpStatus.OK,
@@ -316,7 +316,7 @@ export class ProductController {
                     _id: '507f1f77bcf86cd799439011',
                     productName: 'CK / CKR series',
                     productNameKo: 'CK / CKR 시리즈',
-                    productCode: 'ck-ckr-series',
+                    slug: 'ck-r',
                     series: 'CK / CKR series',
                     mainCategory: 'NC ROTARY TABLE',
                     subCategory: '4축 표준사양',
@@ -340,7 +340,7 @@ export class ProductController {
                             model: 'CK-320',
                         },
                     ],
-                    matchingProducts: ['mk-series', 'mr-series'],
+                    matchingProducts: ['mk-series', 'mr'],
                 },
             },
         },

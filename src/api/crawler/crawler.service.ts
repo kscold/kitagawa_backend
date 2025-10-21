@@ -117,10 +117,10 @@ export class CrawlerService {
             const $ = cheerio.load(response.data);
 
             // 제품 코드 추출
-            const productCode = this.extractProductCode(url, $);
+            const slug = this.extractProductCode(url, $);
 
             // 제품명 추출
-            const productName = $('h2, .prodname, #main h1').first().text().trim() || productCode;
+            const productName = $('h2, .prodname, #main h1').first().text().trim() || slug;
 
             // 카테고리 추출
             const breadcrumbs = $('.breadcrumb, .topicPath');
@@ -139,17 +139,121 @@ export class CrawlerService {
             const specHtml = $('#spec').html() || '';
             this.logger.log(`Extracted spec HTML length: ${specHtml.length} characters`);
 
-            // 이미지 추출 (제품 이미지 + spec 섹션 이미지)
-            const imageUrls: string[] = [];
-            $('#main img, #spec img').each((_, img) => {
-                const src = $(img).attr('src');
-                if (src && !src.includes('spacer') && !src.includes('icon') && !src.includes('blank')) {
-                    const fullSrc = src.startsWith('http') ? src : `${this.baseUrl}${src}`;
-                    if (!imageUrls.includes(fullSrc)) {
-                        imageUrls.push(fullSrc);
+            // 다운로드 링크 추출 - 메인 카탈로그 PDF만 수집 (전체 페이지에서 검색)
+            const downloads: any[] = [];
+            let mainCatalogPdf = '';
+
+            // 1. 먼저 "Download Catalogue pages" 링크 찾기 (주로 페이지 상단에 위치)
+            $('a[href*="PDF"], a[href*="pdf"]').each((_, link) => {
+                const href = $(link).attr('href');
+                const text = $(link).text().trim().toLowerCase();
+
+                if (href && text.includes('catalogue')) {
+                    const fileName = href.split('/').pop() || '';
+                    if (/^\d+_/.test(fileName) || fileName.toLowerCase().includes('series')) {
+                        mainCatalogPdf = href.startsWith('http') ? href : `${this.baseUrl}${href}`;
+                        this.logger.log(`  Found main catalog PDF: ${fileName}`);
+                        return false; // break loop
                     }
                 }
             });
+
+            // 2. 찾지 못했다면 #spec 섹션에서 메인 카탈로그 PDF 찾기
+            if (!mainCatalogPdf) {
+                $('#spec a[href*="pdf"], #spec a[href*="PDF"]').each((_, link) => {
+                    const href = $(link).attr('href');
+
+                    if (href) {
+                        const fileName = href.split('/').pop() || '';
+                        const isIndividualModelFile =
+                            /^DHP-\w+\.pdf$/i.test(fileName) || /^\w{2,4}-\d+\.pdf$/i.test(fileName);
+                        const isMainCatalog =
+                            /^\d+_/.test(fileName) ||
+                            fileName.toLowerCase().includes('series') ||
+                            fileName.toLowerCase().includes('catalog');
+
+                        if (isMainCatalog && !isIndividualModelFile && !mainCatalogPdf) {
+                            mainCatalogPdf = href.startsWith('http') ? href : `${this.baseUrl}${href}`;
+                            this.logger.log(`  Found catalog PDF in spec: ${fileName}`);
+                        }
+                    }
+                });
+            }
+
+            // 메인 카탈로그 PDF를 downloads 배열에 추가
+            if (mainCatalogPdf) {
+                downloads.push({
+                    type: 'PDF',
+                    category: 'Catalog',
+                    url: mainCatalogPdf,
+                    model: 'All',
+                });
+            }
+
+            // 이미지 추출 - 아이콘 이미지 제외, 실제 제품 이미지만 수집
+            const imageUrls: string[] = [];
+
+            // 제외할 아이콘/UI 이미지 패턴
+            const iconPatterns = [
+                'spacer',
+                'icon',
+                'blank',
+                'dopdf.gif',
+                'domigi.gif',
+                'dohidari.gif',
+                'dotif.gif',
+                'dodxf.gif',
+                'dodwg.gif',
+                'picture_gif/do', // do로 시작하는 gif 아이콘들
+                '/inc/product/images/entry/', // 엔트리 아이콘들
+                '/inc/product/images/side/', // 사이드바 이미지들
+                'meganav', // 메가 네비게이션 이미지들
+                'sitelink', // 사이트 링크 이미지들
+                'support.png',
+                'faq.png',
+                'network.png',
+                'exhibition.png',
+            ];
+
+            // 먼저 실제 제품 이미지 찾기 (figure, fancybox 등)
+            const productImages: string[] = [];
+            $('figure img, .fancybox img, .product-image img, #main > img').each((_, img) => {
+                const src = $(img).attr('src');
+                if (src && !iconPatterns.some(pattern => src.includes(pattern))) {
+                    const fullSrc = src.startsWith('http') ? src : `${this.baseUrl}${src}`;
+                    if (!productImages.includes(fullSrc)) {
+                        productImages.push(fullSrc);
+                    }
+                }
+            });
+
+            // figure 태그의 링크에서도 이미지 추출
+            $('figure a[href*=".jpg"], figure a[href*=".png"], .fancybox[href*=".jpg"], .fancybox[href*=".png"]').each((_, link) => {
+                const href = $(link).attr('href');
+                if (href && !iconPatterns.some(pattern => href.includes(pattern))) {
+                    const fullHref = href.startsWith('http') ? href : `${this.baseUrl}${href}`;
+                    if (!productImages.includes(fullHref)) {
+                        productImages.push(fullHref);
+                    }
+                }
+            });
+
+            // 제품 이미지가 있으면 그것을 사용, 없으면 일반 이미지에서 필터링
+            if (productImages.length > 0) {
+                imageUrls.push(...productImages);
+            } else {
+                // 일반 이미지 수집 (아이콘 제외)
+                $('#main img').each((_, img) => {
+                    const src = $(img).attr('src');
+                    if (src && !iconPatterns.some(pattern => src.includes(pattern))) {
+                        const fullSrc = src.startsWith('http') ? src : `${this.baseUrl}${src}`;
+                        if (!imageUrls.includes(fullSrc)) {
+                            imageUrls.push(fullSrc);
+                        }
+                    }
+                });
+            }
+
             const mainImageUrl = imageUrls[0] || '';
 
             // 유튜브 링크 추출
@@ -162,52 +266,16 @@ export class CrawlerService {
                 }
             });
 
-            // 제품 설명 추출
-            const description = $('.lead, .description, #main p').first().text().trim();
-
-            // 다운로드 링크 추출
-            const downloads: any[] = [];
-            $(
-                '#spec a[href*="pdf"], #spec a[href*="PDF"], #spec a[href*="dxf"], #spec a[href*="DXF"], #spec a[href*="dwg"], #spec a[href*="DWG"], #spec a[href*="3D"]',
-            ).each((_, link) => {
-                const href = $(link).attr('href');
-                const text = $(link).text().trim();
-
-                if (href) {
-                    const fullUrl = href.startsWith('http') ? href : `${this.baseUrl}${href}`;
-                    let type = 'PDF';
-                    let category = '2D';
-
-                    if (href.toLowerCase().includes('.dxf')) type = 'DXF';
-                    if (href.toLowerCase().includes('.dwg')) type = 'DWG';
-                    if (href.toLowerCase().includes('parasolid')) {
-                        type = 'Parasolid';
-                        category = '3D';
-                    }
-                    if (href.toLowerCase().includes('step')) {
-                        type = 'STEP';
-                        category = '3D';
-                    }
-
-                    downloads.push({
-                        type,
-                        category,
-                        url: fullUrl,
-                        model: text || 'All',
-                    });
-                }
-            });
-
             // MongoDB에 저장할 데이터 구성
+            const seriesName = this.extractSeriesName(productName, slug);
             const productData: Partial<Product> = {
-                productCode,
+                slug,
                 productName,
                 category: {
                     mainCategory,
                     subCategory,
-                    series: productName,
+                    series: seriesName,
                 },
-                description,
                 sourceUrl: url,
                 imageUrls,
                 mainImageUrl,
@@ -224,13 +292,13 @@ export class CrawlerService {
 
             // MongoDB에 저장 (upsert)
             const product: any = (await this.productModel
-                .findOneAndUpdate({ productCode }, productData, {
+                .findOneAndUpdate({ slug }, productData, {
                     upsert: true,
                     new: true,
                 })
                 .exec()) as any;
 
-            this.logger.log(`✅ Product saved: ${productCode}`);
+            this.logger.log(`✅ Product saved: ${slug}`);
             return product;
         } catch (error) {
             this.logger.error(`Error crawling product page ${url}: ${error.message}`);
@@ -242,7 +310,7 @@ export class CrawlerService {
      * 제품 코드 추출
      */
     private extractProductCode(url: string, $: cheerio.CheerioAPI): string {
-        // URL에서 추출 (예: /br_series.html -> br_series)
+        // URL에서 추출 (예: /br_series.html -> br_series, /ck_r.html -> ck_r)
         const match = url.match(/\/([^\/]+)\.html$/);
         if (match) {
             return match[1];
@@ -250,6 +318,56 @@ export class CrawlerService {
 
         // 또는 페이지 내에서 추출
         return $('meta[name="product-code"]').attr('content') || `product_${Date.now()}`;
+    }
+
+    /**
+     * productName에서 series 이름 추출
+     * 예: "High Precision Power ChuckBR series" -> "BR series"
+     */
+    private extractSeriesName(productName: string, slug: string): string {
+        // 1. "Chuck", "table" 등의 단어 뒤에 나오는 시리즈 이름 추출
+        // 예: "Power ChuckBR series" -> "BR series"
+        const afterKeywordMatch = productName.match(/(?:chuck|table|vise|cylinder|gripper)([A-Z0-9][A-Z0-9\-\/\(\)]*)\s*series/i);
+        if (afterKeywordMatch) {
+            let extracted = afterKeywordMatch[1].trim();
+
+            // "CK(R)" -> "CK / CKR"로 변환
+            if (extracted.includes('(') && extracted.includes(')')) {
+                const baseMatch = extracted.match(/^([A-Z]+)\(([A-Z]+)\)$/);
+                if (baseMatch) {
+                    extracted = `${baseMatch[1]} / ${baseMatch[1]}${baseMatch[2]}`;
+                }
+            }
+
+            return `${extracted} series`;
+        }
+
+        // 2. 일반적인 "series" 키워드 매칭 (단어 경계 포함)
+        // 예: "MR series", "BR series"
+        const seriesMatch = productName.match(/\b([A-Z0-9][A-Z0-9\-\/\(\)]*(?:\s*\/\s*[A-Z0-9\-\/\(\)]+)*)\s*series/i);
+        if (seriesMatch) {
+            let extracted = seriesMatch[1].trim();
+
+            // "CK(R)" -> "CK / CKR"로 변환
+            if (extracted.includes('(') && extracted.includes(')')) {
+                const baseMatch = extracted.match(/^([A-Z]+)\(([A-Z]+)\)$/);
+                if (baseMatch) {
+                    extracted = `${baseMatch[1]} / ${baseMatch[1]}${baseMatch[2]}`;
+                }
+            }
+
+            return `${extracted} series`;
+        }
+
+        // 3. "series" 키워드가 없는 경우 (예: "Tailstock Manual", "Tail Spindle")
+        // productName이 짧으면 그대로 사용
+        if (productName.length < 30 && !productName.toLowerCase().includes('chuck') && !productName.toLowerCase().includes('table')) {
+            return productName;
+        }
+
+        // 4. slug를 대문자로 변환하여 사용 (예: "ck_r" -> "CK_R series")
+        const slugSeries = slug.toUpperCase().replace(/_/g, ' ') + ' series';
+        return slugSeries;
     }
 
     /**

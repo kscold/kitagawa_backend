@@ -2,7 +2,6 @@ import { Controller, Get, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse } from '@nestjs/swagger';
 
 import { CompanyService } from './company.service';
-import { CompanyInfoResponseDto } from './dto/response/company-info-response.dto';
 
 /**
  * Company Public API

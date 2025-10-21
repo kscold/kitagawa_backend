@@ -1,11 +1,14 @@
 import { Controller, Post, Body, Get, UseGuards, Request, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
+
 import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
+
+import { AuthService } from './auth.service';
+
 import {
-    RegisterResponseDto,
     LoginResponseDto,
     GetMeResponseDto,
+    RegisterResponseDto,
     GetAllAdminsResponseDto,
 } from './dto/response/auth-response.dto';
 

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger, InternalServerErrorException } f
 import { ConfigService } from '@nestjs/config';
 
 import { ProductDocument } from '../../schemas/product.schema';
+
 import { ProductRepository } from './repository/product.repository';
 
 /**
@@ -154,42 +155,6 @@ export class ProductService {
     }
 
     /**
-     * 제품 코드로 조회 (조회수 증가)
-     */
-    async findByCode(productCode: string, incrementView: boolean = true): Promise<ProductDocument> {
-        const methodName = 'findByCode';
-
-        try {
-            if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}, incrementView: ${incrementView}`);
-            }
-
-            const product = await this.productRepository.findByCode(productCode);
-
-            if (!product) {
-                throw new NotFoundException(`제품 코드 '${productCode}'에 해당하는 제품을 찾을 수 없습니다`);
-            }
-
-            // 조회수 증가
-            if (incrementView) {
-                await this.productRepository.incrementViewCount(productCode);
-            }
-
-            if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - productCode: ${productCode}`);
-            }
-
-            return product;
-        } catch (error) {
-            if (error instanceof NotFoundException) {
-                throw error;
-            }
-            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 조회 중 오류가 발생했습니다');
-        }
-    }
-
-    /**
      * 제품 ID로 조회
      */
     async findById(id: string): Promise<ProductDocument> {
@@ -221,7 +186,8 @@ export class ProductService {
     }
 
     /**
-     * 슬러그로 제품 조회 (단일 제품 상세 조회용) - 주 메서드
+     * slug로 제품 조회 (단일 제품 상세 조회용)
+     * slug는 URL slug로도 사용됨
      */
     async findBySlug(slug: string, incrementView = true): Promise<ProductDocument> {
         const methodName = 'findBySlug';
@@ -234,7 +200,7 @@ export class ProductService {
             const product = await this.productRepository.findBySlug(slug);
 
             if (!product) {
-                throw new NotFoundException(`슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new NotFoundException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // 조회수 증가
@@ -316,16 +282,16 @@ export class ProductService {
      * 매칭 제품 조회
      * TODO: 매칭 로직 구현 필요
      */
-    async findMatchingProducts(productCode: string): Promise<ProductDocument[]> {
+    async findMatchingProducts(slug: string): Promise<ProductDocument[]> {
         const methodName = 'findMatchingProducts';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             // 제품 존재 여부 확인
-            await this.findByCode(productCode, false);
+            await this.findBySlug(slug, false);
 
             // TODO: 실제 매칭 로직 구현
             // 현재는 빈 배열 반환
@@ -345,15 +311,15 @@ export class ProductService {
     /**
      * 다운로드 링크 조회
      */
-    async getDownloads(productCode: string, model?: string): Promise<any[]> {
+    async getDownloads(slug: string, model?: string): Promise<any[]> {
         const methodName = 'getDownloads';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - productCode: ${productCode}, model: ${model}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, model: ${model}`);
             }
 
-            const product = await this.findByCode(productCode, false);
+            const product = await this.findBySlug(slug, false);
 
             let downloads = product.downloads || [];
 

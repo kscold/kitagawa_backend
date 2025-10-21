@@ -1,7 +1,6 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler, HttpStatus } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { PaginationResponseDto } from '../dto/pagination/pagination-response.dto';
 
 /**
  * 응답 형식 통일 인터셉터

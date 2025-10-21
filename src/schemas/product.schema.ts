@@ -9,21 +9,11 @@ export class Category {
     @Prop({ required: true })
     mainCategory: string; // 예: "Chucks"
 
-    @Prop({ required: true })
-    subCategory: string; // 예: "Standard Chucks with Wedge"
+    @Prop()
+    subCategory: string; // 예: "Standard Chucks with Wedge" (optional)
 
     @Prop()
     series: string; // 예: "BR/BR-PLUS Series"
-}
-
-// 모델별 사양 스키마
-@Schema({ _id: false })
-export class ModelSpecification {
-    @Prop({ required: true })
-    model: string; // 예: "BR05", "BR06"
-
-    @Prop({ type: Object })
-    specifications: Record<string, any>; // 동적 사양 필드
 }
 
 // 다운로드 링크 스키마
@@ -42,33 +32,11 @@ export class DownloadLink {
     model: string; // 해당 모델명
 }
 
-// 매칭 제품 스키마
-@Schema({ _id: false })
-export class MatchingProduct {
-    @Prop()
-    type: string; // 예: "Cylinder", "Soft Jaws", "Hard Jaws"
-
-    @Prop()
-    model: string; // 모델명
-
-    @Prop()
-    productName: string; // 제품명
-
-    @Prop()
-    url: string; // 제품 상세 페이지 URL
-
-    @Prop()
-    imageUrl: string; // 이미지 URL
-}
-
 // 메인 제품 스키마
 @Schema({ timestamps: true })
 export class Product {
     @Prop({ required: true, unique: true })
-    productCode: string; // 예: "BR-PLUS Series" (레거시 호환용)
-
-    @Prop({ required: true, unique: true })
-    slug: string; // URL 친화적인 슬러그 (예: "br-plus-series", "ck-ckr-series")
+    slug: string; // 예: "brbr-plus-series" (URL 친화적인 고유 식별자)
 
     @Prop({ required: true })
     productName: string; // 제품명
@@ -78,12 +46,6 @@ export class Product {
 
     @Prop({ type: Category, required: true })
     category: Category;
-
-    @Prop()
-    description: string; // 제품 설명
-
-    @Prop()
-    descriptionKo: string; // 한국어 설명
 
     @Prop()
     sourceUrl: string; // 원본 Kitagawa 페이지 URL
@@ -97,17 +59,8 @@ export class Product {
     @Prop({ type: String })
     specificationHtml: string; // Product Specifications HTML (원본 그대로 저장)
 
-    @Prop({ type: [ModelSpecification] })
-    models: ModelSpecification[]; // 모델별 사양 정보
-
-    @Prop([String])
-    availableModels: string[]; // 사용 가능한 모델 목록
-
     @Prop({ type: [DownloadLink] })
     downloads: DownloadLink[]; // 다운로드 가능한 파일들
-
-    @Prop({ type: [MatchingProduct] })
-    matchingProducts: MatchingProduct[]; // 매칭되는 실린더, 조 등
 
     @Prop({ type: Object })
     additionalInfo: Record<string, any>; // 추가 정보를 위한 유연한 필드
@@ -146,5 +99,6 @@ export const ProductSchema = SchemaFactory.createForClass(Product);
 // 인덱스 생성
 ProductSchema.index({ slug: 1 }, { unique: true });
 ProductSchema.index({ 'category.mainCategory': 1, 'category.subCategory': 1 });
+ProductSchema.index({ 'category.series': 1 });
 ProductSchema.index({ tags: 1 });
 ProductSchema.index({ isActive: 1 });

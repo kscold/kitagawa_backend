@@ -3,8 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 import { ContactRequest, ContactRequestDocument } from '../../schemas/contact-request.schema';
+
 import { CreateContactRequestDto } from './dto/request/create-contact-request.dto';
-import { ContactInfoResponseDto, LocationInfo } from './dto/response/contact-info-response.dto';
+import { ContactInfoResponseDto } from './dto/response/contact-info-response.dto';
 
 /**
  * Contact Public Service

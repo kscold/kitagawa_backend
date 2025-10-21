@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+
 import { CategoryModel, CategoryDocument, CategoryLevel } from '../../schemas/category.schema';
 import { Product, ProductDocument } from '../../schemas/product.schema';
+
 import { Level1CategoryResponseDto } from './dto/response/level1-category-response.dto';
 import { SeriesInfoDto } from './dto/response/series-info.dto';
 
@@ -15,21 +17,6 @@ export class CategoryService {
         private productModel: Model<ProductDocument>,
     ) {}
 
-    // 전체 카테고리 조회 (계층 구조)
-    async getAllCategories() {
-        const categories = await this.categoryModel.find({ isActive: true }).sort({ order: 1 }).lean();
-
-        // Level 1 기준으로 그룹화
-        const level1Categories = categories.filter((c) => c.level === CategoryLevel.LEVEL_1);
-
-        const result = level1Categories.map((level1) => ({
-            ...level1,
-            children: this.buildCategoryTree(level1.name, categories),
-        }));
-
-        return result;
-    }
-
     // 재귀적으로 카테고리 트리 구성
     private buildCategoryTree(parentName: string, allCategories: any[]): any[] {
         const children = allCategories.filter((c) => c.parentName === parentName);
@@ -38,16 +25,6 @@ export class CategoryService {
             ...child,
             children: this.buildCategoryTree(child.name, allCategories),
         }));
-    }
-
-    // 시리즈명을 슬러그로 변환 (영어만 사용)
-    private generateSeriesSlug(seriesName: string): string {
-        return seriesName
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^\w\-]/g, '')
-            .replace(/\-\-+/g, '-')
-            .replace(/^-+|-+$/g, '');
     }
 
     // Level 2 카테고리의 시리즈 정보 조회
@@ -59,10 +36,10 @@ export class CategoryService {
                 'category.series': { $exists: true, $nin: [null, ''] },
                 isActive: true,
             })
-            .select('category.series mainImageUrl')
+            .select('slug category.series mainImageUrl')
             .lean();
 
-        const seriesMap = new Map<string, { count: number; imageUrl?: string }>();
+        const seriesMap = new Map<string, { slug: string; count: number; imageUrl?: string }>();
 
         products.forEach((product) => {
             const seriesName = product.category.series;
@@ -75,6 +52,7 @@ export class CategoryService {
                     }
                 } else {
                     seriesMap.set(seriesName, {
+                        slug: product.slug, // 실제 제품의 slug를 slug로 사용
                         count: 1,
                         imageUrl: product.mainImageUrl,
                     });
@@ -84,7 +62,7 @@ export class CategoryService {
 
         const seriesArray: SeriesInfoDto[] = Array.from(seriesMap.entries()).map(([name, data]) => ({
             name,
-            slug: this.generateSeriesSlug(name),
+            slug: data.slug, // slug를 slug로 사용
             productCount: data.count,
             imageUrl: data.imageUrl,
         }));
@@ -104,6 +82,44 @@ export class CategoryService {
         return Level1CategoryResponseDto.fromDocuments(categories);
     }
 
+    // Catalogue 카테고리의 제품 정보 조회 (series가 아닌 제품 자체)
+    private async getProductsForCatalogueCategory(subCategory: string): Promise<SeriesInfoDto[]> {
+        const products = await this.productModel
+            .find({
+                'category.mainCategory': 'CATALOGUE',
+                'category.subCategory': subCategory,
+                isActive: true,
+            })
+            .select('slug productName productNameKo mainImageUrl')
+            .lean();
+
+        return products.map((product) => ({
+            name: product.productName || product.productNameKo,
+            slug: product.slug,
+            productCount: 1,
+            imageUrl: product.mainImageUrl,
+        }));
+    }
+
+    // WORK GRIPPER 카테고리의 제품 정보 조회 (subCategory가 없는 경우)
+    private async getProductsForWorkGripper(): Promise<SeriesInfoDto[]> {
+        const products = await this.productModel
+            .find({
+                'category.mainCategory': 'WORK GRIPPER',
+                'category.subCategory': '', // subCategory가 빈 문자열
+                isActive: true,
+            })
+            .select('slug category.series mainImageUrl')
+            .lean();
+
+        return products.map((product) => ({
+            name: product.category.series,
+            slug: product.slug,
+            productCount: 1,
+            imageUrl: product.mainImageUrl,
+        }));
+    }
+
     // 특정 Level 1 카테고리의 하위 카테고리 조회 (슬러그 기반)
     async getCategoriesBySlug(slug: string) {
         // 먼저 슬러그로 Level 1 카테고리 찾기
@@ -119,6 +135,28 @@ export class CategoryService {
             return null;
         }
 
+        // WORK GRIPPER는 Level 2가 없으므로 특별 처리
+        if (level1Category.name === 'WORK GRIPPER') {
+            const products = await this.getProductsForWorkGripper();
+
+            // WORK GRIPPER는 가상의 Level 2로 반환 (일관된 응답 형식)
+            return [
+                {
+                    _id: level1Category._id,
+                    name: level1Category.name,
+                    nameKo: level1Category.nameKo,
+                    slug: level1Category.slug,
+                    level: 2,
+                    order: 0,
+                    isActive: true,
+                    productCount: products.length,
+                    parentLevelCategory: level1Category.name,
+                    parentLevelSlug: level1Category.slug,
+                    children: products,
+                },
+            ];
+        }
+
         // 해당 Level 1의 모든 하위 카테고리 조회
         const level2Categories = await this.categoryModel
             .find({
@@ -129,10 +167,16 @@ export class CategoryService {
             .sort({ order: 1 })
             .lean();
 
-        // 각 Level 2 카테고리에 대해 시리즈 정보 조회
+        // CATALOGUE인지 확인
+        const isCatalogue = level1Category.name === 'CATALOGUE';
+
+        // 각 Level 2 카테고리에 대해 시리즈/제품 정보 조회
         const level2WithSeries = await Promise.all(
             level2Categories.map(async (level2Cat) => {
-                const series = await this.getSeriesForLevel2Category(level1Category.name, level2Cat.name);
+                // Catalogue는 제품 자체를 children으로, 다른 카테고리는 series를 children으로
+                const children = isCatalogue
+                    ? await this.getProductsForCatalogueCategory(level2Cat.name)
+                    : await this.getSeriesForLevel2Category(level1Category.name, level2Cat.name);
 
                 // Level 2에서 불필요한 필드 제거하고 부모 정보 추가
                 const { parentName, mainCategory, description, descriptionKo, __v, ...level2Rest } = level2Cat;
@@ -141,7 +185,7 @@ export class CategoryService {
                     ...level2Rest,
                     parentLevelCategory: mainCategory, // 부모 카테고리명
                     parentLevelSlug: level1Category.slug, // 부모의 slug
-                    children: series,
+                    children,
                 };
             }),
         );
@@ -168,50 +212,6 @@ export class CategoryService {
         return {
             ...level1,
             children: this.buildCategoryTree(level1.name, allCategories),
-        };
-    }
-
-    // 특정 카테고리 상세 조회 (슬러그 기반)
-    async getCategoryBySlug(slug: string) {
-        return await this.categoryModel.findOne({ slug, isActive: true }).lean();
-    }
-
-    // 카테고리 경로로 조회
-    async getCategoryByPath(path: string[]) {
-        return await this.categoryModel.findOne({ path, isActive: true }).lean();
-    }
-
-    // 카테고리명으로 검색
-    async searchCategories(query: string) {
-        return await this.categoryModel
-            .find({
-                $or: [{ name: { $regex: query, $options: 'i' } }, { nameKo: { $regex: query, $options: 'i' } }],
-                isActive: true,
-            })
-            .sort({ level: 1, order: 1 })
-            .limit(20)
-            .lean();
-    }
-
-    // 카테고리 통계
-    async getCategoryStats() {
-        const stats = await this.categoryModel.aggregate([
-            { $match: { isActive: true } },
-            {
-                $group: {
-                    _id: '$level',
-                    count: { $sum: 1 },
-                },
-            },
-            { $sort: { _id: 1 } },
-        ]);
-
-        return {
-            total: await this.categoryModel.countDocuments({ isActive: true }),
-            byLevel: stats.map((s) => ({
-                level: s._id,
-                count: s.count,
-            })),
         };
     }
 }

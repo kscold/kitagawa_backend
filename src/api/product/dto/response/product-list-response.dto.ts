@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 import { StandardResponseDto, PaginatedResponseDto } from '../../../../common/dto/response/standard-response.dto';
 
 /**
@@ -12,8 +13,8 @@ export class ProductItemDto {
     _id: string;
 
     @ApiProperty({
-        example: 'mr-series',
-        description: '제품 슬러그 (URL 친화적)',
+        example: 'mr',
+        description: '제품 슬러그 (URL 친화적인 고유 식별자)',
     })
     slug: string;
 
@@ -28,12 +29,6 @@ export class ProductItemDto {
         description: '제품명 (한글)',
     })
     productNameKo: string;
-
-    @ApiProperty({
-        example: 'mr',
-        description: '제품 코드',
-    })
-    productCode: string;
 
     @ApiProperty({
         example: 'MR series',
@@ -156,7 +151,7 @@ export class ProductDetailDto extends ProductItemDto {
 
     @ApiProperty({
         example: ['mr-related-1', 'mr-related-2'],
-        description: '매칭 제품 코드 목록',
+        description: '매칭 제품 슬러그 목록',
         isArray: true,
         required: false,
     })

@@ -9,10 +9,12 @@ import {
 } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
+
 import { HomeSettingsAdminService } from './home-settings-admin.service';
-import { UpdateHomeIntroductionRequestDto } from '../dto/request/update-home-introduction-request.dto';
+
 import { AddMainImageRequestDto } from '../dto/request/add-main-image-request.dto';
 import { UpdateImageOrderRequestDto } from '../dto/request/update-image-order-request.dto';
+import { UpdateHomeIntroductionRequestDto } from '../dto/request/update-home-introduction-request.dto';
 
 /**
  * 홈페이지 설정 관리자 API

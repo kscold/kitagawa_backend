@@ -1,11 +1,9 @@
-import { Controller, Get, Param, Query, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery, ApiParam, ApiResponse as SwaggerResponse } from '@nestjs/swagger';
+import { Controller, Get, Param, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiParam, ApiResponse as SwaggerResponse } from '@nestjs/swagger';
+
 import { CategoryService } from './category.service';
-import {
-    CategoryLevel1ListResponseDto,
-    CategoryTreeResponseDto,
-    CategorySearchResponseDto,
-} from './dto/response/category-response.dto';
+
+import { CategoryLevel1ListResponseDto, CategoryTreeResponseDto } from './dto/response/category-response.dto';
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -184,66 +182,6 @@ export class CategoryController {
             success: true,
             code: HttpStatus.OK,
             message: '카테고리 계층 구조 조회 성공',
-            data,
-        };
-    }
-
-    @Get('search')
-    @ApiOperation({
-        summary: '카테고리 검색',
-        description: `
-키워드로 카테고리를 검색합니다.
-
-검색 대상:
-- 카테고리명 (영문/한글)
-- 슬러그
-
-검색 결과는 정확도 순으로 정렬됩니다.
-        `,
-    })
-    @ApiQuery({
-        name: 'q',
-        description: '검색어',
-        example: 'chuck',
-        required: true,
-    })
-    @SwaggerResponse({
-        status: HttpStatus.OK,
-        description: '검색 성공',
-        type: CategorySearchResponseDto,
-        schema: {
-            example: {
-                success: true,
-                code: 200,
-                message: '카테고리 검색 성공',
-                data: [
-                    {
-                        _id: '68f3d059b9aaa2b9a0fb355a',
-                        name: 'Chuck',
-                        nameKo: '척',
-                        slug: 'chuck',
-                        level: 1,
-                        productCount: 24,
-                    },
-                    {
-                        _id: '68f3d059b9aaa2b9a0fb355b',
-                        name: 'Hydraulic Hollow Chuck',
-                        nameKo: '유압 중공 척',
-                        slug: 'chuck-hydraulic-hollow-chuck',
-                        level: 2,
-                        parentName: 'Chuck',
-                        productCount: 8,
-                    },
-                ],
-            },
-        },
-    })
-    async searchCategories(@Query('q') query: string) {
-        const data = await this.categoryService.searchCategories(query);
-        return {
-            success: true,
-            code: HttpStatus.OK,
-            message: '카테고리 검색 성공',
             data,
         };
     }

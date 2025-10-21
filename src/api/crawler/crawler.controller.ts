@@ -1,7 +1,10 @@
-import { Controller, Post, Body, Get, UseGuards, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import { CrawlerService } from './crawler.service';
+
 import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
+
+import { CrawlerService } from './crawler.service';
+
 import { SwaggerResponse } from '../../common/decorator/swagger-response.decorator';
 
 @ApiTags('Crawler - Admin')
@@ -52,12 +55,12 @@ export class CrawlerController {
                     savedProducts.push(product);
                     totalProducts++;
                 }
-                // 서버 부하 방지
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                // 서버 부하 방지 - 제품 간 딜레이 2초
+                await new Promise((resolve) => setTimeout(resolve, 2000));
             }
 
-            // 카테고리 간 딜레이
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // 카테고리 간 딜레이 5초 (타임아웃 방지)
+            await new Promise((resolve) => setTimeout(resolve, 5000));
         }
 
         return {
