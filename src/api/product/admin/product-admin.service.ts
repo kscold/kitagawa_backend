@@ -111,7 +111,7 @@ export class ProductAdminService {
                 ...productData,
                 isActive: productData.isActive ?? true, // 기본값: 활성화
                 isFeatured: productData.isFeatured ?? false, // 기본값: 추천 아님
-                priority: productData.priority ?? 0, // 기본값: 0
+                order: productData.order ?? 0, // 기본값: 0
                 viewCount: 0, // 조회수 초기화
                 metadata: {
                     lastCrawled: new Date(),
@@ -302,6 +302,48 @@ export class ProductAdminService {
             }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
             throw new InternalServerErrorException('제품 활성화 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
+     * 제품 순서 업데이트 (slug 기반, DND용)
+     */
+    async updateOrder(slug: string, order: number): Promise<ProductDocument> {
+        const methodName = 'updateOrder';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, order: ${order}`);
+            }
+
+            // 제품 존재 확인
+            const product = await this.productRepository.findBySlug(slug);
+            if (!product) {
+                throw new NotFoundException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+            }
+
+            // order 유효성 검사
+            if (order < 0) {
+                throw new BadRequestException('order는 0 이상이어야 합니다');
+            }
+
+            // order 업데이트
+            const updatedProduct = await this.productRepository.update(slug, { order });
+            if (!updatedProduct) {
+                throw new InternalServerErrorException('제품 순서 업데이트에 실패했습니다');
+            }
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}, order: ${order}`);
+            }
+
+            return updatedProduct;
+        } catch (error) {
+            if (error instanceof NotFoundException || error instanceof BadRequestException) {
+                throw error;
+            }
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 순서 업데이트 중 오류가 발생했습니다');
         }
     }
 }

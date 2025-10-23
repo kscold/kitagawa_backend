@@ -60,6 +60,13 @@ export class Level1CategoryResponseDto {
     })
     productCount: number;
 
+    @ApiProperty({
+        example: 'Compact & high accuracy Combination with chuck is available.',
+        description: '카테고리 설명',
+        required: false,
+    })
+    content?: string;
+
     /**
      * MongoDB Document를 Level1CategoryResponseDto로 변환
      */
@@ -74,6 +81,7 @@ export class Level1CategoryResponseDto {
             order: doc.order,
             isActive: doc.isActive,
             productCount: doc.productCount,
+            content: doc.content,
         };
     }
 

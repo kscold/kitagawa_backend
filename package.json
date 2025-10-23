@@ -14,7 +14,7 @@
         "start:debug": "ts-node --inspect src/main.ts",
         "start:prod": "node dist/main.js",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "deploy": "yarn build && gcloud functions deploy kitagawa-api --runtime nodejs20 --trigger-http --allow-unauthenticated --entry-point api --region asia-northeast3 --source . --set-env-vars MONGODB_URI=$MONGODB_URI,NODE_ENV=production,PORT=8080 --max-instances=10 --memory=512MB --timeout=60s"
+        "deploy": "source .env && gcloud builds submit --config=cloudbuild.yaml --substitutions=_JWT_ADMIN_SECRET=$JWT_ADMIN_SECRET,_MONGODB_URI=$MONGODB_URI"
     },
     "keywords": [
         "nestjs",

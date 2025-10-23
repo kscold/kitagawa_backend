@@ -42,3 +42,16 @@ tmp/
 
 # CSV files
 *.csv
+
+# Claude
+claude.md
+.claude
+
+# scripts
+scripts/
+
+# postman
+postman/
+
+# documentation
+documentation/

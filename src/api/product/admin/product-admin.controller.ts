@@ -263,4 +263,51 @@ export class ProductAdminController {
             data: await this.productAdminService.activate(slug),
         };
     }
+
+    /**
+     * 제품 순서 업데이트 (관리자 전용, DND용)
+     */
+    @Patch(':slug/order')
+    @ApiOperation({
+        summary: '제품 순서 업데이트',
+        description: '제품의 정렬 순서를 변경합니다 (관리자 인증 필요, DND용)',
+    })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-r' })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                order: {
+                    type: 'number',
+                    description: '정렬 순서 (낮을수록 먼저 노출)',
+                    example: 1,
+                },
+            },
+            required: ['order'],
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '제품 순서 업데이트 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '잘못된 order 값',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async updateOrder(@Param('slug') slug: string, @Body('order') order: number) {
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '제품 순서가 업데이트되었습니다',
+            data: await this.productAdminService.updateOrder(slug, order),
+        };
+    }
 }

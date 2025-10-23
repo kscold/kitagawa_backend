@@ -36,10 +36,11 @@ export class CategoryService {
                 'category.series': { $exists: true, $nin: [null, ''] },
                 isActive: true,
             })
-            .select('slug category.series mainImageUrl')
+            .select('slug category.series mainImageUrl content contentDetail order')
+            .sort({ order: 1, 'category.series': 1 })
             .lean();
 
-        const seriesMap = new Map<string, { slug: string; count: number; imageUrl?: string }>();
+        const seriesMap = new Map<string, { slug: string; count: number; imageUrl?: string; content?: string; contentDetail?: string }>();
 
         products.forEach((product) => {
             const seriesName = product.category.series;
@@ -50,11 +51,19 @@ export class CategoryService {
                     if (!existing.imageUrl && product.mainImageUrl) {
                         existing.imageUrl = product.mainImageUrl;
                     }
+                    if (!existing.content && product.content) {
+                        existing.content = product.content;
+                    }
+                    if (!existing.contentDetail && product.contentDetail) {
+                        existing.contentDetail = product.contentDetail;
+                    }
                 } else {
                     seriesMap.set(seriesName, {
                         slug: product.slug, // 실제 제품의 slug를 slug로 사용
                         count: 1,
                         imageUrl: product.mainImageUrl,
+                        content: product.content,
+                        contentDetail: product.contentDetail,
                     });
                 }
             }
@@ -65,6 +74,8 @@ export class CategoryService {
             slug: data.slug, // slug를 slug로 사용
             productCount: data.count,
             imageUrl: data.imageUrl,
+            content: data.content,
+            contentDetail: data.contentDetail,
         }));
 
         seriesArray.sort((a, b) => a.name.localeCompare(b.name));
@@ -90,11 +101,12 @@ export class CategoryService {
                 'category.subCategory': subCategory,
                 isActive: true,
             })
-            .select('slug productName productNameKo mainImageUrl')
+            .select('slug productNameKo mainImageUrl category.series order')
+            .sort({ order: 1, productNameKo: 1 })
             .lean();
 
         return products.map((product) => ({
-            name: product.productName || product.productNameKo,
+            name: product.category.series || product.productNameKo || 'Unknown',
             slug: product.slug,
             productCount: 1,
             imageUrl: product.mainImageUrl,
@@ -109,7 +121,8 @@ export class CategoryService {
                 'category.subCategory': '', // subCategory가 빈 문자열
                 isActive: true,
             })
-            .select('slug category.series mainImageUrl')
+            .select('slug category.series mainImageUrl content contentDetail order')
+            .sort({ order: 1, 'category.series': 1 })
             .lean();
 
         return products.map((product) => ({
@@ -117,6 +130,8 @@ export class CategoryService {
             slug: product.slug,
             productCount: 1,
             imageUrl: product.mainImageUrl,
+            content: product.content,
+            contentDetail: product.contentDetail,
         }));
     }
 

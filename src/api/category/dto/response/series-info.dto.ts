@@ -29,4 +29,18 @@ export class SeriesInfoDto {
         required: false,
     })
     imageUrl?: string;
+
+    @ApiProperty({
+        example: 'Compact type NC rotary table. High performance standard model',
+        description: '제품 설명',
+        required: false,
+    })
+    content?: string;
+
+    @ApiProperty({
+        example: 'High-performance and easy-to use',
+        description: '제품 상세 설명 (catch phrase)',
+        required: false,
+    })
+    contentDetail?: string;
 }

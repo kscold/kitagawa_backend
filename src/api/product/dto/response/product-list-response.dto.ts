@@ -19,23 +19,17 @@ export class ProductItemDto {
     slug: string;
 
     @ApiProperty({
-        example: 'MR Series',
-        description: '제품명 (영어)',
+        example: 'MR series',
+        description: '제품 타이틀',
+        required: false,
     })
-    productName: string;
+    productTitle?: string;
 
     @ApiProperty({
         example: 'MR 시리즈',
         description: '제품명 (한글)',
     })
     productNameKo: string;
-
-    @ApiProperty({
-        example: 'MR series',
-        description: '시리즈명',
-        required: false,
-    })
-    series?: string;
 
     @ApiProperty({
         example: 'Chuck',

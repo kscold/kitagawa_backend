@@ -1,35 +1,36 @@
 steps:
-  # Install dependencies
-  - name: 'node:22'
-    entrypoint: npm
-    args: ['install']
-
-  # Build TypeScript
-  - name: 'node:22'
-    entrypoint: npm
-    args: ['run', 'build']
-
-  # Deploy to Cloud Functions
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  # Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
     args:
-      - gcloud
-      - functions
-      - deploy
-      - kitagawa-api
-      - --runtime=nodejs22
-      - --trigger-http
-      - --allow-unauthenticated
-      - --entry-point=api
-      - --region=asia-northeast3
-      - --memory=512MB
-      - --timeout=60s
-      - --max-instances=10
-      - --set-env-vars=NODE_ENV=production,PORT=8080,MONGODB_URI=${_MONGODB_URI}
-    secretEnv: ['MONGODB_URI']
+      - 'build'
+      - '-t'
+      - 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/kitagawa-api:latest'
+      - '.'
 
-availableSecrets:
-  secretManager:
-    - versionName: projects/tokyo-receiver-444903-m4/secrets/MONGODB_URI/versions/latest
-      env: 'MONGODB_URI'
+  # Push Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/kitagawa-api:latest'
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'kitagawa-api'
+      - '--image=asia-northeast3-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/kitagawa-api:latest'
+      - '--region=asia-northeast3'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--max-instances=10'
+      - '--set-env-vars=NODE_ENV=production,JWT_ADMIN_SECRET=${_JWT_ADMIN_SECRET},MONGODB_URI=${_MONGODB_URI}'
+
+# Build images in Artifact Registry
+images:
+  - 'asia-northeast3-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/kitagawa-api:latest'
 
 timeout: 1200s

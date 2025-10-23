@@ -22,3 +22,12 @@ coverage
 temp
 tmp
 .cache
+
+claude.md
+.claude
+
+scripts/
+
+postman/
+
+documentation/

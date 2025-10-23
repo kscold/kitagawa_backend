@@ -52,7 +52,7 @@ export class ProductRepository {
         const total = await this.productModel.countDocuments(query).exec();
 
         // Query builder
-        let queryBuilder: any = this.productModel.find(query);
+        let queryBuilder: any = this.productModel.find(query).select('-productName -imageUrls -metadata -order');
 
         if (filters.skip !== undefined) {
             queryBuilder = queryBuilder.skip(filters.skip);
@@ -73,7 +73,8 @@ export class ProductRepository {
     async findFeatured(limit: number): Promise<ProductDocument[]> {
         const query: any = this.productModel
             .find({ isFeatured: true, isActive: true })
-            .sort({ priority: -1, createdAt: -1 })
+            .select('-productName -imageUrls -metadata -order')
+            .sort({ order: 1, createdAt: -1 })
             .limit(limit);
         return (await query.exec()) as ProductDocument[];
     }
@@ -84,6 +85,7 @@ export class ProductRepository {
     async findPopular(limit: number): Promise<ProductDocument[]> {
         const query: any = this.productModel
             .find({ isActive: true })
+            .select('-productName -imageUrls -metadata -order')
             .sort({ viewCount: -1, createdAt: -1 })
             .limit(limit);
         return (await query.exec()) as ProductDocument[];
@@ -93,7 +95,11 @@ export class ProductRepository {
      * 최신 제품 조회
      */
     async findRecent(limit: number): Promise<ProductDocument[]> {
-        const query: any = this.productModel.find({ isActive: true }).sort({ createdAt: -1 }).limit(limit);
+        const query: any = this.productModel
+            .find({ isActive: true })
+            .select('-productName -imageUrls -metadata -order')
+            .sort({ createdAt: -1 })
+            .limit(limit);
         return (await query.exec()) as ProductDocument[];
     }
 
@@ -101,7 +107,7 @@ export class ProductRepository {
      * slug로 제품 조회 (slug로도 사용됨)
      */
     async findBySlug(slug: string): Promise<ProductDocument | null> {
-        const query: any = this.productModel.findOne({ slug });
+        const query: any = this.productModel.findOne({ slug }).select('-productName -imageUrls -metadata -order');
         return (await query.exec()) as ProductDocument | null;
     }
 
@@ -109,7 +115,7 @@ export class ProductRepository {
      * 제품 ID로 조회
      */
     async findById(id: string): Promise<ProductDocument | null> {
-        const query: any = this.productModel.findById(id);
+        const query: any = this.productModel.findById(id).select('-productName -imageUrls -metadata -order');
         return (await query.exec()) as ProductDocument | null;
     }
 
@@ -168,7 +174,7 @@ export class ProductRepository {
             filter['category.subCategory'] = subCategory;
         }
 
-        const query: any = this.productModel.find(filter);
+        const query: any = this.productModel.find(filter).select('-productName -imageUrls -metadata -order');
         return (await query.exec()) as ProductDocument[];
     }
 
@@ -209,7 +215,7 @@ export class ProductRepository {
         const total = await this.productModel.countDocuments(query).exec();
 
         // Query builder
-        let queryBuilder: any = this.productModel.find(query);
+        let queryBuilder: any = this.productModel.find(query).select('-productName -imageUrls -metadata -order');
 
         // 정렬
         switch (params.sort) {
@@ -217,7 +223,7 @@ export class ProductRepository {
                 queryBuilder = queryBuilder.sort({ viewCount: -1 });
                 break;
             case 'name':
-                queryBuilder = queryBuilder.sort({ productName: 1 });
+                queryBuilder = queryBuilder.sort({ 'category.series': 1 });
                 break;
             case 'recent':
             default:
@@ -388,6 +394,16 @@ export class ProductRepository {
             aggregationPipeline.push({ $limit: params.limit });
         }
 
+        // imageUrls와 productName 제외
+        aggregationPipeline.push({
+            $project: {
+                productName: 0,
+                imageUrls: 0,
+                metadata: 0,
+                order: 0,
+            },
+        });
+
         const products = (await this.productModel.aggregate(aggregationPipeline).exec()) as ProductDocument[];
 
         return { products, total };
@@ -405,7 +421,9 @@ export class ProductRepository {
      * 제품 수정 (레거시 - slug 기반)
      */
     async update(slug: string, productData: Partial<Product>): Promise<ProductDocument | null> {
-        const query: any = this.productModel.findOneAndUpdate({ slug }, { $set: productData }, { new: true });
+        const query: any = this.productModel
+            .findOneAndUpdate({ slug }, { $set: productData }, { new: true })
+            .select('-productName -imageUrls -metadata -order');
         return (await query.exec()) as ProductDocument | null;
     }
 
@@ -421,7 +439,9 @@ export class ProductRepository {
      * 제품 활성화/비활성화 토글 (slug 기반)
      */
     async toggleActive(slug: string, isActive: boolean): Promise<ProductDocument | null> {
-        const query: any = this.productModel.findOneAndUpdate({ slug }, { $set: { isActive } }, { new: true });
+        const query: any = this.productModel
+            .findOneAndUpdate({ slug }, { $set: { isActive } }, { new: true })
+            .select('-productName -imageUrls -metadata -order');
         return (await query.exec()) as ProductDocument | null;
     }
 }
