@@ -311,22 +311,17 @@ export class ProductService {
     /**
      * 다운로드 링크 조회
      */
-    async getDownloads(slug: string, model?: string): Promise<any[]> {
+    async getDownloads(slug: string): Promise<any[]> {
         const methodName = 'getDownloads';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, model: ${model}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             const product = await this.findBySlug(slug, false);
 
-            let downloads = product.downloads || [];
-
-            // 모델 필터 적용
-            if (model) {
-                downloads = downloads.filter((download) => download.model === model || download.model === 'All');
-            }
+            const downloads = product.downloads || [];
 
             if (this.isDevelopment) {
                 this.logger.log(`[${methodName}] 성공 - count: ${downloads.length}`);

@@ -16,6 +16,16 @@ export class Category {
     series: string; // 예: "BR/BR-PLUS Series"
 }
 
+// 다운로드 항목 스키마 (드롭다운 내부 항목용)
+@Schema({ _id: false })
+export class DownloadItem {
+    @Prop()
+    title: string; // 항목 이름 (예: "B-200 series")
+
+    @Prop()
+    url: string; // 항목 URL
+}
+
 // 다운로드 링크 스키마
 @Schema({ _id: false })
 export class DownloadLink {
@@ -23,13 +33,16 @@ export class DownloadLink {
     type: string; // 예: "PDF", "DXF", "DWG", "Parasolid", "STEP"
 
     @Prop()
-    category: string; // 예: "2D", "3D"
+    category: string; // 예: "Catalog", "Manual", "2D", "3D"
 
     @Prop()
-    url: string;
+    title: string; // 다운로드 버튼 이름 (예: "Down load Catalogue pages (PDF)", "Download instruction manual (PDF)")
 
     @Prop()
-    model: string; // 해당 모델명
+    url?: string; // 단일 다운로드 URL (Manual 등)
+
+    @Prop({ type: [DownloadItem] })
+    items?: DownloadItem[]; // 드롭다운 항목들 (Catalog 등, url이 없을 때 사용)
 }
 
 // 메인 제품 스키마
