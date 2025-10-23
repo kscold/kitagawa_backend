@@ -257,12 +257,12 @@ export class CrawlerService {
             const mainImageUrl = imageUrls[0] || '';
 
             // 유튜브 링크 추출
-            let youtubeUrl = '';
+            const youtubeUrl: string[] = [];
             $('iframe[src*="youtube.com"], iframe[src*="youtu.be"]').each((_, iframe) => {
                 const src = $(iframe).attr('src');
                 if (src) {
-                    youtubeUrl = src;
-                    this.logger.log(`Found YouTube video: ${youtubeUrl}`);
+                    youtubeUrl.push(src);
+                    this.logger.log(`Found YouTube video: ${src}`);
                 }
             });
 

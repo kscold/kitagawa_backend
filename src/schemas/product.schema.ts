@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type ProductDocument = Product & Document;
 
@@ -108,8 +108,8 @@ export class Product {
     @Prop()
     pdfUrl: string; // PDF 카탈로그 URL
 
-    @Prop()
-    youtubeUrl: string; // YouTube 영상 URL
+    @Prop({ type: [String] })
+    youtubeUrl: string[]; // YouTube 영상 URL 배열
 
     @Prop({ type: Object, select: false })
     metadata: {
