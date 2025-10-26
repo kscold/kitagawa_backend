@@ -19,11 +19,13 @@ export class ResourceRepository {
         type?: ResourceType;
         category?: string;
         keyword?: string;
+        fileType?: string;
         isActive?: boolean;
         limit?: number;
         skip?: number;
     }): Promise<{ resources: ResourceDocument[]; total: number }> {
         const query: Record<string, any> = {};
+        const andConditions: any[] = [];
 
         if (filters.type) {
             query.type = filters.type;
@@ -34,13 +36,30 @@ export class ResourceRepository {
         }
 
         if (filters.keyword) {
-            query.$or = [
-                { title: { $regex: filters.keyword, $options: 'i' } },
-                { titleKo: { $regex: filters.keyword, $options: 'i' } },
-                { description: { $regex: filters.keyword, $options: 'i' } },
-                { descriptionKo: { $regex: filters.keyword, $options: 'i' } },
-                { tags: { $regex: filters.keyword, $options: 'i' } },
-            ];
+            andConditions.push({
+                $or: [
+                    { title: { $regex: filters.keyword, $options: 'i' } },
+                    { titleKo: { $regex: filters.keyword, $options: 'i' } },
+                    { description: { $regex: filters.keyword, $options: 'i' } },
+                    { descriptionKo: { $regex: filters.keyword, $options: 'i' } },
+                    { tags: { $regex: filters.keyword, $options: 'i' } },
+                ],
+            });
+        }
+
+        if (filters.fileType) {
+            // 파일 타입으로 필터링 (확장자 또는 mimeType 기반)
+            const fileExtension = `.${filters.fileType}`;
+            andConditions.push({
+                $or: [
+                    { 'file.fileName': { $regex: `\\${fileExtension}$`, $options: 'i' } },
+                    { 'file.mimeType': { $regex: filters.fileType, $options: 'i' } },
+                ],
+            });
+        }
+
+        if (andConditions.length > 0) {
+            query.$and = andConditions;
         }
 
         if (filters.isActive !== undefined) {

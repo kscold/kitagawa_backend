@@ -28,6 +28,7 @@ export class ResourceService {
         type?: ResourceType;
         category?: string;
         keyword?: string;
+        fileType?: string;
         limit?: number;
         skip?: number;
     }): Promise<{ resources: ResourceDocument[]; total: number }> {

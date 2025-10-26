@@ -6,6 +6,19 @@ import { PaginationQueryDto } from '../../../../common/dto/pagination/pagination
 import { ResourceType } from '../../../../schemas/resource.schema';
 
 /**
+ * 파일 타입 Enum
+ */
+export enum FileType {
+    PDF = 'pdf',
+    DWG = 'dwg',
+    DOC = 'doc',
+    DOCX = 'docx',
+    XLS = 'xls',
+    XLSX = 'xlsx',
+    ZIP = 'zip',
+}
+
+/**
  * 자료실 필터 DTO
  */
 export class ResourceFilterDto extends PaginationQueryDto {
@@ -36,4 +49,14 @@ export class ResourceFilterDto extends PaginationQueryDto {
     @IsOptional()
     @IsString()
     keyword?: string;
+
+    @ApiProperty({
+        description: '파일 타입 (확장자)',
+        enum: FileType,
+        example: FileType.PDF,
+        required: false,
+    })
+    @IsOptional()
+    @IsEnum(FileType)
+    fileType?: FileType;
 }
