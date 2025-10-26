@@ -27,6 +27,9 @@ export class CategoryModel {
     @Prop()
     descriptionKo: string;
 
+    @Prop()
+    content: string; // 카테고리 설명 (영문)
+
     // 계층 구조
     @Prop({ required: true, enum: CategoryLevel })
     level: CategoryLevel; // 1: 대분류, 2: 중분류

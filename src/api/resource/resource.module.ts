@@ -8,12 +8,18 @@ import { ResourceService } from './resource.service';
 import { ResourceRepository } from './repository/resource.repository';
 
 import { Resource, ResourceSchema } from '../../schemas/resource.schema';
+import { CategoryModel, CategorySchema } from '../../schemas/category.schema';
 
 /**
  * 자료실 모듈
  */
 @Module({
-    imports: [MongooseModule.forFeature([{ name: Resource.name, schema: ResourceSchema }])],
+    imports: [
+        MongooseModule.forFeature([
+            { name: Resource.name, schema: ResourceSchema },
+            { name: CategoryModel.name, schema: CategorySchema },
+        ]),
+    ],
     controllers: [ResourceController],
     providers: [ResourceService, ResourceRepository],
     exports: [ResourceService, ResourceRepository],
