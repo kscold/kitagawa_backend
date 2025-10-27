@@ -14,8 +14,6 @@ import { CompanyAdminService } from './company-admin.service';
 
 import { UpdateCompanyInfoRequestDto } from '../dto/request/update-company-info-request.dto';
 import { UpdateGreetingRequestDto } from '../dto/request/update-greeting-request.dto';
-import { CreateHistoryItemDto } from '../dto/request/create-history-item.dto';
-import { CreateCertificationItemDto } from '../dto/request/create-certification-item.dto';
 
 /**
  * Company Admin API
@@ -83,94 +81,6 @@ export class CompanyAdminController {
             success: true,
             code: HttpStatus.OK,
             message: '인사말이 수정되었습니다',
-            data,
-        };
-    }
-
-    @Post('history')
-    @ApiOperation({
-        summary: '연혁 추가',
-        description: '회사 연혁을 추가합니다',
-    })
-    @ApiBody({ type: CreateHistoryItemDto })
-    @SwaggerResponse({
-        status: HttpStatus.OK,
-        description: '추가 성공',
-    })
-    async addHistory(@Body() historyDto: CreateHistoryItemDto) {
-        const data = await this.companyAdminService.addHistory(historyDto);
-        return {
-            success: true,
-            code: HttpStatus.OK,
-            message: '연혁이 추가되었습니다',
-            data,
-        };
-    }
-
-    @Delete('history/:index')
-    @ApiOperation({
-        summary: '연혁 삭제',
-        description: '회사 연혁을 삭제합니다',
-    })
-    @ApiParam({
-        name: 'index',
-        description: '연혁 배열 인덱스',
-        example: 0,
-    })
-    @SwaggerResponse({
-        status: HttpStatus.OK,
-        description: '삭제 성공',
-    })
-    async deleteHistory(@Param('index', ParseIntPipe) index: number) {
-        const data = await this.companyAdminService.deleteHistory(index);
-        return {
-            success: true,
-            code: HttpStatus.OK,
-            message: '연혁이 삭제되었습니다',
-            data,
-        };
-    }
-
-    @Post('certifications')
-    @ApiOperation({
-        summary: '인증서 추가',
-        description: '회사 인증서를 추가합니다',
-    })
-    @ApiBody({ type: CreateCertificationItemDto })
-    @SwaggerResponse({
-        status: HttpStatus.OK,
-        description: '추가 성공',
-    })
-    async addCertification(@Body() certDto: CreateCertificationItemDto) {
-        const data = await this.companyAdminService.addCertification(certDto);
-        return {
-            success: true,
-            code: HttpStatus.OK,
-            message: '인증서가 추가되었습니다',
-            data,
-        };
-    }
-
-    @Delete('certifications/:index')
-    @ApiOperation({
-        summary: '인증서 삭제',
-        description: '회사 인증서를 삭제합니다',
-    })
-    @ApiParam({
-        name: 'index',
-        description: '인증서 배열 인덱스',
-        example: 0,
-    })
-    @SwaggerResponse({
-        status: HttpStatus.OK,
-        description: '삭제 성공',
-    })
-    async deleteCertification(@Param('index', ParseIntPipe) index: number) {
-        const data = await this.companyAdminService.deleteCertification(index);
-        return {
-            success: true,
-            code: HttpStatus.OK,
-            message: '인증서가 삭제되었습니다',
             data,
         };
     }

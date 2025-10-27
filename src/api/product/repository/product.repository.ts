@@ -275,11 +275,15 @@ export class ProductRepository {
         baseQuery.$or = [
             { productName: searchRegex },
             { productNameKo: searchRegex },
+            { productTitle: searchRegex },
             { slug: searchRegex },
             { 'category.series': searchRegex },
             { 'category.mainCategory': searchRegex },
             { 'category.subCategory': searchRegex },
             { tags: searchRegex },
+            { description: searchRegex },
+            { content: searchRegex },
+            { contentDetail: searchRegex },
         ];
 
         // Total count
@@ -289,100 +293,32 @@ export class ProductRepository {
         const aggregationPipeline: any[] = [
             { $match: baseQuery },
             {
-                // 정확도 점수 계산
+                // 정확도 점수 계산 (단순화)
                 $addFields: {
                     searchScore: {
                         $add: [
-                            // 제품명 정확도 (가장 높은 우선순위)
-                            {
-                                $cond: [
-                                    {
-                                        $regexMatch: {
-                                            input: '$productName',
-                                            regex: `^${params.keyword}$`,
-                                            options: 'i',
-                                        },
-                                    },
-                                    100,
-                                    {
-                                        $cond: [
-                                            {
-                                                $regexMatch: {
-                                                    input: '$productName',
-                                                    regex: `^${params.keyword}`,
-                                                    options: 'i',
-                                                },
-                                            },
-                                            90,
-                                            {
-                                                $cond: [
-                                                    {
-                                                        $regexMatch: {
-                                                            input: '$productName',
-                                                            regex: params.keyword,
-                                                            options: 'i',
-                                                        },
-                                                    },
-                                                    60,
-                                                    0,
-                                                ],
-                                            },
-                                        ],
-                                    },
-                                ],
-                            },
-                            // 제품코드 정확도
-                            {
-                                $cond: [
-                                    {
-                                        $regexMatch: {
-                                            input: '$slug',
-                                            regex: `^${params.keyword}$`,
-                                            options: 'i',
-                                        },
-                                    },
-                                    80,
-                                    {
-                                        $cond: [
-                                            {
-                                                $regexMatch: {
-                                                    input: '$slug',
-                                                    regex: `^${params.keyword}`,
-                                                    options: 'i',
-                                                },
-                                            },
-                                            70,
-                                            {
-                                                $cond: [
-                                                    {
-                                                        $regexMatch: {
-                                                            input: '$slug',
-                                                            regex: params.keyword,
-                                                            options: 'i',
-                                                        },
-                                                    },
-                                                    50,
-                                                    0,
-                                                ],
-                                            },
-                                        ],
-                                    },
-                                ],
-                            },
-                            // 시리즈 정확도
-                            {
-                                $cond: [
-                                    { $regexMatch: { input: '$category.series', regex: params.keyword, options: 'i' } },
-                                    40,
-                                    0,
-                                ],
-                            },
+                            // productTitle 완전 일치 (가장 높은 우선순위)
+                            { $cond: [{ $eq: [{ $toLower: '$productTitle' }, params.keyword.toLowerCase()] }, 100, 0] },
+                            // productTitle 시작 일치
+                            { $cond: [{ $regexMatch: { input: '$productTitle', regex: `^${params.keyword}`, options: 'i' } }, 90, 0] },
+                            // slug 완전 일치
+                            { $cond: [{ $eq: [{ $toLower: '$slug' }, params.keyword.toLowerCase()] }, 80, 0] },
+                            // slug 시작 일치
+                            { $cond: [{ $regexMatch: { input: '$slug', regex: `^${params.keyword}`, options: 'i' } }, 70, 0] },
+                            // category.series 포함
+                            { $cond: [{ $regexMatch: { input: '$category.series', regex: params.keyword, options: 'i' } }, 60, 0] },
+                            // tags 포함
+                            { $cond: [{ $in: [{ $toLower: params.keyword }, { $map: { input: '$tags', as: 'tag', in: { $toLower: '$$tag' } } }] }, 50, 0] },
+                            // content 포함
+                            { $cond: [{ $regexMatch: { input: { $ifNull: ['$content', ''] }, regex: params.keyword, options: 'i' } }, 30, 0] },
+                            // description 포함
+                            { $cond: [{ $regexMatch: { input: { $ifNull: ['$description', ''] }, regex: params.keyword, options: 'i' } }, 20, 0] },
                         ],
                     },
                 },
             },
-            // 점수순, 제품명순 정렬
-            { $sort: { searchScore: -1, productName: 1 } },
+            // 점수순, productTitle순 정렬
+            { $sort: { searchScore: -1, productTitle: 1 } },
         ];
 
         // 페이지네이션 추가

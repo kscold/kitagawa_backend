@@ -23,9 +23,7 @@ export class CompanyController {
 
 포함 정보:
 - 인사말 (대표 인사말)
-- 회사 연혁
 - 비전 및 미션
-- 인증서 목록
         `,
     })
     @SwaggerResponse({
@@ -44,24 +42,10 @@ export class CompanyController {
                         contentKo: '(주) 한국 기타가와를 찾아주셔서 감사합니다...',
                         ceoName: '최민형',
                     },
-                    history: [
-                        {
-                            year: '2020',
-                            month: '01',
-                            description: 'Established Korea Kitagawa',
-                            descriptionKo: '(주) 한국 기타가와 설립',
-                        },
-                    ],
                     vision: 'To be the leading provider...',
                     visionKo: '대한민국 최고의 정밀 가공 솔루션 제공 기업',
-                    certifications: [
-                        {
-                            name: 'ISO 9001:2015',
-                            nameKo: 'ISO 9001:2015 품질경영시스템 인증',
-                            issuer: 'Korea Quality Assurance',
-                            issuedDate: '2021-05-15',
-                        },
-                    ],
+                    mission: 'Provide high-quality products and exceptional customer service',
+                    missionKo: '고품질 제품과 탁월한 고객 서비스 제공',
                 },
             },
         },

@@ -8,7 +8,7 @@ import { CompanyInfoResponseDto } from './dto/response/company-info-response.dto
 
 /**
  * Company Public Service
- * 회사 정보 조회 (회사 소개, 연혁, 인증서 등)
+ * 회사 정보 조회 (회사 소개)
  */
 @Injectable()
 export class CompanyService {
@@ -41,24 +41,10 @@ export class CompanyService {
                       ceoSignatureUrl: companyInfo.greeting.ceoSignatureUrl,
                   }
                 : undefined,
-            history: companyInfo.history.map((item) => ({
-                year: item.year,
-                month: item.month,
-                description: item.description,
-                descriptionKo: item.descriptionKo,
-            })),
             vision: companyInfo.vision,
             visionKo: companyInfo.visionKo,
             mission: companyInfo.mission,
             missionKo: companyInfo.missionKo,
-            certifications: companyInfo.certifications.map((cert) => ({
-                name: cert.name,
-                nameKo: cert.nameKo,
-                issuer: cert.issuer,
-                issuerKo: cert.issuerKo,
-                issuedDate: cert.issuedDate,
-                certificateUrl: cert.certificateUrl,
-            })),
         };
     }
 }
