@@ -1,10 +1,7 @@
 import { Controller, Get, Param, Query, Post, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam } from '@nestjs/swagger';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 
 import { ResourceService } from './resource.service';
-import { CategoryModel, CategoryDocument } from '../../schemas/category.schema';
 
 import { ResourceFilterDto } from './dto/request/resource-filter.dto';
 import {
@@ -21,11 +18,7 @@ import {
 @ApiTags('Resources')
 @Controller('resources')
 export class ResourceController {
-    constructor(
-        private readonly resourceService: ResourceService,
-        @InjectModel(CategoryModel.name)
-        private readonly categoryModel: Model<CategoryDocument>,
-    ) {}
+    constructor(private readonly resourceService: ResourceService) {}
 
     /**
      * Level1 카테고리 탭 목록 조회
@@ -106,36 +99,7 @@ export class ResourceController {
         },
     })
     async getLevel1Categories() {
-        // CATALOGUE 제외한 Level 1 카테고리 조회
-        const categories = await this.categoryModel
-            .find({
-                level: 1,
-                isActive: true,
-                slug: { $ne: 'catalogue' },
-            })
-            .select('_id name slug imageUrl content order')
-            .sort({ order: 1 })
-            .lean();
-
-        // 각 카테고리별 자료 개수 조회
-        const categoriesWithCount = await Promise.all(
-            categories.map(async (category) => {
-                const { total } = await this.resourceService.findAll({
-                    category: category.slug,
-                    limit: 0,
-                    skip: 0,
-                });
-                return {
-                    _id: category._id,
-                    name: category.name,
-                    slug: category.slug,
-                    imageUrl: category.imageUrl,
-                    content: category.content,
-                    order: category.order,
-                    count: total,
-                };
-            }),
-        );
+        const categoriesWithCount = await this.resourceService.getLevel1CategoriesWithResourceCount();
 
         return {
             success: true,
@@ -216,78 +180,18 @@ Level2 카테고리(제품군)별 자료를 조회합니다.
         },
     })
     async findByLevel2Category(@Param('slug') slug: string, @Query() filterDto: ResourceFilterDto) {
-        const { resources } = await this.resourceService.findAll({
-            category: slug,
+        const result = await this.resourceService.findResourcesByLevel2CategoryGrouped(slug, {
             keyword: filterDto.keyword,
             fileType: filterDto.fileType,
-            limit: 0, // 모든 데이터 가져오기
-            skip: 0,
+            page: filterDto.page,
+            limit: filterDto.limit,
         });
-
-        // 모델별로 그룹화
-        const modelMap = new Map<
-            string,
-            {
-                productName: string;
-                model: string;
-                pdfUrl?: string;
-                dwgUrl?: string;
-            }
-        >();
-
-        resources.forEach((resource) => {
-            const model = resource.metadata?.model;
-            const productName = resource.metadata?.productName;
-
-            // Use productName as fallback if model is not available
-            const groupKey = model || productName;
-
-            if (!groupKey || !productName) return;
-
-            if (!modelMap.has(groupKey)) {
-                modelMap.set(groupKey, {
-                    productName,
-                    model: groupKey,
-                });
-            }
-
-            const entry = modelMap.get(groupKey);
-            const fileUrl = resource.file?.url;
-
-            if (fileUrl) {
-                if (fileUrl.toLowerCase().endsWith('.pdf')) {
-                    entry.pdfUrl = fileUrl;
-                } else if (fileUrl.toLowerCase().endsWith('.dwg')) {
-                    entry.dwgUrl = fileUrl;
-                }
-            }
-        });
-
-        // Map을 배열로 변환
-        const allItems = Array.from(modelMap.values());
-
-        // 페이지네이션 적용
-        const page = filterDto.page || 1;
-        const limit = filterDto.limit || 50;
-        const skip = (page - 1) * limit;
-        const paginatedItems = allItems.slice(skip, skip + limit);
-        const totalItems = allItems.length;
 
         return {
             success: true,
             code: HttpStatus.OK,
             message: '카테고리별 자료 조회 성공',
-            data: {
-                items: paginatedItems,
-                pagination: {
-                    currentPage: page,
-                    totalPages: Math.ceil(totalItems / limit),
-                    totalItems,
-                    itemsPerPage: limit,
-                    hasNextPage: skip + limit < totalItems,
-                    hasPreviousPage: page > 1,
-                },
-            },
+            data: result,
         };
     }
 

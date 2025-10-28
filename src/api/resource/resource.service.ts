@@ -1,9 +1,12 @@
 import { Injectable, NotFoundException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 import { ResourceRepository } from './repository/resource.repository';
 
 import { ResourceDocument, ResourceType } from '../../schemas/resource.schema';
+import { CategoryModel, CategoryDocument } from '../../schemas/category.schema';
 
 /**
  * Resource Service
@@ -17,6 +20,8 @@ export class ResourceService {
     constructor(
         private readonly resourceRepository: ResourceRepository,
         private readonly configService: ConfigService,
+        @InjectModel(CategoryModel.name)
+        private readonly categoryModel: Model<CategoryDocument>,
     ) {
         this.isDevelopment = this.configService.get('NODE_ENV') !== 'production';
     }
@@ -208,6 +213,186 @@ export class ResourceService {
         } catch (error) {
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
             throw new InternalServerErrorException('최신 자료 조회 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
+     * Level1 카테고리 목록 조회 (자료 개수 포함)
+     */
+    async getLevel1CategoriesWithResourceCount(): Promise<
+        Array<{
+            _id: any;
+            name: string;
+            slug: string;
+            imageUrl: string;
+            content: string;
+            order: number;
+            count: number;
+        }>
+    > {
+        const methodName = 'getLevel1CategoriesWithResourceCount';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청`);
+            }
+
+            // CATALOGUE 제외한 Level 1 카테고리 조회
+            const categories = await this.categoryModel
+                .find({
+                    level: 1,
+                    isActive: true,
+                    slug: { $ne: 'catalogue' },
+                })
+                .select('_id name slug imageUrl content order')
+                .sort({ order: 1 })
+                .lean();
+
+            // 각 카테고리별 자료 개수 조회
+            const categoriesWithCount = await Promise.all(
+                categories.map(async (category) => {
+                    const { total } = await this.findAll({
+                        category: category.slug,
+                        limit: 0,
+                        skip: 0,
+                    });
+                    return {
+                        _id: category._id,
+                        name: category.name,
+                        slug: category.slug,
+                        imageUrl: category.imageUrl,
+                        content: category.content,
+                        order: category.order,
+                        count: total,
+                    };
+                }),
+            );
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - count: ${categoriesWithCount.length}`);
+            }
+
+            return categoriesWithCount;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('카테고리 목록 조회 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
+     * Level2 카테고리별 자료 조회 (모델별 그룹화 + 페이지네이션)
+     */
+    async findResourcesByLevel2CategoryGrouped(
+        slug: string,
+        filters: {
+            keyword?: string;
+            fileType?: string;
+            page?: number;
+            limit?: number;
+        },
+    ): Promise<{
+        items: Array<{
+            productName: string;
+            model: string;
+            pdfUrl?: string;
+            dwgUrl?: string;
+        }>;
+        pagination: {
+            currentPage: number;
+            totalPages: number;
+            totalItems: number;
+            itemsPerPage: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+        };
+    }> {
+        const methodName = 'findResourcesByLevel2CategoryGrouped';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, filters: ${JSON.stringify(filters)}`);
+            }
+
+            // 모든 자료 조회
+            const { resources } = await this.findAll({
+                category: slug,
+                keyword: filters.keyword,
+                fileType: filters.fileType,
+                limit: 0,
+                skip: 0,
+            });
+
+            // 모델별로 그룹화
+            const modelMap = new Map<
+                string,
+                {
+                    productName: string;
+                    model: string;
+                    pdfUrl?: string;
+                    dwgUrl?: string;
+                }
+            >();
+
+            resources.forEach((resource) => {
+                const model = resource.metadata?.model;
+                const productName = resource.metadata?.productName;
+
+                // Use productName as fallback if model is not available
+                const groupKey = model || productName;
+
+                if (!groupKey || !productName) return;
+
+                if (!modelMap.has(groupKey)) {
+                    modelMap.set(groupKey, {
+                        productName,
+                        model: groupKey,
+                    });
+                }
+
+                const entry = modelMap.get(groupKey);
+                const fileUrl = resource.file?.url;
+
+                if (fileUrl) {
+                    if (fileUrl.toLowerCase().endsWith('.pdf')) {
+                        entry.pdfUrl = fileUrl;
+                    } else if (fileUrl.toLowerCase().endsWith('.dwg')) {
+                        entry.dwgUrl = fileUrl;
+                    }
+                }
+            });
+
+            // Map을 배열로 변환
+            const allItems = Array.from(modelMap.values());
+
+            // 페이지네이션 적용
+            const page = filters.page || 1;
+            const limit = filters.limit || 50;
+            const skip = (page - 1) * limit;
+            const paginatedItems = allItems.slice(skip, skip + limit);
+            const totalItems = allItems.length;
+
+            const result = {
+                items: paginatedItems,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(totalItems / limit),
+                    totalItems,
+                    itemsPerPage: limit,
+                    hasNextPage: skip + limit < totalItems,
+                    hasPreviousPage: page > 1,
+                },
+            };
+
+            if (this.isDevelopment) {
+                this.logger.log(
+                    `[${methodName}] 성공 - totalItems: ${totalItems}, currentPage: ${page}, items: ${paginatedItems.length}`,
+                );
+            }
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('카테고리별 자료 조회 중 오류가 발생했습니다');
         }
     }
 }
