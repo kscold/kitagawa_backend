@@ -13,22 +13,16 @@ export enum CategoryLevel {
 @Schema({ timestamps: true, collection: 'categories' })
 export class CategoryModel {
     @Prop({ required: true })
-    name: string; // 카테고리명 (영문) 예: "NC ROTARY TABLE", "4축 표준사양"
-
-    @Prop({ required: true })
-    nameKo: string; // 한국어 카테고리명
+    name: string; // 카테고리명 예: "NC ROTARY TABLE", "4축 표준사양"
 
     @Prop({ required: true })
     slug: string; // URL용 슬러그
 
     @Prop()
-    description: string;
+    description: string; // 카테고리 설명
 
     @Prop()
-    descriptionKo: string;
-
-    @Prop()
-    content: string; // 카테고리 설명 (영문)
+    content: string; // 카테고리 상세 설명
 
     // 계층 구조
     @Prop({ required: true, enum: CategoryLevel })

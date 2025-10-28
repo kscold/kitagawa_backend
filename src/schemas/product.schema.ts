@@ -51,11 +51,8 @@ export class Product {
     @Prop({ required: true, unique: true })
     slug: string; // 예: "brbr-plus-series" (URL 친화적인 고유 식별자)
 
-    @Prop({ required: true, select: false })
-    productName: string; // 제품명 (deprecated - 응답에서 제외)
-
     @Prop()
-    productNameKo: string; // 한국어 제품명
+    productName: string; // 제품명
 
     @Prop()
     productTitle: string; // 제품 타이틀 (category.series 복사본)
@@ -66,8 +63,8 @@ export class Product {
     @Prop()
     sourceUrl: string; // 원본 Kitagawa 페이지 URL
 
-    @Prop({ type: [String], select: false })
-    imageUrls: string[]; // 제품 이미지 URL 배열 (deprecated - 응답에서 제외)
+    @Prop({ type: [String] })
+    imageUrls: string[]; // 제품 이미지 URL 배열
 
     @Prop()
     mainImageUrl: string; // 메인 이미지 URL
@@ -85,7 +82,10 @@ export class Product {
     specificationHtml: string; // Product Specifications HTML (원본 그대로 저장)
 
     @Prop({ type: [DownloadLink] })
-    downloads: DownloadLink[]; // 다운로드 가능한 파일들
+    downloads: DownloadLink[]; // 다운로드 가능한 파일들 (카탈로그/매뉴얼)
+
+    @Prop({ type: [DownloadLink] })
+    specificationFiles: DownloadLink[]; // Specification 테이블의 기술 도면 파일들 (PDF/DWG)
 
     @Prop({ type: Object })
     additionalInfo: Record<string, any>; // 추가 정보를 위한 유연한 필드
@@ -102,8 +102,8 @@ export class Product {
     @Prop({ default: 0 })
     viewCount: number; // 조회수
 
-    @Prop({ default: 0, select: false })
-    order: number; // 정렬 순서 (낮을수록 우선 노출) (응답에서 제외)
+    @Prop({ default: 0 })
+    order: number; // 정렬 순서 (낮을수록 우선 노출)
 
     @Prop()
     pdfUrl: string; // PDF 카탈로그 URL
@@ -111,12 +111,12 @@ export class Product {
     @Prop({ type: [String] })
     youtubeUrl: string[]; // YouTube 영상 URL 배열
 
-    @Prop({ type: Object, select: false })
+    @Prop({ type: Object })
     metadata: {
         lastCrawled?: Date;
         crawlSource?: string;
         version?: string;
-    }; // deprecated - 응답에서 제외
+    };
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

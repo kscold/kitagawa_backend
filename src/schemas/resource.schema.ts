@@ -40,13 +40,7 @@ export class Resource {
     title: string; // 자료 제목
 
     @Prop()
-    titleKo?: string; // 한글 제목
-
-    @Prop()
     description?: string; // 설명
-
-    @Prop()
-    descriptionKo?: string; // 한글 설명
 
     @Prop({ required: true, enum: ResourceType })
     type: ResourceType; // 자료 타입

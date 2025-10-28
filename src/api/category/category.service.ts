@@ -101,12 +101,12 @@ export class CategoryService {
                 'category.subCategory': subCategory,
                 isActive: true,
             })
-            .select('slug productNameKo mainImageUrl category.series order')
-            .sort({ order: 1, productNameKo: 1 })
+            .select('slug productName mainImageUrl category.series order')
+            .sort({ order: 1, productName: 1 })
             .lean();
 
         return products.map((product) => ({
-            name: product.category.series || product.productNameKo || 'Unknown',
+            name: product.category.series || product.productName || 'Unknown',
             slug: product.slug,
             productCount: 1,
             imageUrl: product.mainImageUrl,
@@ -159,7 +159,6 @@ export class CategoryService {
                 {
                     _id: level1Category._id,
                     name: level1Category.name,
-                    nameKo: level1Category.nameKo,
                     level: 2,
                     order: 0,
                     isActive: true,
@@ -193,7 +192,7 @@ export class CategoryService {
                     : await this.getSeriesForLevel2Category(level1Category.name, level2Cat.name);
 
                 // Level 2에서 불필요한 필드 제거하고 부모 정보 추가
-                const { parentName, mainCategory, description, descriptionKo, slug, __v, ...level2Rest } = level2Cat;
+                const { parentName, mainCategory, description, slug, __v, ...level2Rest } = level2Cat;
 
                 return {
                     ...level2Rest,

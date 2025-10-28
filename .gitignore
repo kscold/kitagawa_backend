@@ -42,6 +42,10 @@ temp/
 tmp/
 .serverless/
 
+# Backups
+backups/
+*.dump
+
 # SSL certificates (for development)
 ssl/
 *.key

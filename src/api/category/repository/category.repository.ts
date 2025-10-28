@@ -52,37 +52,37 @@ export class CategoryRepository {
     }
 
     /**
-     * 카테고리 수정
+     * 카테고리 수정 (slug 기반)
      */
-    async update(id: string, categoryData: Partial<CategoryModel>): Promise<CategoryDocument | null> {
+    async updateBySlug(slug: string, categoryData: Partial<CategoryModel>): Promise<CategoryDocument | null> {
         return (await this.categoryModel
-            .findByIdAndUpdate(id, { $set: categoryData }, { new: true })
+            .findOneAndUpdate({ slug }, { $set: categoryData }, { new: true })
             .exec()) as CategoryDocument | null;
     }
 
     /**
-     * 카테고리 삭제 (Hard Delete)
+     * 카테고리 삭제 (slug 기반)
      */
-    async delete(id: string): Promise<boolean> {
-        const result = await this.categoryModel.deleteOne({ _id: id }).exec();
+    async deleteBySlug(slug: string): Promise<boolean> {
+        const result = await this.categoryModel.deleteOne({ slug }).exec();
         return result.deletedCount > 0;
     }
 
     /**
-     * 카테고리 활성화/비활성화
+     * 카테고리 활성화/비활성화 (slug 기반)
      */
-    async toggleActive(id: string, isActive: boolean): Promise<CategoryDocument | null> {
+    async toggleActiveBySlug(slug: string, isActive: boolean): Promise<CategoryDocument | null> {
         return (await this.categoryModel
-            .findByIdAndUpdate(id, { $set: { isActive } }, { new: true })
+            .findOneAndUpdate({ slug }, { $set: { isActive } }, { new: true })
             .exec()) as CategoryDocument | null;
     }
 
     /**
-     * 정렬 순서 업데이트
+     * 정렬 순서 업데이트 (slug 기반)
      */
-    async updateOrder(id: string, order: number): Promise<CategoryDocument | null> {
+    async updateOrderBySlug(slug: string, order: number): Promise<CategoryDocument | null> {
         return (await this.categoryModel
-            .findByIdAndUpdate(id, { $set: { order } }, { new: true })
+            .findOneAndUpdate({ slug }, { $set: { order } }, { new: true })
             .exec()) as CategoryDocument | null;
     }
 

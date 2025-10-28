@@ -14,7 +14,16 @@
         "start:debug": "ts-node --inspect src/main.ts",
         "start:prod": "node dist/main.js",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "deploy": "source .env && gcloud builds submit --config=cloudbuild.yaml --substitutions=_JWT_ADMIN_SECRET=$JWT_ADMIN_SECRET,_MONGODB_URI=$MONGODB_URI"
+        "deploy": "source .env && gcloud builds submit --config=cloudbuild.yaml --substitutions=_JWT_ADMIN_SECRET=$JWT_ADMIN_SECRET,_MONGODB_URI=$MONGODB_URI",
+        "seed:ultimate": "ts-node scripts/ultimate-database-seeder.ts",
+        "seed:categories": "ts-node scripts/seed-categories-from-csv.ts",
+        "seed:catalogues": "ts-node scripts/crawl-catalogues.ts",
+        "migrate:resources": "node scripts/migrate-product-files-to-resources.js",
+        "update:category-images": "ts-node scripts/update-category-images.ts",
+        "backup:dump": "bash scripts/backup-database.sh",
+        "restore:dump": "bash scripts/restore-database.sh",
+        "backup:json": "ts-node scripts/backup-to-json.ts",
+        "restore:json": "ts-node scripts/restore-from-json.ts"
     },
     "keywords": [
         "nestjs",

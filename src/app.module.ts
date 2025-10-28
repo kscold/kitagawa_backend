@@ -6,9 +6,11 @@ import { AuthModule } from './api/auth/auth.module';
 import { ProductModule } from './api/product/product.module';
 import { CrawlerModule } from './api/crawler/crawler.module';
 import { ContactModule } from './api/contact/contact.module';
+import { ContactAdminModule } from './api/contact/admin/contact-admin.module';
 import { CompanyModule } from './api/company/company.module';
 import { CategoryModule } from './api/category/category.module';
 import { ResourceModule } from './api/resource/resource.module';
+import { ResourceAdminModule } from './api/resource/admin/resource-admin.module';
 import { HomeSettingsModule } from './api/home-settings/home-settings.module';
 
 @Module({
@@ -27,10 +29,12 @@ import { HomeSettingsModule } from './api/home-settings/home-settings.module';
         ProductModule,
         CrawlerModule,
         ContactModule,
+        ContactAdminModule,
         CompanyModule,
         HomeSettingsModule,
         CategoryModule,
         ResourceModule,
+        ResourceAdminModule,
     ],
 })
 export class AppModule {}

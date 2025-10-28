@@ -59,24 +59,24 @@ export class CategoryAdminService {
     }
 
     /**
-     * ID로 카테고리 조회 (관리자용)
+     * slug로 카테고리 조회 (관리자용)
      */
-    async findById(id: string): Promise<CategoryDocument> {
-        const methodName = 'findById';
+    async findBySlug(slug: string): Promise<CategoryDocument> {
+        const methodName = 'findBySlug';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - id: ${id}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
-            const category = await this.categoryRepository.findById(id);
+            const category = await this.categoryRepository.findBySlug(slug);
 
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (id: ${id})`);
+                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - id: ${id}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
 
             return category;
@@ -151,20 +151,20 @@ export class CategoryAdminService {
     }
 
     /**
-     * 카테고리 수정
+     * 카테고리 수정 (slug 기반)
      */
-    async update(id: string, categoryData: any): Promise<CategoryDocument> {
+    async update(slug: string, categoryData: any): Promise<CategoryDocument> {
         const methodName = 'update';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - id: ${id}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             // 카테고리 존재 확인
-            const category = await this.categoryRepository.findById(id);
+            const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (id: ${id})`);
+                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // slug 수정 방지
@@ -178,14 +178,14 @@ export class CategoryAdminService {
             }
 
             // 카테고리 수정
-            const updatedCategory = await this.categoryRepository.update(id, categoryData);
+            const updatedCategory = await this.categoryRepository.updateBySlug(slug, categoryData);
 
             if (!updatedCategory) {
                 throw new InternalServerErrorException('카테고리 수정에 실패했습니다');
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - id: ${id}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
 
             return updatedCategory;
@@ -199,20 +199,20 @@ export class CategoryAdminService {
     }
 
     /**
-     * 카테고리 삭제
+     * 카테고리 삭제 (slug 기반)
      */
-    async delete(id: string): Promise<void> {
+    async delete(slug: string): Promise<void> {
         const methodName = 'delete';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - id: ${id}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             // 카테고리 존재 확인
-            const category = await this.categoryRepository.findById(id);
+            const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (id: ${id})`);
+                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // Level 1 카테고리인 경우, 하위 카테고리 확인
@@ -233,13 +233,13 @@ export class CategoryAdminService {
             }
 
             // 카테고리 삭제
-            const deleted = await this.categoryRepository.delete(id);
+            const deleted = await this.categoryRepository.deleteBySlug(slug);
             if (!deleted) {
                 throw new InternalServerErrorException('카테고리 삭제에 실패했습니다');
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - id: ${id}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
         } catch (error) {
             if (error instanceof NotFoundException || error instanceof BadRequestException) {
@@ -251,20 +251,20 @@ export class CategoryAdminService {
     }
 
     /**
-     * 카테고리 비활성화
+     * 카테고리 비활성화 (slug 기반)
      */
-    async deactivate(id: string): Promise<CategoryDocument> {
+    async deactivate(slug: string): Promise<CategoryDocument> {
         const methodName = 'deactivate';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - id: ${id}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             // 카테고리 존재 확인
-            const category = await this.categoryRepository.findById(id);
+            const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (id: ${id})`);
+                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // 이미 비활성화 상태인 경우
@@ -273,13 +273,13 @@ export class CategoryAdminService {
             }
 
             // 카테고리 비활성화
-            const updatedCategory = await this.categoryRepository.toggleActive(id, false);
+            const updatedCategory = await this.categoryRepository.toggleActiveBySlug(slug, false);
             if (!updatedCategory) {
                 throw new InternalServerErrorException('카테고리 비활성화에 실패했습니다');
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - id: ${id}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
 
             return updatedCategory;
@@ -293,20 +293,20 @@ export class CategoryAdminService {
     }
 
     /**
-     * 카테고리 활성화
+     * 카테고리 활성화 (slug 기반)
      */
-    async activate(id: string): Promise<CategoryDocument> {
+    async activate(slug: string): Promise<CategoryDocument> {
         const methodName = 'activate';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - id: ${id}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
             }
 
             // 카테고리 존재 확인
-            const category = await this.categoryRepository.findById(id);
+            const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (id: ${id})`);
+                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // 이미 활성화 상태인 경우
@@ -315,13 +315,13 @@ export class CategoryAdminService {
             }
 
             // 카테고리 활성화
-            const updatedCategory = await this.categoryRepository.toggleActive(id, true);
+            const updatedCategory = await this.categoryRepository.toggleActiveBySlug(slug, true);
             if (!updatedCategory) {
                 throw new InternalServerErrorException('카테고리 활성화에 실패했습니다');
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - id: ${id}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
 
             return updatedCategory;
@@ -335,30 +335,30 @@ export class CategoryAdminService {
     }
 
     /**
-     * 카테고리 순서 변경
+     * 카테고리 순서 변경 (slug 기반)
      */
-    async updateOrder(id: string, order: number): Promise<CategoryDocument> {
+    async updateOrder(slug: string, order: number): Promise<CategoryDocument> {
         const methodName = 'updateOrder';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - id: ${id}, order: ${order}`);
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, order: ${order}`);
             }
 
             // 카테고리 존재 확인
-            const category = await this.categoryRepository.findById(id);
+            const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (id: ${id})`);
+                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // 순서 업데이트
-            const updatedCategory = await this.categoryRepository.updateOrder(id, order);
+            const updatedCategory = await this.categoryRepository.updateOrderBySlug(slug, order);
             if (!updatedCategory) {
                 throw new InternalServerErrorException('카테고리 순서 변경에 실패했습니다');
             }
 
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 성공 - id: ${id}, order: ${order}`);
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}, order: ${order}`);
             }
 
             return updatedCategory;

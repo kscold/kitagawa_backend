@@ -58,7 +58,6 @@ export class ResourceController {
                     {
                         _id: '68f796b7606cfb8026dbff3c',
                         name: 'NC ROTARY TABLE',
-                        nameKo: 'NC ROTARY TABLE',
                         slug: 'nc-rotary-table',
                         imageUrl: 'https://www.kitagawa.com/en/mtools/item/MK200R_right.jpg',
                         content: 'Compact & high accuracy Combination with chuck is available.',
@@ -68,7 +67,6 @@ export class ResourceController {
                     {
                         _id: '68f796b8606cfb8026dbff4e',
                         name: 'VISE',
-                        nameKo: 'VISE',
                         slug: 'vise',
                         imageUrl: 'https://www.kitagawa.com/en/mtools/item/VE125N_new.jpg',
                         content: 'Toggle joint mechanism Long jaw stroke',
@@ -78,7 +76,6 @@ export class ResourceController {
                     {
                         _id: '68f796b8606cfb8026dbff5d',
                         name: 'CHUCK',
-                        nameKo: 'CHUCK',
                         slug: 'chuck',
                         imageUrl: 'https://www.kitagawa.com/en/mtools/item/BR08_right.jpg',
                         content: "Wide variety of world's standard power chuck",
@@ -88,7 +85,6 @@ export class ResourceController {
                     {
                         _id: '68f796b9606cfb8026dbff72',
                         name: 'CYLINDER',
-                        nameKo: 'CYLINDER',
                         slug: 'cylinder',
                         imageUrl: 'https://www.kitagawa.com/en/mtools/item/data/IMG/SR1677C.jpg',
                         content:
@@ -99,7 +95,6 @@ export class ResourceController {
                     {
                         _id: '68f796b9606cfb8026dbff7e',
                         name: 'WORK GRIPPER',
-                        nameKo: 'WORK GRIPPER',
                         slug: 'work-gripper',
                         imageUrl: 'https://www.kitagawa.com/en/mtools/item/itemCatImg07.jpg',
                         content: 'Stationary power chuck with built-in cylinder',
@@ -118,7 +113,7 @@ export class ResourceController {
                 isActive: true,
                 slug: { $ne: 'catalogue' },
             })
-            .select('_id name nameKo slug imageUrl content order')
+            .select('_id name slug imageUrl content order')
             .sort({ order: 1 })
             .lean();
 
@@ -133,7 +128,6 @@ export class ResourceController {
                 return {
                     _id: category._id,
                     name: category.name,
-                    nameKo: category.nameKo,
                     slug: category.slug,
                     imageUrl: category.imageUrl,
                     content: category.content,
@@ -245,16 +239,19 @@ Level2 카테고리(제품군)별 자료를 조회합니다.
             const model = resource.metadata?.model;
             const productName = resource.metadata?.productName;
 
-            if (!model || !productName) return;
+            // Use productName as fallback if model is not available
+            const groupKey = model || productName;
 
-            if (!modelMap.has(model)) {
-                modelMap.set(model, {
+            if (!groupKey || !productName) return;
+
+            if (!modelMap.has(groupKey)) {
+                modelMap.set(groupKey, {
                     productName,
-                    model,
+                    model: groupKey,
                 });
             }
 
-            const entry = modelMap.get(model);
+            const entry = modelMap.get(groupKey);
             const fileUrl = resource.file?.url;
 
             if (fileUrl) {
