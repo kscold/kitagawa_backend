@@ -27,7 +27,7 @@ steps:
       - '--memory=512Mi'
       - '--cpu=1'
       - '--max-instances=10'
-      - '--set-env-vars=NODE_ENV=production,JWT_ADMIN_SECRET=${_JWT_ADMIN_SECRET},MONGODB_URI=${_MONGODB_URI}'
+      - '--set-env-vars=NODE_ENV=production,JWT_ADMIN_SECRET=${_JWT_ADMIN_SECRET},MONGODB_URI=${_MONGODB_URI},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SMTP_USER=${_SMTP_USER},SMTP_PASSWORD=${_SMTP_PASSWORD},SMTP_FROM=${_SMTP_FROM},ADMIN_EMAIL=${_ADMIN_EMAIL}'
 
 # Build images in Artifact Registry
 images:

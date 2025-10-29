@@ -296,6 +296,8 @@ export class ResourceService {
             model: string;
             pdfUrl?: string;
             dwgUrl?: string;
+            imageUrl?: string;
+            order?: number;
         }>;
         pagination: {
             currentPage: number;
@@ -330,6 +332,8 @@ export class ResourceService {
                     model: string;
                     pdfUrl?: string;
                     dwgUrl?: string;
+                    imageUrl?: string;
+                    order: number;
                 }
             >();
 
@@ -346,11 +350,23 @@ export class ResourceService {
                     modelMap.set(groupKey, {
                         productName,
                         model: groupKey,
+                        imageUrl: resource.thumbnailUrl,
+                        order: resource.order || 0,
                     });
                 }
 
                 const entry = modelMap.get(groupKey);
                 const fileUrl = resource.file?.url;
+
+                // imageUrl이 없으면 업데이트
+                if (!entry.imageUrl && resource.thumbnailUrl) {
+                    entry.imageUrl = resource.thumbnailUrl;
+                }
+
+                // order 값 업데이트 (더 높은 order 우선)
+                if (resource.order && resource.order > entry.order) {
+                    entry.order = resource.order;
+                }
 
                 if (fileUrl) {
                     if (fileUrl.toLowerCase().endsWith('.pdf')) {
@@ -361,8 +377,21 @@ export class ResourceService {
                 }
             });
 
-            // Map을 배열로 변환
-            const allItems = Array.from(modelMap.values());
+            // Map을 배열로 변환하고 order로 정렬
+            const allItems = Array.from(modelMap.values()).sort((a, b) => {
+                // order가 낮을수록 앞으로 (오름차순) - 단, order가 0인 경우는 뒤로
+                if (a.order === 0 && b.order === 0) {
+                    // 둘 다 0이면 productName으로 정렬
+                    return a.productName.localeCompare(b.productName);
+                }
+                if (a.order === 0) return 1; // a를 뒤로
+                if (b.order === 0) return -1; // b를 뒤로
+                if (a.order !== b.order) {
+                    return a.order - b.order; // 오름차순
+                }
+                // order가 같으면 productName으로 정렬 (오름차순)
+                return a.productName.localeCompare(b.productName);
+            });
 
             // 페이지네이션 적용
             const page = filters.page || 1;

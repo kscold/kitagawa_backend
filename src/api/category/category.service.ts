@@ -118,7 +118,7 @@ export class CategoryService {
         const products = await this.productModel
             .find({
                 'category.mainCategory': 'WORK GRIPPER',
-                'category.subCategory': 'WORK GRIPPER', // WORK GRIPPER의 실제 subCategory 값
+                'category.subCategory': 'Gripper', // WORK GRIPPER의 실제 subCategory 값
                 isActive: true,
             })
             .select('slug category.series mainImageUrl content contentDetail order')

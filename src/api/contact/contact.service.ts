@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -6,6 +6,7 @@ import { ContactRequest, ContactRequestDocument } from '../../schemas/contact-re
 
 import { CreateContactRequestDto } from './dto/request/create-contact-request.dto';
 import { ContactInfoResponseDto } from './dto/response/contact-info-response.dto';
+import { EmailService } from '../../common/service/email.service';
 
 /**
  * Contact Public Service
@@ -13,9 +14,12 @@ import { ContactInfoResponseDto } from './dto/response/contact-info-response.dto
  */
 @Injectable()
 export class ContactService {
+    private readonly logger = new Logger(ContactService.name);
+
     constructor(
         @InjectModel(ContactRequest.name)
         private readonly contactRequestModel: Model<ContactRequestDocument>,
+        private readonly emailService: EmailService,
     ) {}
 
     /**
@@ -27,7 +31,24 @@ export class ContactService {
             status: 'PENDING',
         });
 
-        return await contactRequest.save();
+        const savedRequest = await contactRequest.save();
+
+        // 이메일 전송 (비동기 처리, 실패해도 문의 접수는 완료)
+        this.emailService
+            .sendContactRequestEmail({
+                name: createDto.managerName,
+                company: createDto.companyName,
+                email: createDto.email,
+                phone: createDto.phone,
+                message: createDto.message,
+                attachmentUrl: createDto.attachmentUrl,
+                submittedAt: (savedRequest as any).createdAt,
+            })
+            .catch((error) => {
+                this.logger.error(`이메일 전송 실패: ${error.message}`, error.stack);
+            });
+
+        return savedRequest;
     }
 
     /**
