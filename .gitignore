@@ -52,6 +52,9 @@ ssl/
 *.cert
 *.pem
 
+# GCP Service Account Keys
+service-account-key.json
+
 # yarn
 yarn.lock
 

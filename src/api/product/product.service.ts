@@ -431,4 +431,51 @@ export class ProductService {
             throw new InternalServerErrorException('제품 검색 중 오류가 발생했습니다');
         }
     }
+
+    /**
+     * 제품 검색 (간소화된 형태)
+     * 카테고리 children과 동일한 형식으로 반환
+     */
+    async searchProductsSimplified(
+        keyword: string,
+        filters?: {
+            category?: string;
+            subCategory?: string;
+            limit?: number;
+            skip?: number;
+        },
+    ): Promise<{
+        items: Array<{ name: string; slug: string; imageUrl?: string }>;
+        total: number;
+    }> {
+        const methodName = 'searchProductsSimplified';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - keyword: ${keyword}, filters: ${JSON.stringify(filters)}`);
+            }
+
+            // 검색 실행
+            const { products, total } = await this.searchProducts(keyword, filters);
+
+            // 간소화된 형태로 변환
+            const simplifiedProducts = products.map((product) => ({
+                name: product.productTitle || product.productName || product.category?.series || 'Unknown',
+                slug: product.slug,
+                imageUrl: product.mainImageUrl,
+            }));
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - total: ${total}, count: ${simplifiedProducts.length}`);
+            }
+
+            return {
+                items: simplifiedProducts,
+                total,
+            };
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 검색 중 오류가 발생했습니다');
+        }
+    }
 }

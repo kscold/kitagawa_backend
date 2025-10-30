@@ -9,6 +9,7 @@ import {
     ProductDetailResponseDto,
     ProductArrayResponseDto,
 } from './dto/response/product-list-response.dto';
+import { ProductSearchResponseDto } from './dto/response/product-search-response.dto';
 
 /**
  * 제품 Public API
@@ -24,7 +25,7 @@ export class ProductController {
     constructor(private readonly productService: ProductService) {}
 
     /**
-     * 제품 검색 (영어, 한글, 자음 지원)
+     * 제품 검색 (영어, 한글, 자음 지원) - 간소화된 형태
      */
     @Get('search')
     @ApiOperation({
@@ -44,12 +45,17 @@ export class ProductController {
 - 태그
 
 정확도 순으로 정렬됩니다.
+
+응답 형식:
+- 간소화된 형태로 반환 (name, slug, imageUrl만 포함)
+- 카테고리 children과 동일한 형식
+- 기본 10개씩 페이지네이션 지원
         `,
     })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '검색 성공',
-        type: ProductListResponseDto,
+        type: ProductSearchResponseDto,
         schema: {
             example: {
                 success: true,
@@ -58,25 +64,21 @@ export class ProductController {
                 data: {
                     items: [
                         {
-                            _id: '507f1f77bcf86cd799439011',
-                            productName: 'MR Series',
-                            productNameKo: 'MR 시리즈',
+                            name: 'AS series',
+                            slug: 'as',
+                            imageUrl: 'https://www.kitagawa.com/en/mtools/item/AS_b.jpg',
+                        },
+                        {
+                            name: 'MR series',
                             slug: 'mr',
-                            series: 'MR series',
-                            mainCategory: 'Chuck',
-                            subCategory: 'Hydraulic Hollow Chuck',
-                            imageUrl: 'https://example.com/images/mr-series.jpg',
-                            isFeatured: true,
-                            isActive: true,
-                            viewCount: 1250,
-                            createdAt: '2025-01-15T10:30:00.000Z',
+                            imageUrl: 'https://www.kitagawa.com/en/mtools/item/MR_b.jpg',
                         },
                     ],
                     pagination: {
                         currentPage: 1,
-                        totalPages: 5,
-                        totalItems: 50,
                         itemsPerPage: 10,
+                        totalItems: 45,
+                        totalPages: 5,
                         hasNextPage: true,
                         hasPreviousPage: false,
                     },
@@ -85,18 +87,35 @@ export class ProductController {
         },
     })
     async searchProducts(@Query() searchQuery: SearchProductQueryDto) {
-        const { products, total } = await this.productService.searchProducts(searchQuery.keyword, {
+        // 기본 limit를 10으로 설정
+        const limit = searchQuery.limit || 10;
+        const page = searchQuery.page || 1;
+
+        const { items, total } = await this.productService.searchProductsSimplified(searchQuery.keyword, {
             category: searchQuery.category,
             subCategory: searchQuery.subCategory,
-            limit: searchQuery.limit,
-            skip: searchQuery.offset,
+            limit,
+            skip: (page - 1) * limit,
         });
+
+        // 페이지네이션 정보 생성
+        const totalPages = Math.ceil(total / limit);
 
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품 검색 성공',
-            data: PaginationResponseDto.fromPageLimit(products, total, searchQuery.page, searchQuery.limit),
+            data: {
+                items,
+                pagination: {
+                    currentPage: page,
+                    itemsPerPage: limit,
+                    totalItems: total,
+                    totalPages,
+                    hasNextPage: page < totalPages,
+                    hasPreviousPage: page > 1,
+                },
+            },
         };
     }
 

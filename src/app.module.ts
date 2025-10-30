@@ -12,6 +12,7 @@ import { CategoryModule } from './api/category/category.module';
 import { ResourceModule } from './api/resource/resource.module';
 import { ResourceAdminModule } from './api/resource/admin/resource-admin.module';
 import { HomeSettingsModule } from './api/home-settings/home-settings.module';
+import { UploadModule } from './api/upload/upload.module';
 
 @Module({
     imports: [
@@ -35,6 +36,7 @@ import { HomeSettingsModule } from './api/home-settings/home-settings.module';
         CategoryModule,
         ResourceModule,
         ResourceAdminModule,
+        UploadModule,
     ],
 })
 export class AppModule {}
