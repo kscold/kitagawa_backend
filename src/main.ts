@@ -10,7 +10,7 @@ async function bootstrap() {
 
     // CORS 설정
     app.enableCors({
-        origin: ['http://localhost:3000', 'https://kitagawa-two.vercel.app', '*'],
+        origin: ['http://localhost:3000', 'https://www.kitagawa.co.kr'],
         credentials: true,
     });
 
@@ -46,10 +46,10 @@ async function bootstrap() {
     });
 
     const port = process.env.PORT || 8080;
-    await app.listen(port);
+    await app.listen(port, '0.0.0.0');
 
-    console.log(`Application is running on: http://localhost:${port}/api`);
-    console.log(`Swagger documentation: http://localhost:${port}/api/docs`);
+    logger.log(`Application is running on: http://0.0.0.0:${port}/api`);
+    logger.log(`Swagger documentation: http://0.0.0.0:${port}/api/docs`);
 }
 
 bootstrap();

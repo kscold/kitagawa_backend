@@ -16,6 +16,9 @@ COPY . .
 # Build TypeScript
 RUN yarn build
 
+# Verify build output
+RUN ls -la /app/dist && echo "✅ Build completed successfully"
+
 # Production stage
 FROM node:20-alpine
 
@@ -30,6 +33,9 @@ RUN yarn install --frozen-lockfile --production
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
+
+# Verify copied files
+RUN ls -la /app/dist && echo "✅ Dist files copied successfully"
 
 # Expose port
 EXPOSE 8080
