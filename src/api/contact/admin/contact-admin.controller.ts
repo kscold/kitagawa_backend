@@ -163,6 +163,7 @@ COMPLETED나 REJECTED로 변경 시 자동으로 처리 완료 시간이 기록�
             success: true,
             code: HttpStatus.OK,
             message: '문의 삭제 성공',
+            data: null,
         };
     }
 }

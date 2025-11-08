@@ -237,6 +237,7 @@ Level2 카테고리(제품군)별 자료를 조회합니다.
             success: true,
             code: HttpStatus.OK,
             message: '다운로드 수 증가 성공',
+            data: null,
         };
     }
 }

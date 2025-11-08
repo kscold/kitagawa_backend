@@ -6,6 +6,7 @@ import {
     ApiParam,
     ApiBearerAuth,
     ApiBody,
+    ApiQuery,
 } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
@@ -14,6 +15,8 @@ import { PaginationResponseDto } from '../../../common/dto/pagination/pagination
 import { ProductFilterRequestDto } from '../dto/request/product-filter-request.dto';
 import { CreateProductRequestDto } from '../dto/request/create-product-request.dto';
 import { UpdateProductRequestDto } from '../dto/request/update-product-request.dto';
+import { UpdateProductOrderDto } from '../dto/request/update-product-order.dto';
+import { ReorderBatchDto } from '../dto/request/reorder-batch.dto';
 
 import { ProductAdminService } from './product-admin.service';
 
@@ -83,7 +86,7 @@ export class ProductAdminController {
     })
     @ApiBody({ type: CreateProductRequestDto })
     @SwaggerResponse({
-        status: HttpStatus.OK,
+        status: HttpStatus.CREATED,
         description: '제품 생성 성공',
     })
     @SwaggerResponse({
@@ -97,7 +100,7 @@ export class ProductAdminController {
     async create(@Body() productData: CreateProductRequestDto) {
         return {
             success: true,
-            code: HttpStatus.OK,
+            code: HttpStatus.CREATED,
             message: '제품이 생성되었습니다',
             data: await this.productAdminService.create(productData),
         };
@@ -265,34 +268,73 @@ export class ProductAdminController {
     }
 
     /**
+     * 카테고리별 제품 목록 조회 (관리자 전용)
+     */
+    @Get('category/:level')
+    @ApiOperation({
+        summary: '카테고리별 제품 목록 조회',
+        description: '특정 카테고리 레벨의 제품 목록을 조회합니다 (순서대로 정렬)',
+    })
+    @ApiParam({ name: 'level', description: '카테고리 레벨 (1 또는 2)', enum: ['1', '2'], example: '1' })
+    @ApiQuery({ name: 'categorySlug', description: '카테고리 슬러그', example: 'nc-rotary-table' })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '조회 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '잘못된 요청 (유효하지 않은 level 값)',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async findByCategory(
+        @Param('level') level: string,
+        @Query('categorySlug') categorySlug: string,
+        @Query() paginationQuery: PaginationQueryDto,
+    ) {
+        const levelNum = parseInt(level, 10);
+
+        // level 유효성 검사
+        if (levelNum !== 1 && levelNum !== 2) {
+            return {
+                success: false,
+                code: HttpStatus.BAD_REQUEST,
+                message: 'level은 1 또는 2여야 합니다',
+                data: null,
+            };
+        }
+
+        const { products, total } = await this.productAdminService.findByCategory(levelNum as 1 | 2, categorySlug, {
+            limit: paginationQuery.limit,
+            skip: paginationQuery.offset,
+        });
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '카테고리별 제품 목록 조회 성공',
+            data: PaginationResponseDto.fromPageLimit(products, total, paginationQuery.page, paginationQuery.limit),
+        };
+    }
+
+    /**
      * 제품 순서 업데이트 (관리자 전용, DND용)
      */
-    @Patch(':slug/order')
+    @Patch('product/order')
     @ApiOperation({
-        summary: '제품 순서 업데이트',
-        description: '제품의 정렬 순서를 변경합니다 (관리자 인증 필요, DND용)',
+        summary: '제품 순서 업데이트 (레벨별)',
+        description: '특정 카테고리 레벨 내에서 제품의 정렬 순서를 변경합니다 (관리자 인증 필요, DND용)',
     })
-    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'ck-r' })
-    @ApiBody({
-        schema: {
-            type: 'object',
-            properties: {
-                order: {
-                    type: 'number',
-                    description: '정렬 순서 (낮을수록 먼저 노출)',
-                    example: 1,
-                },
-            },
-            required: ['order'],
-        },
-    })
+    @ApiBody({ type: UpdateProductOrderDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 순서 업데이트 성공',
     })
     @SwaggerResponse({
         status: HttpStatus.BAD_REQUEST,
-        description: '잘못된 order 값',
+        description: '잘못된 요청 (유효하지 않은 level, order 값 또는 카테고리 불일치)',
     })
     @SwaggerResponse({
         status: HttpStatus.NOT_FOUND,
@@ -302,12 +344,48 @@ export class ProductAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async updateOrder(@Param('slug') slug: string, @Body('order') order: number) {
+    async updateProductOrder(@Body() dto: UpdateProductOrderDto) {
         return {
             success: true,
             code: HttpStatus.OK,
             message: '제품 순서가 업데이트되었습니다',
-            data: await this.productAdminService.updateOrder(slug, order),
+            data: await this.productAdminService.updateOrderByLevel(dto.slug, dto.level, dto.categorySlug, dto.order),
+        };
+    }
+
+    /**
+     * 여러 제품의 순서를 일괄 변경 (관리자 전용, DND용)
+     */
+    @Patch('category/reorder')
+    @ApiOperation({
+        summary: '제품 순서 일괄 변경',
+        description: 'DND로 여러 제품의 순서를 한번에 변경합니다 (관리자 인증 필요)',
+    })
+    @ApiBody({ type: ReorderBatchDto })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '제품 순서 일괄 변경 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '잘못된 요청 (유효하지 않은 level, order 값 또는 카테고리 불일치)',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async reorderBatch(@Body() dto: ReorderBatchDto) {
+        await this.productAdminService.reorderBatch(dto.level, dto.categorySlug, dto.items);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: `${dto.items.length}개 제품의 순서가 업데이트되었습니다`,
+            data: null,
         };
     }
 }

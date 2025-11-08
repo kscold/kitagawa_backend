@@ -58,7 +58,7 @@ Contact Us 페이지에서 서비스 문의를 접수합니다.
 
         return {
             success: true,
-            code: HttpStatus.OK,
+            code: HttpStatus.CREATED,
             message: '서비스 문의가 성공적으로 접수되었습니다',
             data: {
                 id: contactRequest._id,

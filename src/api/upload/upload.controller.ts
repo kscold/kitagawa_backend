@@ -131,7 +131,7 @@ export class UploadController {
 
         return {
             success: true,
-            code: HttpStatus.OK,
+            code: HttpStatus.CREATED,
             message: '파일 업로드 성공',
             data: {
                 url,
@@ -191,6 +191,7 @@ GCP Cloud Storage에서 파일을 삭제합니다.
             success: true,
             code: HttpStatus.OK,
             message: '파일 삭제 성공',
+            data: null,
         };
     }
 }

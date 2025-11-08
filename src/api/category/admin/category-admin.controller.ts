@@ -125,7 +125,7 @@ export class CategoryAdminController {
     async create(@Body() categoryData: CreateCategoryRequestDto) {
         return {
             success: true,
-            code: HttpStatus.OK,
+            code: HttpStatus.CREATED,
             message: '카테고리가 생성되었습니다',
             data: await this.categoryAdminService.create(categoryData),
         };

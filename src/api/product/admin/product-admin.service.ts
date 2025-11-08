@@ -307,6 +307,7 @@ export class ProductAdminService {
 
     /**
      * 제품 순서 업데이트 (slug 기반, DND용)
+     * @deprecated 대신 updateOrderByLevel 사용
      */
     async updateOrder(slug: string, order: number): Promise<ProductDocument> {
         const methodName = 'updateOrder';
@@ -344,6 +345,135 @@ export class ProductAdminService {
             }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
             throw new InternalServerErrorException('제품 순서 업데이트 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
+     * 카테고리 레벨별 제품 목록 조회
+     */
+    async findByCategory(
+        level: 1 | 2,
+        categorySlug: string,
+        options?: { limit?: number; skip?: number },
+    ): Promise<{ products: ProductDocument[]; total: number }> {
+        const methodName = 'findByCategory';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - level: ${level}, categorySlug: ${categorySlug}`);
+            }
+
+            const result = await this.productRepository.findByCategoryWithLevel(level, categorySlug, options);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - total: ${result.total}, count: ${result.products.length}`);
+            }
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('카테고리별 제품 조회 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
+     * 제품 순서 업데이트 (레벨별)
+     */
+    async updateOrderByLevel(slug: string, level: 1 | 2, categorySlug: string, order: number): Promise<ProductDocument> {
+        const methodName = 'updateOrderByLevel';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, level: ${level}, categorySlug: ${categorySlug}, order: ${order}`);
+            }
+
+            // 제품 존재 확인
+            const product = await this.productRepository.findBySlug(slug);
+            if (!product) {
+                throw new NotFoundException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+            }
+
+            // order 유효성 검사
+            if (order < 0) {
+                throw new BadRequestException('order는 0 이상이어야 합니다');
+            }
+
+            // 제품이 해당 카테고리에 속하는지 확인
+            const belongsToCategory =
+                level === 1 ? product.category.mainCategory === categorySlug : product.category.subCategory === categorySlug;
+
+            if (!belongsToCategory) {
+                throw new BadRequestException(
+                    `제품이 카테고리 '${categorySlug}' (Level ${level})에 속하지 않습니다`,
+                );
+            }
+
+            // order 업데이트
+            const updatedProduct = await this.productRepository.updateOrderByLevel(slug, level, order);
+            if (!updatedProduct) {
+                throw new InternalServerErrorException('제품 순서 업데이트에 실패했습니다');
+            }
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}, level: ${level}, order: ${order}`);
+            }
+
+            return updatedProduct;
+        } catch (error) {
+            if (error instanceof NotFoundException || error instanceof BadRequestException) {
+                throw error;
+            }
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 순서 업데이트 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
+     * 여러 제품의 순서를 일괄 업데이트 (DND용)
+     */
+    async reorderBatch(level: 1 | 2, categorySlug: string, items: { slug: string; order: number }[]): Promise<void> {
+        const methodName = 'reorderBatch';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - level: ${level}, categorySlug: ${categorySlug}, items: ${items.length}개`);
+            }
+
+            // 모든 제품이 존재하는지 확인
+            for (const item of items) {
+                const product = await this.productRepository.findBySlug(item.slug);
+                if (!product) {
+                    throw new NotFoundException(`제품 슬러그 '${item.slug}'에 해당하는 제품을 찾을 수 없습니다`);
+                }
+
+                // 제품이 해당 카테고리에 속하는지 확인
+                const belongsToCategory =
+                    level === 1 ? product.category.mainCategory === categorySlug : product.category.subCategory === categorySlug;
+
+                if (!belongsToCategory) {
+                    throw new BadRequestException(
+                        `제품 '${item.slug}'이(가) 카테고리 '${categorySlug}' (Level ${level})에 속하지 않습니다`,
+                    );
+                }
+
+                // order 유효성 검사
+                if (item.order < 0) {
+                    throw new BadRequestException(`제품 '${item.slug}'의 order는 0 이상이어야 합니다`);
+                }
+            }
+
+            // 일괄 업데이트
+            await this.productRepository.updateOrdersBatch(level, items);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - ${items.length}개 제품 순서 업데이트 완료`);
+            }
+        } catch (error) {
+            if (error instanceof NotFoundException || error instanceof BadRequestException) {
+                throw error;
+            }
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('제품 순서 일괄 업데이트 중 오류가 발생했습니다');
         }
     }
 }

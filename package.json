@@ -13,7 +13,10 @@
         "start:https": "ts-node src/main.https.ts",
         "start:debug": "ts-node --inspect src/main.ts",
         "start:prod": "node dist/main.js",
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:cov": "jest --coverage",
+        "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "deploy": "source .env && gcloud builds submit --config=cloudbuild.yaml --substitutions=_JWT_ADMIN_SECRET=\"$JWT_ADMIN_SECRET\",_MONGODB_URI=\"$MONGODB_URI\",_SMTP_HOST=\"$SMTP_HOST\",_SMTP_PORT=\"$SMTP_PORT\",_SMTP_USER=\"$SMTP_USER\",_SMTP_PASSWORD=\"$SMTP_PASSWORD\",_SMTP_FROM=\"$SMTP_FROM\",_ADMIN_EMAIL=\"$ADMIN_EMAIL\"",
         "seed:ultimate": "ts-node scripts/ultimate-database-seeder.ts",
         "seed:categories": "ts-node scripts/seed-categories-from-csv.ts",
@@ -23,7 +26,9 @@
         "backup:dump": "bash scripts/backup-database.sh",
         "restore:dump": "bash scripts/restore-database.sh",
         "backup:json": "ts-node scripts/backup-to-json.ts",
-        "restore:json": "ts-node scripts/restore-from-json.ts"
+        "restore:json": "ts-node scripts/restore-from-json.ts",
+        "generate:swagger": "ts-node scripts/generate-swagger.ts",
+        "generate:postman": "yarn generate:swagger"
     },
     "keywords": [
         "nestjs",
@@ -66,11 +71,16 @@
     },
     "devDependencies": {
         "@nestjs/cli": "^11.0.10",
-        "@nestjs/testing": "^11.1.6",
+        "@nestjs/testing": "^11.1.8",
         "@types/bcrypt": "^6.0.0",
         "@types/express": "^5.0.3",
+        "@types/jest": "^30.0.0",
         "@types/multer": "^2.0.0",
         "@types/passport-jwt": "^4.0.1",
-        "prettier": "^3.6.2"
+        "@types/supertest": "^6.0.3",
+        "jest": "^30.2.0",
+        "prettier": "^3.6.2",
+        "supertest": "^7.1.4",
+        "ts-jest": "^29.4.5"
     }
 }

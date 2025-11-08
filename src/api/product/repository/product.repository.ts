@@ -380,4 +380,73 @@ export class ProductRepository {
             .select('-productName -imageUrls -metadata -order');
         return (await query.exec()) as ProductDocument | null;
     }
+
+    /**
+     * 카테고리 레벨별 제품 조회 (관리자용)
+     * @param level 1 또는 2
+     * @param categorySlug 카테고리 슬러그
+     * @param options 페이지네이션 옵션
+     */
+    async findByCategoryWithLevel(
+        level: 1 | 2,
+        categorySlug: string,
+        options?: { limit?: number; skip?: number },
+    ): Promise<{ products: ProductDocument[]; total: number }> {
+        // Level에 따라 다른 필터 적용
+        // Level 1: mainCategory로 필터링
+        // Level 2: subCategory로 필터링
+        const query: any = level === 1 ? { 'category.mainCategory': categorySlug } : { 'category.subCategory': categorySlug };
+
+        // Total count
+        const total = await this.productModel.countDocuments(query).exec();
+
+        // Query builder - Level에 따라 다른 순서 필드로 정렬
+        const sortField = level === 1 ? 'orderInLevel1' : 'orderInLevel2';
+        let queryBuilder: any = this.productModel.find(query).sort({ [sortField]: 1, createdAt: -1 });
+
+        if (options?.skip !== undefined) {
+            queryBuilder = queryBuilder.skip(options.skip);
+        }
+
+        if (options?.limit !== undefined) {
+            queryBuilder = queryBuilder.limit(options.limit);
+        }
+
+        const products = (await queryBuilder.exec()) as ProductDocument[];
+
+        return { products, total };
+    }
+
+    /**
+     * 제품의 레벨별 순서 업데이트
+     * @param slug 제품 슬러그
+     * @param level 1 또는 2
+     * @param order 새로운 순서
+     */
+    async updateOrderByLevel(slug: string, level: 1 | 2, order: number): Promise<ProductDocument | null> {
+        const updateField = level === 1 ? 'orderInLevel1' : 'orderInLevel2';
+
+        const query: any = this.productModel.findOneAndUpdate({ slug }, { $set: { [updateField]: order } }, { new: true });
+
+        return (await query.exec()) as ProductDocument | null;
+    }
+
+    /**
+     * 여러 제품의 순서를 일괄 업데이트 (DND용)
+     * @param level 1 또는 2
+     * @param items 제품 슬러그와 순서 배열
+     */
+    async updateOrdersBatch(level: 1 | 2, items: { slug: string; order: number }[]): Promise<void> {
+        const updateField = level === 1 ? 'orderInLevel1' : 'orderInLevel2';
+
+        // Bulk write 사용하여 한번에 업데이트
+        const bulkOps = items.map((item) => ({
+            updateOne: {
+                filter: { slug: item.slug },
+                update: { $set: { [updateField]: item.order } },
+            },
+        }));
+
+        await this.productModel.bulkWrite(bulkOps);
+    }
 }

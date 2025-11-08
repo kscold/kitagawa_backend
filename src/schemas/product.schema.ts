@@ -103,7 +103,13 @@ export class Product {
     viewCount: number; // 조회수
 
     @Prop({ default: 0 })
-    order: number; // 정렬 순서 (낮을수록 우선 노출)
+    order: number; // 전역 정렬 순서 (낮을수록 우선 노출)
+
+    @Prop({ default: 0 })
+    orderInLevel1: number; // Level 1 카테고리 내 정렬 순서
+
+    @Prop({ default: 0 })
+    orderInLevel2: number; // Level 2 카테고리 내 정렬 순서
 
     @Prop()
     pdfUrl: string; // PDF 카탈로그 URL

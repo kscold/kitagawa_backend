@@ -197,6 +197,7 @@ export class ResourceAdminController {
             success: true,
             code: HttpStatus.OK,
             message: '자료 삭제 성공',
+            data: null,
         };
     }
 

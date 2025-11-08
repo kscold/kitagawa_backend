@@ -98,7 +98,7 @@ export class HomeSettingsAdminController {
     async addMainImage(@Body() imageData: AddMainImageRequestDto) {
         return {
             success: true,
-            code: HttpStatus.OK,
+            code: HttpStatus.CREATED,
             message: '대표 이미지가 추가되었습니다',
             data: await this.homeSettingsAdminService.addMainImage(imageData),
         };

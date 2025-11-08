@@ -78,7 +78,7 @@ export class AuthController {
 
         return {
             success: true,
-            code: HttpStatus.OK,
+            code: HttpStatus.CREATED,
             message: '관리자 계정이 생성되었습니다',
             data: {
                 id: admin._id,
@@ -154,7 +154,7 @@ export class AuthController {
 
         return {
             success: true,
-            code: HttpStatus.OK,
+            code: HttpStatus.CREATED,
             message: '로그인 성공',
             data: {
                 accessToken: result.accessToken,
