@@ -10,14 +10,18 @@ COPY package.json yarn.lock ./
 # Install dependencies
 RUN yarn install --frozen-lockfile
 
-# Copy source code
-COPY . .
+# Copy only necessary files for build
+COPY tsconfig.json nest-cli.json ./
+COPY src ./src
 
-# Build TypeScript
-RUN yarn build
+# Build TypeScript (clean build)
+RUN yarn build && echo "Build command completed"
 
-# Verify build output
-RUN ls -la /app/dist && echo "✅ Build completed successfully"
+# Verify build output (show first level and main.js specifically)
+RUN ls -la /app/dist && \
+    echo "✅ Build completed successfully" && \
+    echo "Checking for main.js:" && \
+    ls -la /app/dist/main.js || echo "❌ main.js not found!"
 
 # Production stage
 FROM node:20-alpine
