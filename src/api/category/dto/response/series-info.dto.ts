@@ -43,4 +43,11 @@ export class SeriesInfoDto {
         required: false,
     })
     contentDetail?: string;
+
+    @ApiProperty({
+        example: 'https://www.kitagawa.com/en/mtools/item/data/PDF/catalogue.pdf',
+        description: 'PDF 카탈로그 URL',
+        required: false,
+    })
+    pdfUrl?: string;
 }

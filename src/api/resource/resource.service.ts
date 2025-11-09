@@ -280,6 +280,148 @@ export class ResourceService {
     }
 
     /**
+     * 통합 검색 (모든 카테고리 대상)
+     */
+    async searchResourcesGrouped(filters: {
+        keyword: string;
+        category?: string;
+        fileType?: string;
+        page?: number;
+        limit?: number;
+    }): Promise<{
+        items: Array<{
+            productName: string;
+            model: string;
+            category?: string;
+            pdfUrl?: string;
+            dwgUrl?: string;
+            imageUrl?: string;
+            order?: number;
+        }>;
+        pagination: {
+            currentPage: number;
+            totalPages: number;
+            totalItems: number;
+            itemsPerPage: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+        };
+    }> {
+        const methodName = 'searchResourcesGrouped';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - filters: ${JSON.stringify(filters)}`);
+            }
+
+            // 모든 자료 검색 (카테고리 지정 시 해당 카테고리만)
+            const { resources } = await this.findAll({
+                category: filters.category,
+                keyword: filters.keyword,
+                fileType: filters.fileType,
+                limit: 0,
+                skip: 0,
+            });
+
+            // 모델별로 그룹화
+            const modelMap = new Map<
+                string,
+                {
+                    productName: string;
+                    model: string;
+                    category?: string;
+                    pdfUrl?: string;
+                    dwgUrl?: string;
+                    imageUrl?: string;
+                    order: number;
+                }
+            >();
+
+            resources.forEach((resource) => {
+                const model = resource.metadata?.model;
+                const productName = resource.metadata?.productName;
+                const category = resource.categories?.[0]; // 첫 번째 카테고리
+
+                const groupKey = model || productName;
+
+                if (!groupKey || !productName) return;
+
+                if (!modelMap.has(groupKey)) {
+                    modelMap.set(groupKey, {
+                        productName,
+                        model: groupKey,
+                        category,
+                        imageUrl: resource.thumbnailUrl,
+                        order: resource.order || 0,
+                    });
+                }
+
+                const entry = modelMap.get(groupKey);
+                const fileUrl = resource.file?.url;
+
+                if (!entry.imageUrl && resource.thumbnailUrl) {
+                    entry.imageUrl = resource.thumbnailUrl;
+                }
+
+                if (resource.order && resource.order > entry.order) {
+                    entry.order = resource.order;
+                }
+
+                if (fileUrl) {
+                    if (fileUrl.toLowerCase().endsWith('.pdf')) {
+                        entry.pdfUrl = fileUrl;
+                    } else if (fileUrl.toLowerCase().endsWith('.dwg')) {
+                        entry.dwgUrl = fileUrl;
+                    }
+                }
+            });
+
+            // Map을 배열로 변환하고 order로 정렬
+            const allItems = Array.from(modelMap.values()).sort((a, b) => {
+                if (a.order === 0 && b.order === 0) {
+                    return a.productName.localeCompare(b.productName);
+                }
+                if (a.order === 0) return 1;
+                if (b.order === 0) return -1;
+                if (a.order !== b.order) {
+                    return a.order - b.order;
+                }
+                return a.productName.localeCompare(b.productName);
+            });
+
+            // 페이지네이션 적용
+            const page = filters.page || 1;
+            const limit = filters.limit || 50;
+            const skip = (page - 1) * limit;
+            const paginatedItems = allItems.slice(skip, skip + limit);
+            const totalItems = allItems.length;
+
+            const result = {
+                items: paginatedItems,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(totalItems / limit),
+                    totalItems,
+                    itemsPerPage: limit,
+                    hasNextPage: skip + limit < totalItems,
+                    hasPreviousPage: page > 1,
+                },
+            };
+
+            if (this.isDevelopment) {
+                this.logger.log(
+                    `[${methodName}] 성공 - totalItems: ${totalItems}, currentPage: ${page}, items: ${paginatedItems.length}`,
+                );
+            }
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new InternalServerErrorException('자료 검색 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
      * Level2 카테고리별 자료 조회 (모델별 그룹화 + 페이지네이션)
      */
     async findResourcesByLevel2CategoryGrouped(

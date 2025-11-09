@@ -37,10 +37,16 @@ export class ResourceFile {
 @Schema({ timestamps: true })
 export class Resource {
     @Prop({ required: true })
-    title: string; // 자료 제목
+    title: string; // 자료 제목 (영문)
 
     @Prop()
-    description?: string; // 설명
+    titleKo?: string; // 자료 제목 (한글)
+
+    @Prop()
+    description?: string; // 설명 (영문)
+
+    @Prop()
+    descriptionKo?: string; // 설명 (한글)
 
     @Prop({ required: true, enum: ResourceType })
     type: ResourceType; // 자료 타입
@@ -51,8 +57,14 @@ export class Resource {
     @Prop({ type: [String], default: [] })
     tags: string[]; // 태그
 
-    @Prop({ type: ResourceFile, required: true })
-    file: ResourceFile; // 파일 정보
+    @Prop({ type: ResourceFile })
+    file?: ResourceFile; // 파일 정보 (단일 파일인 경우)
+
+    @Prop({ type: ResourceFile })
+    pdfFile?: ResourceFile; // PDF 파일 정보
+
+    @Prop({ type: ResourceFile })
+    dwgFile?: ResourceFile; // DWG 파일 정보
 
     @Prop()
     thumbnailUrl?: string; // 썸네일 이미지 URL
@@ -88,11 +100,14 @@ export const ResourceSchema = SchemaFactory.createForClass(Resource);
 
 // 인덱스 설정
 ResourceSchema.index({ title: 1 });
+ResourceSchema.index({ titleKo: 1 });
 ResourceSchema.index({ type: 1 });
 ResourceSchema.index({ categories: 1 });
 ResourceSchema.index({ tags: 1 });
 ResourceSchema.index({ isActive: 1 });
-ResourceSchema.index({ isFeatured: 1, order: -1 });
+ResourceSchema.index({ isFeatured: 1, order: 1 }); // 오름차순 정렬
 ResourceSchema.index({ publishedAt: -1 });
 ResourceSchema.index({ viewCount: -1 });
 ResourceSchema.index({ downloadCount: -1 });
+ResourceSchema.index({ 'metadata.productName': 1 }); // 제품명 검색용
+ResourceSchema.index({ 'metadata.model': 1 }); // 모델명 검색용

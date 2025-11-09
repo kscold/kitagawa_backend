@@ -94,23 +94,31 @@ export class CategoryService {
     }
 
     // Catalogue 카테고리의 제품 정보 조회 (series가 아닌 제품 자체)
-    private async getProductsForCatalogueCategory(subCategory: string): Promise<SeriesInfoDto[]> {
+    private async getProductsForCatalogueCategory(subCategory: string, categoryImageUrl?: string): Promise<SeriesInfoDto[]> {
         const products = await this.productModel
             .find({
                 'category.mainCategory': 'CATALOGUE',
                 'category.subCategory': subCategory,
                 isActive: true,
             })
-            .select('slug productName mainImageUrl category.series order')
+            .select('slug productName mainImageUrl category.series downloads order')
             .sort({ order: 1, productName: 1 })
             .lean();
 
-        return products.map((product) => ({
-            name: product.category.series || product.productName || 'Unknown',
-            slug: product.slug,
-            productCount: 1,
-            imageUrl: product.mainImageUrl,
-        }));
+        return products.map((product) => {
+            // downloads 배열에서 PDF Catalogue URL 찾기
+            const pdfDownload = product.downloads?.find(
+                (dl: any) => dl.type === 'PDF' && dl.category === 'Catalogue' && dl.url,
+            );
+
+            return {
+                name: product.category.series || product.productName || 'Unknown',
+                slug: product.slug,
+                productCount: 1,
+                imageUrl: product.mainImageUrl || categoryImageUrl, // Product 이미지가 없으면 카테고리 이미지 사용
+                pdfUrl: pdfDownload?.url,
+            };
+        });
     }
 
     // WORK GRIPPER 카테고리의 제품 정보 조회 (subCategory가 없는 경우)
@@ -188,7 +196,7 @@ export class CategoryService {
             level2Categories.map(async (level2Cat) => {
                 // Catalogue는 제품 자체를 children으로, 다른 카테고리는 series를 children으로
                 const children = isCatalogue
-                    ? await this.getProductsForCatalogueCategory(level2Cat.name)
+                    ? await this.getProductsForCatalogueCategory(level2Cat.name, level2Cat.imageUrl)
                     : await this.getSeriesForLevel2Category(level1Category.name, level2Cat.name);
 
                 // Level 2에서 불필요한 필드 제거하고 부모 정보 추가

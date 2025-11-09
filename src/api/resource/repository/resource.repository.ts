@@ -43,6 +43,8 @@ export class ResourceRepository {
                     { description: { $regex: filters.keyword, $options: 'i' } },
                     { descriptionKo: { $regex: filters.keyword, $options: 'i' } },
                     { tags: { $regex: filters.keyword, $options: 'i' } },
+                    { 'metadata.productName': { $regex: filters.keyword, $options: 'i' } },
+                    { 'metadata.model': { $regex: filters.keyword, $options: 'i' } },
                 ],
             });
         }
@@ -69,8 +71,8 @@ export class ResourceRepository {
         // Total count
         const total = await this.resourceModel.countDocuments(query).exec();
 
-        // Query builder
-        let queryBuilder: any = this.resourceModel.find(query).sort({ isFeatured: -1, order: -1, publishedAt: -1 });
+        // Query builder (order는 오름차순으로 정렬)
+        let queryBuilder: any = this.resourceModel.find(query).sort({ isFeatured: -1, order: 1, publishedAt: -1 });
 
         if (filters.skip !== undefined) {
             queryBuilder = queryBuilder.skip(filters.skip);

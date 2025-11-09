@@ -17,6 +17,8 @@
         "test:watch": "jest --watch",
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+        "test:e2e": "jest e2e.spec",
+        "test:unit": "jest controller.spec",
         "deploy": "source .env && gcloud builds submit --config=cloudbuild.yaml --substitutions=_JWT_ADMIN_SECRET=\"$JWT_ADMIN_SECRET\",_MONGODB_URI=\"$MONGODB_URI\",_SMTP_HOST=\"$SMTP_HOST\",_SMTP_PORT=\"$SMTP_PORT\",_SMTP_USER=\"$SMTP_USER\",_SMTP_PASSWORD=\"$SMTP_PASSWORD\",_SMTP_FROM=\"$SMTP_FROM\",_ADMIN_EMAIL=\"$ADMIN_EMAIL\"",
         "seed:ultimate": "ts-node scripts/ultimate-database-seeder.ts",
         "seed:categories": "ts-node scripts/seed-categories-from-csv.ts",
