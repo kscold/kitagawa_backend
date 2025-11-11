@@ -6,12 +6,18 @@ import { ContactController } from './contact.controller';
 import { ContactService } from './contact.service';
 
 import { ContactRequest, ContactRequestSchema } from '../../schemas/contact-request.schema';
+import { CompanyInfo, CompanyInfoSchema } from '../../schemas/company-info.schema';
 import { EmailModule } from '../../common/module/email.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
     imports: [
-        MongooseModule.forFeature([{ name: ContactRequest.name, schema: ContactRequestSchema }]),
+        MongooseModule.forFeature([
+            { name: ContactRequest.name, schema: ContactRequestSchema },
+            { name: CompanyInfo.name, schema: CompanyInfoSchema },
+        ]),
         EmailModule,
+        UploadModule,
     ],
     controllers: [ContactController],
     providers: [ContactService],

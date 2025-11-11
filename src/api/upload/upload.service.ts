@@ -130,7 +130,7 @@ export class UploadService {
      * 지원되는 폴더 목록 검증
      */
     validateFolder(folder: string): boolean {
-        const allowedFolders = ['banner', 'product', 'resource', 'company', 'category'];
+        const allowedFolders = ['banner', 'product', 'resource', 'company', 'category', 'contact'];
         return allowedFolders.includes(folder.toLowerCase());
     }
 }

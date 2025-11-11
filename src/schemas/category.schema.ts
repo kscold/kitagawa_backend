@@ -9,6 +9,27 @@ export enum CategoryLevel {
     LEVEL_2 = 2, // 중분류 (4축 표준사양, VE Power Vise, 유압 중공척 등)
 }
 
+/**
+ * 다운로드 링크 서브스키마
+ */
+@Schema({ _id: false })
+export class DownloadLink {
+    @Prop()
+    type?: string; // 파일 타입 (PDF, CAD, etc.)
+
+    @Prop()
+    category?: string; // 파일 카테고리 (Catalog, Manual, etc.)
+
+    @Prop()
+    title?: string; // 파일 제목
+
+    @Prop()
+    url?: string; // 다운로드 URL
+
+    @Prop()
+    model?: string; // 해당 모델명
+}
+
 // 2단계 카테고리 스키마
 @Schema({ timestamps: true, collection: 'categories' })
 export class CategoryModel {
@@ -23,6 +44,9 @@ export class CategoryModel {
 
     @Prop()
     content: string; // 카테고리 상세 설명
+
+    @Prop({ type: String })
+    specificationHtml?: string; // 카테고리 소개 HTML (사양서, 설명 등)
 
     // 계층 구조
     @Prop({ required: true, enum: CategoryLevel })
@@ -40,6 +64,12 @@ export class CategoryModel {
 
     @Prop()
     imageUrl: string; // 카테고리 대표 이미지
+
+    @Prop({ type: [String] })
+    youtubeUrl?: string[]; // YouTube 영상 URL 배열
+
+    @Prop({ type: [DownloadLink] })
+    downloads?: DownloadLink[]; // 다운로드 링크 배열
 
     @Prop({ default: 0 })
     order: number; // 정렬 순서

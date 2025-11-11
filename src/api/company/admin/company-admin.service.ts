@@ -44,9 +44,7 @@ export class CompanyAdminService {
 
         // 수정
         if (updateDto.vision !== undefined) companyInfo.vision = updateDto.vision;
-        if (updateDto.visionKo !== undefined) companyInfo.visionKo = updateDto.visionKo;
         if (updateDto.mission !== undefined) companyInfo.mission = updateDto.mission;
-        if (updateDto.missionKo !== undefined) companyInfo.missionKo = updateDto.missionKo;
 
         return await companyInfo.save();
     }
@@ -63,9 +61,7 @@ export class CompanyAdminService {
 
         companyInfo.greeting = {
             title: greetingDto.title,
-            titleKo: greetingDto.titleKo,
             content: greetingDto.content,
-            contentKo: greetingDto.contentKo,
             ceoName: greetingDto.ceoName,
             ceoSignatureUrl: greetingDto.ceoSignatureUrl,
         };
@@ -80,17 +76,12 @@ export class CompanyAdminService {
         const defaultInfo = new this.companyInfoModel({
             greeting: {
                 title: 'CEO Greeting',
-                titleKo: '대표 인사말',
                 content:
                     'Welcome to Korea Kitagawa. We are committed to providing the best products and services to our customers.',
-                contentKo:
-                    '(주) 한국 기타가와를 찾아주셔서 감사합니다. 저희는 고객에게 최고의 제품과 서비스를 제공하기 위해 최선을 다하고 있습니다.',
                 ceoName: '최민형',
             },
             vision: 'To be the leading provider of precision machining solutions in Korea',
-            visionKo: '대한민국 최고의 정밀 가공 솔루션 제공 기업',
             mission: 'Provide high-quality products and exceptional customer service',
-            missionKo: '고품질 제품과 탁월한 고객 서비스 제공',
             isActive: true,
         });
 

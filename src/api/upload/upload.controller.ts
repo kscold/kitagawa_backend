@@ -1,21 +1,23 @@
 import {
-    Controller,
     Post,
-    Delete,
-    UseInterceptors,
-    UploadedFile,
-    Query,
     Body,
-    HttpStatus,
-    BadRequestException,
+    Query,
+    Delete,
     UseGuards,
+    Controller,
+    HttpStatus,
+    UploadedFile,
+    UseInterceptors,
+    BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody, ApiResponse as SwaggerResponse, ApiQuery } from '@nestjs/swagger';
 
-import { UploadService } from './upload.service';
-import { FileUploadResponseDto } from './dto/upload-response.dto';
 import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
+
+import { UploadService } from './upload.service';
+
+import { FileUploadResponseDto } from './dto/upload-response.dto';
 
 /**
  * Upload API (Admin Only)

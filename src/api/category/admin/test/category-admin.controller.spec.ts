@@ -1,10 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
-import { CategoryAdminController } from '../category-admin.controller';
-import { CategoryAdminService } from '../category-admin.service';
+
 import { AdminJwtAuthGuard } from '../../../../common/guard/admin-jwt-auth.guard';
 import { MockAdminJwtAuthGuard } from '../../../../../test/helpers/mock-auth-guard';
+
+import { CategoryAdminController } from '../category-admin.controller';
+
+import { CategoryAdminService } from '../category-admin.service';
+
 import { expectStandardResponse } from '../../../../../test/helpers/test-helpers';
 
 describe('CategoryAdminController (e2e)', () => {

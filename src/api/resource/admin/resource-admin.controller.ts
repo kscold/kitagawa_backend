@@ -1,13 +1,17 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, HttpStatus, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 
-import { ResourceAdminService } from './resource-admin.service';
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
+
+import { ResourceAdminService } from './resource-admin.service';
 
 import { CreateResourceRequestDto } from './dto/request/create-resource-request.dto';
 import { UpdateResourceRequestDto } from './dto/request/update-resource-request.dto';
 import { ResourceAdminFilterDto } from './dto/request/resource-admin-filter.dto';
-import { ResourceAdminDetailResponseDto, ResourceAdminListResponseDto } from './dto/response/resource-admin-response.dto';
+import {
+    ResourceAdminDetailResponseDto,
+    ResourceAdminListResponseDto,
+} from './dto/response/resource-admin-response.dto';
 
 /**
  * 자료실 Admin API

@@ -1,13 +1,8 @@
-import {
-    Injectable,
-    NotFoundException,
-    Logger,
-    InternalServerErrorException,
-    BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ProductDocument } from '../../../schemas/product.schema';
+
 import { ProductRepository } from '../repository/product.repository';
 
 /**
@@ -54,7 +49,7 @@ export class ProductAdminService {
             return result;
         } catch (error) {
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 목록 조회 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 목록 조회 중 오류가 발생했습니다');
         }
     }
 
@@ -72,7 +67,7 @@ export class ProductAdminService {
             const product = await this.productRepository.findBySlug(slug);
 
             if (!product) {
-                throw new NotFoundException(`제품을 찾을 수 없습니다 (slug: ${slug})`);
+                throw new BadRequestException(`제품을 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             if (this.isDevelopment) {
@@ -81,11 +76,8 @@ export class ProductAdminService {
 
             return product;
         } catch (error) {
-            if (error instanceof NotFoundException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 조회 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 조회 중 오류가 발생했습니다');
         }
     }
 
@@ -126,11 +118,8 @@ export class ProductAdminService {
 
             return newProduct;
         } catch (error) {
-            if (error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 생성 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 생성 중 오류가 발생했습니다');
         }
     }
 
@@ -148,7 +137,7 @@ export class ProductAdminService {
             // 제품 존재 확인
             const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new BadRequestException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // slug와 slug는 수정 불가능하므로 제거
@@ -169,7 +158,7 @@ export class ProductAdminService {
             });
 
             if (!updatedProduct) {
-                throw new InternalServerErrorException('제품 수정에 실패했습니다');
+                throw new BadRequestException('제품 수정에 실패했습니다');
             }
 
             if (this.isDevelopment) {
@@ -178,11 +167,8 @@ export class ProductAdminService {
 
             return updatedProduct;
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 수정 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 수정 중 오류가 발생했습니다');
         }
     }
 
@@ -200,24 +186,21 @@ export class ProductAdminService {
             // 제품 존재 확인
             const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new BadRequestException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // 제품 삭제 (Hard Delete)
             const deleted = await this.productRepository.delete(slug);
             if (!deleted) {
-                throw new InternalServerErrorException('제품 삭제에 실패했습니다');
+                throw new BadRequestException('제품 삭제에 실패했습니다');
             }
 
             if (this.isDevelopment) {
                 this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 삭제 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 삭제 중 오류가 발생했습니다');
         }
     }
 
@@ -235,7 +218,7 @@ export class ProductAdminService {
             // 제품 존재 확인
             const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new BadRequestException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // 이미 비활성화 상태인 경우
@@ -246,7 +229,7 @@ export class ProductAdminService {
             // 제품 비활성화
             const updatedProduct = await this.productRepository.toggleActive(slug, false);
             if (!updatedProduct) {
-                throw new InternalServerErrorException('제품 비활성화에 실패했습니다');
+                throw new BadRequestException('제품 비활성화에 실패했습니다');
             }
 
             if (this.isDevelopment) {
@@ -255,11 +238,8 @@ export class ProductAdminService {
 
             return updatedProduct;
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 비활성화 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 비활성화 중 오류가 발생했습니다');
         }
     }
 
@@ -277,7 +257,7 @@ export class ProductAdminService {
             // 제품 존재 확인
             const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new BadRequestException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // 이미 활성화 상태인 경우
@@ -288,7 +268,7 @@ export class ProductAdminService {
             // 제품 활성화
             const updatedProduct = await this.productRepository.toggleActive(slug, true);
             if (!updatedProduct) {
-                throw new InternalServerErrorException('제품 활성화에 실패했습니다');
+                throw new BadRequestException('제품 활성화에 실패했습니다');
             }
 
             if (this.isDevelopment) {
@@ -297,11 +277,8 @@ export class ProductAdminService {
 
             return updatedProduct;
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 활성화 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 활성화 중 오류가 발생했습니다');
         }
     }
 
@@ -320,7 +297,7 @@ export class ProductAdminService {
             // 제품 존재 확인
             const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new BadRequestException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // order 유효성 검사
@@ -331,7 +308,7 @@ export class ProductAdminService {
             // order 업데이트
             const updatedProduct = await this.productRepository.update(slug, { order });
             if (!updatedProduct) {
-                throw new InternalServerErrorException('제품 순서 업데이트에 실패했습니다');
+                throw new BadRequestException('제품 순서 업데이트에 실패했습니다');
             }
 
             if (this.isDevelopment) {
@@ -340,11 +317,8 @@ export class ProductAdminService {
 
             return updatedProduct;
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 순서 업데이트 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 순서 업데이트 중 오류가 발생했습니다');
         }
     }
 
@@ -372,25 +346,32 @@ export class ProductAdminService {
             return result;
         } catch (error) {
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('카테고리별 제품 조회 중 오류가 발생했습니다');
+            throw new BadRequestException('카테고리별 제품 조회 중 오류가 발생했습니다');
         }
     }
 
     /**
      * 제품 순서 업데이트 (레벨별)
      */
-    async updateOrderByLevel(slug: string, level: 1 | 2, categorySlug: string, order: number): Promise<ProductDocument> {
+    async updateOrderByLevel(
+        slug: string,
+        level: 1 | 2,
+        categorySlug: string,
+        order: number,
+    ): Promise<ProductDocument> {
         const methodName = 'updateOrderByLevel';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, level: ${level}, categorySlug: ${categorySlug}, order: ${order}`);
+                this.logger.log(
+                    `[${methodName}] 요청 - slug: ${slug}, level: ${level}, categorySlug: ${categorySlug}, order: ${order}`,
+                );
             }
 
             // 제품 존재 확인
             const product = await this.productRepository.findBySlug(slug);
             if (!product) {
-                throw new NotFoundException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
+                throw new BadRequestException(`제품 슬러그 '${slug}'에 해당하는 제품을 찾을 수 없습니다`);
             }
 
             // order 유효성 검사
@@ -400,18 +381,18 @@ export class ProductAdminService {
 
             // 제품이 해당 카테고리에 속하는지 확인
             const belongsToCategory =
-                level === 1 ? product.category.mainCategory === categorySlug : product.category.subCategory === categorySlug;
+                level === 1
+                    ? product.category.mainCategory === categorySlug
+                    : product.category.subCategory === categorySlug;
 
             if (!belongsToCategory) {
-                throw new BadRequestException(
-                    `제품이 카테고리 '${categorySlug}' (Level ${level})에 속하지 않습니다`,
-                );
+                throw new BadRequestException(`제품이 카테고리 '${categorySlug}' (Level ${level})에 속하지 않습니다`);
             }
 
             // order 업데이트
             const updatedProduct = await this.productRepository.updateOrderByLevel(slug, level, order);
             if (!updatedProduct) {
-                throw new InternalServerErrorException('제품 순서 업데이트에 실패했습니다');
+                throw new BadRequestException('제품 순서 업데이트에 실패했습니다');
             }
 
             if (this.isDevelopment) {
@@ -420,11 +401,8 @@ export class ProductAdminService {
 
             return updatedProduct;
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 순서 업데이트 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 순서 업데이트 중 오류가 발생했습니다');
         }
     }
 
@@ -436,19 +414,23 @@ export class ProductAdminService {
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - level: ${level}, categorySlug: ${categorySlug}, items: ${items.length}개`);
+                this.logger.log(
+                    `[${methodName}] 요청 - level: ${level}, categorySlug: ${categorySlug}, items: ${items.length}개`,
+                );
             }
 
             // 모든 제품이 존재하는지 확인
             for (const item of items) {
                 const product = await this.productRepository.findBySlug(item.slug);
                 if (!product) {
-                    throw new NotFoundException(`제품 슬러그 '${item.slug}'에 해당하는 제품을 찾을 수 없습니다`);
+                    throw new BadRequestException(`제품 슬러그 '${item.slug}'에 해당하는 제품을 찾을 수 없습니다`);
                 }
 
                 // 제품이 해당 카테고리에 속하는지 확인
                 const belongsToCategory =
-                    level === 1 ? product.category.mainCategory === categorySlug : product.category.subCategory === categorySlug;
+                    level === 1
+                        ? product.category.mainCategory === categorySlug
+                        : product.category.subCategory === categorySlug;
 
                 if (!belongsToCategory) {
                     throw new BadRequestException(
@@ -469,11 +451,8 @@ export class ProductAdminService {
                 this.logger.log(`[${methodName}] 성공 - ${items.length}개 제품 순서 업데이트 완료`);
             }
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('제품 순서 일괄 업데이트 중 오류가 발생했습니다');
+            throw new BadRequestException('제품 순서 일괄 업데이트 중 오류가 발생했습니다');
         }
     }
 }

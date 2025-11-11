@@ -1,24 +1,37 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, HttpStatus } from '@nestjs/common';
+import {
+    Get,
+    Post,
+    Body,
+    Patch,
+    Param,
+    Query,
+    Delete,
+    HttpCode,
+    UseGuards,
+    HttpStatus,
+    Controller,
+} from '@nestjs/common';
 import {
     ApiTags,
-    ApiOperation,
-    ApiResponse as SwaggerResponse,
-    ApiParam,
-    ApiBearerAuth,
     ApiBody,
     ApiQuery,
+    ApiParam,
+    ApiOperation,
+    ApiBearerAuth,
+    ApiResponse as SwaggerResponse,
 } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
+
+import { ProductAdminService } from './product-admin.service';
+
 import { PaginationQueryDto } from '../../../common/dto/pagination/pagination-query.dto';
-import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
+import { ReorderBatchDto } from '../dto/request/reorder-batch.dto';
+import { UpdateProductOrderDto } from '../dto/request/update-product-order.dto';
 import { ProductFilterRequestDto } from '../dto/request/product-filter-request.dto';
 import { CreateProductRequestDto } from '../dto/request/create-product-request.dto';
 import { UpdateProductRequestDto } from '../dto/request/update-product-request.dto';
-import { UpdateProductOrderDto } from '../dto/request/update-product-order.dto';
-import { ReorderBatchDto } from '../dto/request/reorder-batch.dto';
-
-import { ProductAdminService } from './product-admin.service';
+import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
 
 /**
  * 제품 관리자 API
@@ -45,7 +58,7 @@ export class ProductAdminController {
         schema: {
             example: {
                 success: true,
-                code: 200,
+                code: HttpStatus.OK,
                 message: '제품 목록 조회 성공',
                 data: {
                     items: [],
@@ -80,13 +93,14 @@ export class ProductAdminController {
      * 제품 생성 (관리자 전용)
      */
     @Post()
+    @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: '제품 생성',
         description: '새로운 제품을 생성합니다 (관리자 인증 필요)',
     })
     @ApiBody({ type: CreateProductRequestDto })
     @SwaggerResponse({
-        status: HttpStatus.CREATED,
+        status: HttpStatus.OK,
         description: '제품 생성 성공',
     })
     @SwaggerResponse({
@@ -100,7 +114,7 @@ export class ProductAdminController {
     async create(@Body() productData: CreateProductRequestDto) {
         return {
             success: true,
-            code: HttpStatus.CREATED,
+            code: HttpStatus.OK,
             message: '제품이 생성되었습니다',
             data: await this.productAdminService.create(productData),
         };

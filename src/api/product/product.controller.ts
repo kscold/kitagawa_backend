@@ -2,14 +2,11 @@ import { Controller, Get, Param, Query, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam } from '@nestjs/swagger';
 
 import { ProductService } from './product.service';
-import { PaginationResponseDto } from '../../common/dto/pagination/pagination-response.dto';
+
+import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
 import { SearchProductQueryDto } from './dto/request/search-product-query.dto';
-import {
-    ProductListResponseDto,
-    ProductDetailResponseDto,
-    ProductArrayResponseDto,
-} from './dto/response/product-list-response.dto';
-import { ProductSearchResponseDto } from './dto/response/product-search-response.dto';
+import { ProductSearchDataDto } from './dto/response/product-search-response.dto';
+import { ProductDetailDto, ProductItemDto } from './dto/response/product-list-response.dto';
 
 /**
  * 제품 Public API
@@ -55,11 +52,11 @@ export class ProductController {
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '검색 성공',
-        type: ProductSearchResponseDto,
+        type: ApiResponseDto<ProductSearchDataDto>,
         schema: {
             example: {
                 success: true,
-                code: 200,
+                code: HttpStatus.OK,
                 message: '제품 검색 성공',
                 data: {
                     items: [
@@ -137,11 +134,11 @@ export class ProductController {
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: ProductArrayResponseDto,
+        type: ApiResponseDto<ProductItemDto[]>,
         schema: {
             example: {
                 success: true,
-                code: 200,
+                code: HttpStatus.OK,
                 message: '추천 제품 조회 성공',
                 data: [
                     {
@@ -205,11 +202,11 @@ export class ProductController {
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: ProductArrayResponseDto,
+        type: ApiResponseDto<ProductItemDto[]>,
         schema: {
             example: {
                 success: true,
-                code: 200,
+                code: HttpStatus.OK,
                 message: '인기 제품 조회 성공',
                 data: [
                     {
@@ -259,11 +256,11 @@ export class ProductController {
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: ProductArrayResponseDto,
+        type: ApiResponseDto<ProductItemDto[]>,
         schema: {
             example: {
                 success: true,
-                code: 200,
+                code: HttpStatus.OK,
                 message: '최신 제품 조회 성공',
                 data: [
                     {
@@ -320,22 +317,22 @@ slug는 URL slug로도 사용됩니다.
     @ApiParam({
         name: 'slug',
         description: '제품 슬러그 (URL slug)',
-        example: 'ck-r',
+        example: 'ck_r',
     })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: ProductDetailResponseDto,
+        type: ApiResponseDto<ProductDetailDto>,
         schema: {
             example: {
                 success: true,
-                code: 200,
+                code: HttpStatus.OK,
                 message: '제품 조회 성공',
                 data: {
                     _id: '507f1f77bcf86cd799439011',
                     productName: 'CK / CKR series',
                     productNameKo: 'CK / CKR 시리즈',
-                    slug: 'ck-r',
+                    slug: 'ck_r',
                     series: 'CK / CKR series',
                     mainCategory: 'NC ROTARY TABLE',
                     subCategory: '4축 표준사양',

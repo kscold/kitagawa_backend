@@ -1,11 +1,4 @@
-import {
-    Injectable,
-    NotFoundException,
-    Logger,
-    InternalServerErrorException,
-    BadRequestException,
-    ConflictException,
-} from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, ConflictException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { CategoryRepository } from '../repository/category.repository';
@@ -54,7 +47,7 @@ export class CategoryAdminService {
             };
         } catch (error) {
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('카테고리 목록 조회 중 오류가 발생했습니다');
+            throw new BadRequestException('카테고리 목록 조회 중 오류가 발생했습니다');
         }
     }
 
@@ -72,7 +65,7 @@ export class CategoryAdminService {
             const category = await this.categoryRepository.findBySlug(slug);
 
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
+                throw new BadRequestException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             if (this.isDevelopment) {
@@ -81,11 +74,8 @@ export class CategoryAdminService {
 
             return category;
         } catch (error) {
-            if (error instanceof NotFoundException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('카테고리 조회 중 오류가 발생했습니다');
+            throw new BadRequestException('카테고리 조회 중 오류가 발생했습니다');
         }
     }
 
@@ -142,11 +132,8 @@ export class CategoryAdminService {
 
             return newCategory;
         } catch (error) {
-            if (error instanceof ConflictException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('카테고리 생성 중 오류가 발생했습니다');
+            throw new BadRequestException('카테고리 생성 중 오류가 발생했습니다');
         }
     }
 
@@ -164,7 +151,7 @@ export class CategoryAdminService {
             // 카테고리 존재 확인
             const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
+                throw new BadRequestException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // slug 수정 방지
@@ -181,7 +168,7 @@ export class CategoryAdminService {
             const updatedCategory = await this.categoryRepository.updateBySlug(slug, categoryData);
 
             if (!updatedCategory) {
-                throw new InternalServerErrorException('카테고리 수정에 실패했습니다');
+                throw new BadRequestException('카테고리 수정에 실패했습니다');
             }
 
             if (this.isDevelopment) {
@@ -190,11 +177,8 @@ export class CategoryAdminService {
 
             return updatedCategory;
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('카테고리 수정 중 오류가 발생했습니다');
+            throw new BadRequestException('카테고리 수정 중 오류가 발생했습니다');
         }
     }
 
@@ -212,7 +196,7 @@ export class CategoryAdminService {
             // 카테고리 존재 확인
             const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
+                throw new BadRequestException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // Level 1 카테고리인 경우, 하위 카테고리 확인
@@ -235,18 +219,15 @@ export class CategoryAdminService {
             // 카테고리 삭제
             const deleted = await this.categoryRepository.deleteBySlug(slug);
             if (!deleted) {
-                throw new InternalServerErrorException('카테고리 삭제에 실패했습니다');
+                throw new BadRequestException('카테고리 삭제에 실패했습니다');
             }
 
             if (this.isDevelopment) {
                 this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
             }
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('카테고리 삭제 중 오류가 발생했습니다');
+            throw new BadRequestException('카테고리 삭제 중 오류가 발생했습니다');
         }
     }
 
@@ -264,7 +245,7 @@ export class CategoryAdminService {
             // 카테고리 존재 확인
             const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
+                throw new BadRequestException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // 이미 비활성화 상태인 경우
@@ -275,7 +256,7 @@ export class CategoryAdminService {
             // 카테고리 비활성화
             const updatedCategory = await this.categoryRepository.toggleActiveBySlug(slug, false);
             if (!updatedCategory) {
-                throw new InternalServerErrorException('카테고리 비활성화에 실패했습니다');
+                throw new BadRequestException('카테고리 비활성화에 실패했습니다');
             }
 
             if (this.isDevelopment) {
@@ -284,11 +265,8 @@ export class CategoryAdminService {
 
             return updatedCategory;
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('카테고리 비활성화 중 오류가 발생했습니다');
+            throw new BadRequestException('카테고리 비활성화 중 오류가 발생했습니다');
         }
     }
 
@@ -306,7 +284,7 @@ export class CategoryAdminService {
             // 카테고리 존재 확인
             const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
+                throw new BadRequestException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // 이미 활성화 상태인 경우
@@ -317,7 +295,7 @@ export class CategoryAdminService {
             // 카테고리 활성화
             const updatedCategory = await this.categoryRepository.toggleActiveBySlug(slug, true);
             if (!updatedCategory) {
-                throw new InternalServerErrorException('카테고리 활성화에 실패했습니다');
+                throw new BadRequestException('카테고리 활성화에 실패했습니다');
             }
 
             if (this.isDevelopment) {
@@ -326,11 +304,8 @@ export class CategoryAdminService {
 
             return updatedCategory;
         } catch (error) {
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('카테고리 활성화 중 오류가 발생했습니다');
+            throw new BadRequestException('카테고리 활성화 중 오류가 발생했습니다');
         }
     }
 
@@ -348,13 +323,13 @@ export class CategoryAdminService {
             // 카테고리 존재 확인
             const category = await this.categoryRepository.findBySlug(slug);
             if (!category) {
-                throw new NotFoundException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
+                throw new BadRequestException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
             }
 
             // 순서 업데이트
             const updatedCategory = await this.categoryRepository.updateOrderBySlug(slug, order);
             if (!updatedCategory) {
-                throw new InternalServerErrorException('카테고리 순서 변경에 실패했습니다');
+                throw new BadRequestException('카테고리 순서 변경에 실패했습니다');
             }
 
             if (this.isDevelopment) {
@@ -363,11 +338,8 @@ export class CategoryAdminService {
 
             return updatedCategory;
         } catch (error) {
-            if (error instanceof NotFoundException) {
-                throw error;
-            }
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
-            throw new InternalServerErrorException('카테고리 순서 변경 중 오류가 발생했습니다');
+            throw new BadRequestException('카테고리 순서 변경 중 오류가 발생했습니다');
         }
     }
 }

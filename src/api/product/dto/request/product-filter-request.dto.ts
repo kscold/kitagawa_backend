@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsOptional, IsString, IsBoolean } from 'class-validator';
 
 /**
  * 제품 필터 DTO

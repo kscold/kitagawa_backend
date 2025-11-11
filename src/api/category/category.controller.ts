@@ -1,4 +1,4 @@
-import { Controller, Get, Param, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Param, HttpStatus, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse as SwaggerResponse } from '@nestjs/swagger';
 
 import { CategoryService } from './category.service';
@@ -31,7 +31,7 @@ export class CategoryController {
         schema: {
             example: {
                 success: true,
-                code: 200,
+                code: HttpStatus.OK,
                 message: '대분류 카테고리 조회 성공',
                 data: [
                     {
@@ -155,12 +155,12 @@ export class CategoryController {
         },
     })
     @SwaggerResponse({
-        status: HttpStatus.NOT_FOUND,
+        status: HttpStatus.BAD_REQUEST,
         description: '카테고리를 찾을 수 없음',
         schema: {
             example: {
                 success: false,
-                code: 404,
+                code: HttpStatus.BAD_REQUEST,
                 message: '카테고리를 찾을 수 없습니다',
                 data: null,
             },
@@ -170,12 +170,7 @@ export class CategoryController {
         const data = await this.categoryService.getCategoriesBySlug(slug);
 
         if (!data) {
-            return {
-                success: false,
-                code: HttpStatus.NOT_FOUND,
-                message: '카테고리를 찾을 수 없습니다',
-                data: null,
-            };
+            throw new BadRequestException('카테고리를 찾을 수 없습니다');
         }
 
         return {

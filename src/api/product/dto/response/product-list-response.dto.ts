@@ -1,7 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { StandardResponseDto, PaginatedResponseDto } from '../../../../common/dto/response/standard-response.dto';
-
 /**
  * 제품 기본 정보 DTO (목록용)
  */
@@ -88,25 +86,11 @@ export class ProductDetailDto extends ProductItemDto {
     description?: string;
 
     @ApiProperty({
-        example: '고정밀 유압 척',
-        description: '제품 설명 (한글)',
-        required: false,
-    })
-    descriptionKo?: string;
-
-    @ApiProperty({
         example: 'High clamping force and precision',
         description: '제품 특징 (영어)',
         required: false,
     })
     features?: string;
-
-    @ApiProperty({
-        example: '높은 클램핑력과 정밀도',
-        description: '제품 특징 (한글)',
-        required: false,
-    })
-    featuresKo?: string;
 
     @ApiProperty({
         example: ['chuck', 'hydraulic', 'precision'],
@@ -139,7 +123,6 @@ export class ProductDetailDto extends ProductItemDto {
         type: string;
         url: string;
         title: string;
-        titleKo?: string;
         model?: string;
     }>;
 
@@ -150,86 +133,4 @@ export class ProductDetailDto extends ProductItemDto {
         required: false,
     })
     matchingProducts?: string[];
-}
-
-/**
- * 제품 목록 응답
- */
-export class ProductListResponseDto extends PaginatedResponseDto<ProductItemDto> {
-    @ApiProperty({
-        example: true,
-        description: '요청 성공 여부',
-    })
-    success: boolean;
-
-    @ApiProperty({
-        example: 200,
-        description: 'HTTP 상태 코드',
-    })
-    code: number;
-
-    @ApiProperty({
-        example: '제품 목록 조회 성공',
-        description: '응답 메시지',
-    })
-    message: string;
-}
-
-/**
- * 제품 상세 응답
- */
-export class ProductDetailResponseDto extends StandardResponseDto<ProductDetailDto> {
-    @ApiProperty({
-        example: true,
-        description: '요청 성공 여부',
-    })
-    success: boolean;
-
-    @ApiProperty({
-        example: 200,
-        description: 'HTTP 상태 코드',
-    })
-    code: number;
-
-    @ApiProperty({
-        example: '제품 조회 성공',
-        description: '응답 메시지',
-    })
-    message: string;
-
-    @ApiProperty({
-        type: ProductDetailDto,
-        description: '제품 상세 정보',
-    })
-    data: ProductDetailDto;
-}
-
-/**
- * 제품 배열 응답 (Featured, Popular, Recent)
- */
-export class ProductArrayResponseDto extends StandardResponseDto<ProductItemDto[]> {
-    @ApiProperty({
-        example: true,
-        description: '요청 성공 여부',
-    })
-    success: boolean;
-
-    @ApiProperty({
-        example: 200,
-        description: 'HTTP 상태 코드',
-    })
-    code: number;
-
-    @ApiProperty({
-        example: '제품 조회 성공',
-        description: '응답 메시지',
-    })
-    message: string;
-
-    @ApiProperty({
-        type: [ProductItemDto],
-        description: '제품 목록',
-        isArray: true,
-    })
-    data: ProductItemDto[];
 }

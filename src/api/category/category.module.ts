@@ -17,8 +17,8 @@ import { CategoryModel, CategorySchema } from '../../schemas/category.schema';
 @Module({
     imports: [
         MongooseModule.forFeature([
-            { name: CategoryModel.name, schema: CategorySchema },
             { name: Product.name, schema: ProductSchema },
+            { name: CategoryModel.name, schema: CategorySchema },
         ]),
         AdminJwtModule,
     ],

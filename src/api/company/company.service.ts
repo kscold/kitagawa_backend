@@ -34,17 +34,13 @@ export class CompanyService {
             greeting: companyInfo.greeting
                 ? {
                       title: companyInfo.greeting.title,
-                      titleKo: companyInfo.greeting.titleKo,
                       content: companyInfo.greeting.content,
-                      contentKo: companyInfo.greeting.contentKo,
                       ceoName: companyInfo.greeting.ceoName,
                       ceoSignatureUrl: companyInfo.greeting.ceoSignatureUrl,
                   }
                 : undefined,
             vision: companyInfo.vision,
-            visionKo: companyInfo.visionKo,
             mission: companyInfo.mission,
-            missionKo: companyInfo.missionKo,
         };
     }
 }

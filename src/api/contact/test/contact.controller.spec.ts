@@ -1,8 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
+
 import { ContactController } from '../contact.controller';
+
 import { ContactService } from '../contact.service';
+
 import { expectStandardResponse } from '../../../../test/helpers/test-helpers';
 
 describe('ContactController (e2e)', () => {

@@ -7,9 +7,6 @@ export class LocationInfo {
     @ApiProperty({ description: '장소명', example: '본사' })
     name: string;
 
-    @ApiProperty({ description: '장소명 (한글)', example: '본사' })
-    nameKo: string;
-
     @ApiProperty({
         description: '장소 타입',
         example: 'headquarters',
@@ -40,9 +37,6 @@ export class LocationInfo {
 export class ContactInfoResponseDto {
     @ApiProperty({ description: '회사명', example: '(주) 한국 기타가와' })
     companyName: string;
-
-    @ApiProperty({ description: '회사명 (한글)', example: '(주) 한국 기타가와' })
-    companyNameKo: string;
 
     @ApiProperty({ description: '대표자', example: '최민형' })
     ceo: string;

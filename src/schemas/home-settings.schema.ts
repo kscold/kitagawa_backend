@@ -26,13 +26,7 @@ export class HomeIntroduction {
     title?: string; // 제목 (영문)
 
     @Prop()
-    titleKo?: string; // 제목 (한글)
-
-    @Prop()
     description?: string; // 설명 (영문)
-
-    @Prop()
-    descriptionKo?: string; // 설명 (한글)
 }
 
 /**

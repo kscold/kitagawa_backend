@@ -1,11 +1,13 @@
 import { Controller, Get, Patch, Delete, Body, Param, Query, HttpStatus, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 
-import { ContactAdminService } from './contact-admin.service';
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
+
+import { ContactAdminService } from './contact-admin.service';
 
 import { ContactAdminFilterDto } from './dto/request/contact-admin-filter.dto';
 import { UpdateContactStatusDto } from './dto/request/update-contact-status.dto';
+import { UpdateContactInfoRequestDto } from './dto/request/update-contact-info-request.dto';
 import { ContactAdminDetailResponseDto, ContactAdminListResponseDto } from './dto/response/contact-admin-response.dto';
 
 /**
@@ -141,7 +143,8 @@ COMPLETED나 REJECTED로 변경 시 자동으로 처리 완료 시간이 기록�
     @Delete(':id')
     @ApiOperation({
         summary: '문의 삭제',
-        description: '문의를 삭제합니다. 일반적으로는 상태를 REJECTED로 변경하는 것을 권장하지만, 필요한 경우 완전히 삭제할 수 있습니다.',
+        description:
+            '문의를 삭제합니다. 일반적으로는 상태를 REJECTED로 변경하는 것을 권장하지만, 필요한 경우 완전히 삭제할 수 있습니다.',
     })
     @ApiParam({
         name: 'id',
@@ -164,6 +167,74 @@ COMPLETED나 REJECTED로 변경 시 자동으로 처리 완료 시간이 기록�
             code: HttpStatus.OK,
             message: '문의 삭제 성공',
             data: null,
+        };
+    }
+
+    /**
+     * 회사 연락처 정보 조회 (관리자용)
+     */
+    @Get('info/contact')
+    @ApiOperation({
+        summary: '회사 연락처 정보 조회 (관리자)',
+        description: `
+회사 연락처 정보를 조회합니다. (관리자 전용)
+
+포함 정보:
+- 회사명, 대표자
+- 본사 주소
+- 전화번호, 팩스, 이메일
+- 지점/서비스센터 목록
+        `,
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '조회 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '회사 정보를 찾을 수 없습니다',
+    })
+    async getContactInfo() {
+        const contactInfo = await this.contactAdminService.getContactInfo();
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '회사 연락처 정보 조회 성공',
+            data: contactInfo,
+        };
+    }
+
+    /**
+     * 회사 연락처 정보 수정 (관리자용)
+     */
+    @Patch('info/contact')
+    @ApiOperation({
+        summary: '회사 연락처 정보 수정 (관리자)',
+        description: `
+회사 연락처 정보를 수정합니다. (관리자 전용)
+
+수정 가능 정보:
+- 회사명, 대표자
+- 본사 주소
+- 전화번호, 휴대전화, 팩스, 이메일, 웹사이트
+- 지점/서비스센터 목록 (위치, 연락처, 지도 좌표)
+
+Singleton 패턴으로 작동하며, 문서가 없으면 자동으로 생성됩니다.
+        `,
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '수정 성공',
+    })
+    async updateContactInfo(@Body() updateDto: UpdateContactInfoRequestDto) {
+        const contactInfo = await this.contactAdminService.updateContactInfo(updateDto);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '회사 연락처 정보 수정 성공',
+            data: contactInfo,
         };
     }
 }

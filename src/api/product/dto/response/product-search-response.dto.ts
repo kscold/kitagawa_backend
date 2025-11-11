@@ -81,32 +81,3 @@ export class ProductSearchDataDto {
     })
     pagination: PaginationInfo;
 }
-
-/**
- * 제품 검색 응답
- */
-export class ProductSearchResponseDto {
-    @ApiProperty({
-        example: true,
-        description: '요청 성공 여부',
-    })
-    success: boolean;
-
-    @ApiProperty({
-        example: 200,
-        description: 'HTTP 상태 코드',
-    })
-    code: number;
-
-    @ApiProperty({
-        example: '제품 검색 성공',
-        description: '응답 메시지',
-    })
-    message: string;
-
-    @ApiProperty({
-        type: ProductSearchDataDto,
-        description: '검색 결과 데이터',
-    })
-    data: ProductSearchDataDto;
-}

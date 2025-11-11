@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { HttpStatus } from '@nestjs/common';
 
-import { SeriesInfoDto } from './series-info.dto';
 import { StandardResponseDto } from '../../../../common/dto/response/standard-response.dto';
+import { SeriesInfoResponseDto } from './series-info-response.dto';
 import { Level1CategoryResponseDto } from './level1-category-response.dto';
 
 /**
@@ -51,11 +52,11 @@ export class SubCategoryDto {
     isActive: boolean;
 
     @ApiProperty({
-        type: [SeriesInfoDto],
+        type: [SeriesInfoResponseDto],
         description: '시리즈 정보 목록 (제품이 여러 개인 경우)',
         required: false,
     })
-    series?: SeriesInfoDto[];
+    series?: SeriesInfoResponseDto[];
 }
 
 /**
@@ -172,7 +173,7 @@ export class CategoryLevel1ListResponseDto extends StandardResponseDto<Level1Cat
     success: boolean;
 
     @ApiProperty({
-        example: 200,
+        example: HttpStatus.OK,
         description: 'HTTP 상태 코드',
     })
     code: number;
@@ -218,34 +219,4 @@ export class CategoryTreeResponseDto extends StandardResponseDto<CategoryTreeDto
         description: '카테고리 계층 구조',
     })
     data: CategoryTreeDto;
-}
-
-/**
- * 카테고리 검색 응답
- */
-export class CategorySearchResponseDto extends StandardResponseDto<CategorySearchItemDto[]> {
-    @ApiProperty({
-        example: true,
-        description: '요청 성공 여부',
-    })
-    success: boolean;
-
-    @ApiProperty({
-        example: 200,
-        description: 'HTTP 상태 코드',
-    })
-    code: number;
-
-    @ApiProperty({
-        example: '카테고리 검색 성공',
-        description: '응답 메시지',
-    })
-    message: string;
-
-    @ApiProperty({
-        type: [CategorySearchItemDto],
-        description: '검색 결과 카테고리 목록',
-        isArray: true,
-    })
-    data: CategorySearchItemDto[];
 }

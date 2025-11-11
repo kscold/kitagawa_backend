@@ -37,16 +37,10 @@ export class ResourceFile {
 @Schema({ timestamps: true })
 export class Resource {
     @Prop({ required: true })
-    title: string; // 자료 제목 (영문)
+    title: string; // 자료 제목
 
     @Prop()
-    titleKo?: string; // 자료 제목 (한글)
-
-    @Prop()
-    description?: string; // 설명 (영문)
-
-    @Prop()
-    descriptionKo?: string; // 설명 (한글)
+    description?: string; // 설명
 
     @Prop({ required: true, enum: ResourceType })
     type: ResourceType; // 자료 타입
@@ -100,7 +94,6 @@ export const ResourceSchema = SchemaFactory.createForClass(Resource);
 
 // 인덱스 설정
 ResourceSchema.index({ title: 1 });
-ResourceSchema.index({ titleKo: 1 });
 ResourceSchema.index({ type: 1 });
 ResourceSchema.index({ categories: 1 });
 ResourceSchema.index({ tags: 1 });

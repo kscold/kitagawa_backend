@@ -1,10 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
-import { ResourceAdminController } from '../resource-admin.controller';
-import { ResourceAdminService } from '../resource-admin.service';
+
 import { AdminJwtAuthGuard } from '../../../../common/guard/admin-jwt-auth.guard';
 import { MockAdminJwtAuthGuard } from '../../../../../test/helpers/mock-auth-guard';
+
+import { ResourceAdminController } from '../resource-admin.controller';
+
+import { ResourceAdminService } from '../resource-admin.service';
+
 import { expectStandardResponse } from '../../../../../test/helpers/test-helpers';
 
 describe('ResourceAdminController (e2e)', () => {

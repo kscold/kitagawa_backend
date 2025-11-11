@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
 import { ResourceType } from '../../../../../schemas/resource.schema';
 
 /**
@@ -28,14 +29,8 @@ export class ResourceAdminDetailResponseDto {
     @ApiProperty({ description: '자료 제목' })
     title: string;
 
-    @ApiPropertyOptional({ description: '한글 제목' })
-    titleKo?: string;
-
     @ApiPropertyOptional({ description: '설명' })
     description?: string;
-
-    @ApiPropertyOptional({ description: '한글 설명' })
-    descriptionKo?: string;
 
     @ApiProperty({ description: '자료 타입', enum: ResourceType })
     type: ResourceType;

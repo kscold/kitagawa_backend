@@ -4,12 +4,8 @@ import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam } from 
 import { ResourceService } from './resource.service';
 
 import { ResourceFilterDto } from './dto/request/resource-filter.dto';
-import {
-    ResourceListResponseDto,
-    ResourceDetailResponseDto,
-    ResourceDownloadResponseDto,
-    ResourceTypeStatsResponseDto,
-} from './dto/response/resource-response.dto';
+import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
+import { ResourceDetailDto } from './dto/response/resource-response.dto';
 
 /**
  * 자료실 Public API
@@ -318,7 +314,7 @@ Level2 카테고리(제품군)별 자료를 **제품 모델별로 그룹화**하
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: ResourceListResponseDto,
+        type: ApiResponseDto<ResourceDetailDto>,
         schema: {
             example: {
                 success: true,
@@ -394,7 +390,7 @@ Level2 카테고리(제품군)별 자료를 **제품 모델별로 그룹화**하
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '증가 성공',
-        type: ResourceDownloadResponseDto,
+        type: ApiResponseDto<null>,
         schema: {
             example: {
                 success: true,

@@ -25,9 +25,7 @@ export class HomeSettingsRepository {
                 mainImages: [],
                 introduction: {
                     title: '',
-                    titleKo: '',
                     description: '',
-                    descriptionKo: '',
                 },
                 isActive: true,
                 metadata: {},
@@ -49,10 +47,7 @@ export class HomeSettingsRepository {
                 {
                     $set: {
                         'introduction.title': introduction.title ?? settings.introduction?.title,
-                        'introduction.titleKo': introduction.titleKo ?? settings.introduction?.titleKo,
                         'introduction.description': introduction.description ?? settings.introduction?.description,
-                        'introduction.descriptionKo':
-                            introduction.descriptionKo ?? settings.introduction?.descriptionKo,
                     },
                 },
                 { new: true },

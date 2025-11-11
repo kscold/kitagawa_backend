@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
 import { ContactRequestStatus } from '../../../../../schemas/contact-request.schema';
 
 /**

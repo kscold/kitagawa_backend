@@ -3,9 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 import { Resource, ResourceDocument } from '../../../schemas/resource.schema';
+
+import { ResourceAdminFilterDto } from './dto/request/resource-admin-filter.dto';
 import { CreateResourceRequestDto } from './dto/request/create-resource-request.dto';
 import { UpdateResourceRequestDto } from './dto/request/update-resource-request.dto';
-import { ResourceAdminFilterDto } from './dto/request/resource-admin-filter.dto';
 import { ResourceAdminDetailResponseDto } from './dto/response/resource-admin-response.dto';
 
 /**
@@ -125,7 +126,10 @@ export class ResourceAdminService {
      * 자료 활성화
      */
     async activate(id: string): Promise<ResourceAdminDetailResponseDto> {
-        const resource = await this.resourceModel.findByIdAndUpdate(id, { isActive: true }, { new: true }).lean().exec();
+        const resource = await this.resourceModel
+            .findByIdAndUpdate(id, { isActive: true }, { new: true })
+            .lean()
+            .exec();
 
         if (!resource) {
             throw new NotFoundException('자료를 찾을 수 없습니다');
@@ -138,7 +142,10 @@ export class ResourceAdminService {
      * 자료 비활성화
      */
     async deactivate(id: string): Promise<ResourceAdminDetailResponseDto> {
-        const resource = await this.resourceModel.findByIdAndUpdate(id, { isActive: false }, { new: true }).lean().exec();
+        const resource = await this.resourceModel
+            .findByIdAndUpdate(id, { isActive: false }, { new: true })
+            .lean()
+            .exec();
 
         if (!resource) {
             throw new NotFoundException('자료를 찾을 수 없습니다');
@@ -154,9 +161,7 @@ export class ResourceAdminService {
         return {
             _id: resource._id.toString(),
             title: resource.title,
-            titleKo: resource.titleKo,
             description: resource.description,
-            descriptionKo: resource.descriptionKo,
             type: resource.type,
             categories: resource.categories || [],
             tags: resource.tags || [],

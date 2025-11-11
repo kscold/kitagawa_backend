@@ -1,19 +1,12 @@
-import { Controller, Get, Patch, Post, Delete, Body, Param, UseGuards, HttpStatus, ParseIntPipe } from '@nestjs/common';
-import {
-    ApiTags,
-    ApiOperation,
-    ApiResponse as SwaggerResponse,
-    ApiBearerAuth,
-    ApiParam,
-    ApiBody,
-} from '@nestjs/swagger';
+import { Controller, Get, Patch, Body, UseGuards, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiBody, ApiOperation, ApiBearerAuth, ApiResponse as SwaggerResponse } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 
 import { CompanyAdminService } from './company-admin.service';
 
-import { UpdateCompanyInfoRequestDto } from '../dto/request/update-company-info-request.dto';
 import { UpdateGreetingRequestDto } from '../dto/request/update-greeting-request.dto';
+import { UpdateCompanyInfoRequestDto } from '../dto/request/update-company-info-request.dto';
 
 /**
  * Company Admin API

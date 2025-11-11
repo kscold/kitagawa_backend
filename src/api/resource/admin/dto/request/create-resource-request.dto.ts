@@ -1,6 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEnum, IsArray, IsOptional, IsNumber, IsBoolean, ValidateNested } from 'class-validator';
+import {
+    IsString,
+    IsNotEmpty,
+    IsEnum,
+    IsArray,
+    IsOptional,
+    IsNumber,
+    IsBoolean,
+    ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
+
 import { ResourceType } from '../../../../../schemas/resource.schema';
 
 /**
@@ -37,20 +47,10 @@ export class CreateResourceRequestDto {
     @IsNotEmpty()
     title: string;
 
-    @ApiPropertyOptional({ description: '한글 제목', example: 'GT 시리즈 카탈로그' })
-    @IsString()
-    @IsOptional()
-    titleKo?: string;
-
     @ApiPropertyOptional({ description: '설명', example: 'Complete catalog for GT series' })
     @IsString()
     @IsOptional()
     description?: string;
-
-    @ApiPropertyOptional({ description: '한글 설명', example: 'GT 시리즈 전체 카탈로그' })
-    @IsString()
-    @IsOptional()
-    descriptionKo?: string;
 
     @ApiProperty({ description: '자료 타입', enum: ResourceType, example: ResourceType.CATALOG })
     @IsEnum(ResourceType)

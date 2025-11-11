@@ -274,7 +274,6 @@ export class ProductRepository {
         // 여러 필드에서 검색
         baseQuery.$or = [
             { productName: searchRegex },
-            { productNameKo: searchRegex },
             { productTitle: searchRegex },
             { slug: searchRegex },
             { 'category.series': searchRegex },
@@ -300,19 +299,78 @@ export class ProductRepository {
                             // productTitle 완전 일치 (가장 높은 우선순위)
                             { $cond: [{ $eq: [{ $toLower: '$productTitle' }, params.keyword.toLowerCase()] }, 100, 0] },
                             // productTitle 시작 일치
-                            { $cond: [{ $regexMatch: { input: '$productTitle', regex: `^${params.keyword}`, options: 'i' } }, 90, 0] },
+                            {
+                                $cond: [
+                                    {
+                                        $regexMatch: {
+                                            input: '$productTitle',
+                                            regex: `^${params.keyword}`,
+                                            options: 'i',
+                                        },
+                                    },
+                                    90,
+                                    0,
+                                ],
+                            },
                             // slug 완전 일치
                             { $cond: [{ $eq: [{ $toLower: '$slug' }, params.keyword.toLowerCase()] }, 80, 0] },
                             // slug 시작 일치
-                            { $cond: [{ $regexMatch: { input: '$slug', regex: `^${params.keyword}`, options: 'i' } }, 70, 0] },
+                            {
+                                $cond: [
+                                    { $regexMatch: { input: '$slug', regex: `^${params.keyword}`, options: 'i' } },
+                                    70,
+                                    0,
+                                ],
+                            },
                             // category.series 포함
-                            { $cond: [{ $regexMatch: { input: '$category.series', regex: params.keyword, options: 'i' } }, 60, 0] },
+                            {
+                                $cond: [
+                                    { $regexMatch: { input: '$category.series', regex: params.keyword, options: 'i' } },
+                                    60,
+                                    0,
+                                ],
+                            },
                             // tags 포함
-                            { $cond: [{ $in: [{ $toLower: params.keyword }, { $map: { input: '$tags', as: 'tag', in: { $toLower: '$$tag' } } }] }, 50, 0] },
+                            {
+                                $cond: [
+                                    {
+                                        $in: [
+                                            { $toLower: params.keyword },
+                                            { $map: { input: '$tags', as: 'tag', in: { $toLower: '$$tag' } } },
+                                        ],
+                                    },
+                                    50,
+                                    0,
+                                ],
+                            },
                             // content 포함
-                            { $cond: [{ $regexMatch: { input: { $ifNull: ['$content', ''] }, regex: params.keyword, options: 'i' } }, 30, 0] },
+                            {
+                                $cond: [
+                                    {
+                                        $regexMatch: {
+                                            input: { $ifNull: ['$content', ''] },
+                                            regex: params.keyword,
+                                            options: 'i',
+                                        },
+                                    },
+                                    30,
+                                    0,
+                                ],
+                            },
                             // description 포함
-                            { $cond: [{ $regexMatch: { input: { $ifNull: ['$description', ''] }, regex: params.keyword, options: 'i' } }, 20, 0] },
+                            {
+                                $cond: [
+                                    {
+                                        $regexMatch: {
+                                            input: { $ifNull: ['$description', ''] },
+                                            regex: params.keyword,
+                                            options: 'i',
+                                        },
+                                    },
+                                    20,
+                                    0,
+                                ],
+                            },
                         ],
                     },
                 },
@@ -395,7 +453,8 @@ export class ProductRepository {
         // Level에 따라 다른 필터 적용
         // Level 1: mainCategory로 필터링
         // Level 2: subCategory로 필터링
-        const query: any = level === 1 ? { 'category.mainCategory': categorySlug } : { 'category.subCategory': categorySlug };
+        const query: any =
+            level === 1 ? { 'category.mainCategory': categorySlug } : { 'category.subCategory': categorySlug };
 
         // Total count
         const total = await this.productModel.countDocuments(query).exec();
@@ -426,7 +485,11 @@ export class ProductRepository {
     async updateOrderByLevel(slug: string, level: 1 | 2, order: number): Promise<ProductDocument | null> {
         const updateField = level === 1 ? 'orderInLevel1' : 'orderInLevel2';
 
-        const query: any = this.productModel.findOneAndUpdate({ slug }, { $set: { [updateField]: order } }, { new: true });
+        const query: any = this.productModel.findOneAndUpdate(
+            { slug },
+            { $set: { [updateField]: order } },
+            { new: true },
+        );
 
         return (await query.exec()) as ProductDocument | null;
     }

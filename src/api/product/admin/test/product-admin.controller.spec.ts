@@ -1,10 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
-import { ProductAdminController } from '../product-admin.controller';
-import { ProductAdminService } from '../product-admin.service';
+
 import { AdminJwtAuthGuard } from '../../../../common/guard/admin-jwt-auth.guard';
 import { MockAdminJwtAuthGuard } from '../../../../../test/helpers/mock-auth-guard';
+
+import { ProductAdminController } from '../product-admin.controller';
+
+import { ProductAdminService } from '../product-admin.service';
+
 import { expectStandardResponse } from '../../../../../test/helpers/test-helpers';
 
 describe('ProductAdminController (e2e)', () => {

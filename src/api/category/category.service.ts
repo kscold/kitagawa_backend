@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { CategoryModel, CategoryDocument, CategoryLevel } from '../../schemas/category.schema';
 import { Product, ProductDocument } from '../../schemas/product.schema';
+import { CategoryModel, CategoryDocument, CategoryLevel } from '../../schemas/category.schema';
 
+import { SeriesInfoResponseDto } from './dto/response/series-info-response.dto';
 import { Level1CategoryResponseDto } from './dto/response/level1-category-response.dto';
-import { SeriesInfoDto } from './dto/response/series-info.dto';
 
 @Injectable()
 export class CategoryService {
@@ -17,72 +17,6 @@ export class CategoryService {
         private productModel: Model<ProductDocument>,
     ) {}
 
-    // 재귀적으로 카테고리 트리 구성
-    private buildCategoryTree(parentName: string, allCategories: any[]): any[] {
-        const children = allCategories.filter((c) => c.parentName === parentName);
-
-        return children.map((child) => ({
-            ...child,
-            children: this.buildCategoryTree(child.name, allCategories),
-        }));
-    }
-
-    // Level 2 카테고리의 시리즈 정보 조회
-    private async getSeriesForLevel2Category(mainCategory: string, subCategory: string): Promise<SeriesInfoDto[]> {
-        const products = await this.productModel
-            .find({
-                'category.mainCategory': mainCategory,
-                'category.subCategory': subCategory,
-                'category.series': { $exists: true, $nin: [null, ''] },
-                isActive: true,
-            })
-            .select('slug category.series mainImageUrl content contentDetail order')
-            .sort({ order: 1, 'category.series': 1 })
-            .lean();
-
-        const seriesMap = new Map<string, { slug: string; count: number; imageUrl?: string; content?: string; contentDetail?: string }>();
-
-        products.forEach((product) => {
-            const seriesName = product.category.series;
-            if (seriesName) {
-                const existing = seriesMap.get(seriesName);
-                if (existing) {
-                    existing.count++;
-                    if (!existing.imageUrl && product.mainImageUrl) {
-                        existing.imageUrl = product.mainImageUrl;
-                    }
-                    if (!existing.content && product.content) {
-                        existing.content = product.content;
-                    }
-                    if (!existing.contentDetail && product.contentDetail) {
-                        existing.contentDetail = product.contentDetail;
-                    }
-                } else {
-                    seriesMap.set(seriesName, {
-                        slug: product.slug, // 실제 제품의 slug를 slug로 사용
-                        count: 1,
-                        imageUrl: product.mainImageUrl,
-                        content: product.content,
-                        contentDetail: product.contentDetail,
-                    });
-                }
-            }
-        });
-
-        const seriesArray: SeriesInfoDto[] = Array.from(seriesMap.entries()).map(([name, data]) => ({
-            name,
-            slug: data.slug, // slug를 slug로 사용
-            productCount: data.count,
-            imageUrl: data.imageUrl,
-            content: data.content,
-            contentDetail: data.contentDetail,
-        }));
-
-        seriesArray.sort((a, b) => a.name.localeCompare(b.name));
-
-        return seriesArray;
-    }
-
     // Level 1 카테고리만 조회 (대분류)
     async getLevel1Categories(): Promise<Level1CategoryResponseDto[]> {
         const categories = await this.categoryModel
@@ -91,56 +25,6 @@ export class CategoryService {
             .lean();
 
         return Level1CategoryResponseDto.fromDocuments(categories);
-    }
-
-    // Catalogue 카테고리의 제품 정보 조회 (series가 아닌 제품 자체)
-    private async getProductsForCatalogueCategory(subCategory: string, categoryImageUrl?: string): Promise<SeriesInfoDto[]> {
-        const products = await this.productModel
-            .find({
-                'category.mainCategory': 'CATALOGUE',
-                'category.subCategory': subCategory,
-                isActive: true,
-            })
-            .select('slug productName mainImageUrl category.series downloads order')
-            .sort({ order: 1, productName: 1 })
-            .lean();
-
-        return products.map((product) => {
-            // downloads 배열에서 PDF Catalogue URL 찾기
-            const pdfDownload = product.downloads?.find(
-                (dl: any) => dl.type === 'PDF' && dl.category === 'Catalogue' && dl.url,
-            );
-
-            return {
-                name: product.category.series || product.productName || 'Unknown',
-                slug: product.slug,
-                productCount: 1,
-                imageUrl: product.mainImageUrl || categoryImageUrl, // Product 이미지가 없으면 카테고리 이미지 사용
-                pdfUrl: pdfDownload?.url,
-            };
-        });
-    }
-
-    // WORK GRIPPER 카테고리의 제품 정보 조회 (subCategory가 없는 경우)
-    private async getProductsForWorkGripper(): Promise<SeriesInfoDto[]> {
-        const products = await this.productModel
-            .find({
-                'category.mainCategory': 'WORK GRIPPER',
-                'category.subCategory': 'Gripper', // WORK GRIPPER의 실제 subCategory 값
-                isActive: true,
-            })
-            .select('slug category.series mainImageUrl content contentDetail order')
-            .sort({ order: 1, 'category.series': 1 })
-            .lean();
-
-        return products.map((product) => ({
-            name: product.category.series,
-            slug: product.slug,
-            productCount: 1,
-            imageUrl: product.mainImageUrl,
-            content: product.content,
-            contentDetail: product.contentDetail,
-        }));
     }
 
     // 특정 Level 1 카테고리의 하위 카테고리 조회 (슬러그 기반)
@@ -234,5 +118,130 @@ export class CategoryService {
             ...level1,
             children: this.buildCategoryTree(level1.name, allCategories),
         };
+    }
+
+    // Catalogue 카테고리의 제품 정보 조회 (series가 아닌 제품 자체)
+    private async getProductsForCatalogueCategory(
+        subCategory: string,
+        categoryImageUrl?: string,
+    ): Promise<SeriesInfoResponseDto[]> {
+        const products = await this.productModel
+            .find({
+                'category.mainCategory': 'CATALOGUE',
+                'category.subCategory': subCategory,
+                isActive: true,
+            })
+            .select('slug productName mainImageUrl category.series downloads order')
+            .sort({ order: 1, productName: 1 })
+            .lean();
+
+        return products.map((product) => {
+            // downloads 배열에서 PDF Catalogue URL 찾기
+            const pdfDownload = product.downloads?.find(
+                (dl: any) => dl.type === 'PDF' && dl.category === 'Catalogue' && dl.url,
+            );
+
+            return {
+                name: product.category.series || product.productName || 'Unknown',
+                slug: product.slug,
+                productCount: 1,
+                imageUrl: product.mainImageUrl || categoryImageUrl, // Product 이미지가 없으면 카테고리 이미지 사용
+                pdfUrl: pdfDownload?.url,
+            };
+        });
+    }
+
+    // 재귀적으로 카테고리 트리 구성
+    private buildCategoryTree(parentName: string, allCategories: any[]): any[] {
+        const children = allCategories.filter((c) => c.parentName === parentName);
+
+        return children.map((child) => ({
+            ...child,
+            children: this.buildCategoryTree(child.name, allCategories),
+        }));
+    }
+
+    // Level 2 카테고리의 시리즈 정보 조회
+    private async getSeriesForLevel2Category(
+        mainCategory: string,
+        subCategory: string,
+    ): Promise<SeriesInfoResponseDto[]> {
+        const products = await this.productModel
+            .find({
+                'category.mainCategory': mainCategory,
+                'category.subCategory': subCategory,
+                'category.series': { $exists: true, $nin: [null, ''] },
+                isActive: true,
+            })
+            .select('slug category.series mainImageUrl content contentDetail order')
+            .sort({ order: 1, 'category.series': 1 })
+            .lean();
+
+        const seriesMap = new Map<
+            string,
+            { slug: string; count: number; imageUrl?: string; content?: string; contentDetail?: string }
+        >();
+
+        products.forEach((product) => {
+            const seriesName = product.category.series;
+            if (seriesName) {
+                const existing = seriesMap.get(seriesName);
+                if (existing) {
+                    existing.count++;
+                    if (!existing.imageUrl && product.mainImageUrl) {
+                        existing.imageUrl = product.mainImageUrl;
+                    }
+                    if (!existing.content && product.content) {
+                        existing.content = product.content;
+                    }
+                    if (!existing.contentDetail && product.contentDetail) {
+                        existing.contentDetail = product.contentDetail;
+                    }
+                } else {
+                    seriesMap.set(seriesName, {
+                        slug: product.slug, // 실제 제품의 slug를 slug로 사용
+                        count: 1,
+                        imageUrl: product.mainImageUrl,
+                        content: product.content,
+                        contentDetail: product.contentDetail,
+                    });
+                }
+            }
+        });
+
+        const seriesArray: SeriesInfoResponseDto[] = Array.from(seriesMap.entries()).map(([name, data]) => ({
+            name,
+            slug: data.slug, // slug를 slug로 사용
+            productCount: data.count,
+            imageUrl: data.imageUrl,
+            content: data.content,
+            contentDetail: data.contentDetail,
+        }));
+
+        seriesArray.sort((a, b) => a.name.localeCompare(b.name));
+
+        return seriesArray;
+    }
+
+    // WORK GRIPPER 카테고리의 제품 정보 조회 (subCategory가 없는 경우)
+    private async getProductsForWorkGripper(): Promise<SeriesInfoResponseDto[]> {
+        const products = await this.productModel
+            .find({
+                'category.mainCategory': 'WORK GRIPPER',
+                'category.subCategory': 'Gripper', // WORK GRIPPER의 실제 subCategory 값
+                isActive: true,
+            })
+            .select('slug category.series mainImageUrl content contentDetail order')
+            .sort({ order: 1, 'category.series': 1 })
+            .lean();
+
+        return products.map((product) => ({
+            name: product.category.series,
+            slug: product.slug,
+            productCount: 1,
+            imageUrl: product.mainImageUrl,
+            content: product.content,
+            contentDetail: product.contentDetail,
+        }));
     }
 }

@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+
 import { ContactRequestStatus } from '../../../../../schemas/contact-request.schema';
 
 /**
@@ -12,7 +13,11 @@ export class ContactAdminFilterDto {
     @IsOptional()
     keyword?: string;
 
-    @ApiPropertyOptional({ description: '처리 상태', enum: ContactRequestStatus, example: ContactRequestStatus.PENDING })
+    @ApiPropertyOptional({
+        description: '처리 상태',
+        enum: ContactRequestStatus,
+        example: ContactRequestStatus.PENDING,
+    })
     @IsEnum(ContactRequestStatus)
     @IsOptional()
     status?: ContactRequestStatus;

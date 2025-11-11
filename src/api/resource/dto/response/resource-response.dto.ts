@@ -1,7 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { StandardResponseDto, PaginatedResponseDto } from '../../../../common/dto/response/standard-response.dto';
-
 /**
  * 자료 파일 정보 DTO
  */
@@ -45,16 +43,9 @@ export class ResourceItemDto {
 
     @ApiProperty({
         example: 'NC Rotary Table Catalog 2025',
-        description: '자료 제목 (영어)',
+        description: '자료 제목',
     })
     title: string;
-
-    @ApiProperty({
-        example: 'NC 로터리 테이블 카탈로그 2025',
-        description: '자료 제목 (한글)',
-        required: false,
-    })
-    titleKo?: string;
 
     @ApiProperty({
         example: 'CATALOG',
@@ -135,17 +126,10 @@ export class ResourceItemDto {
 export class ResourceDetailDto extends ResourceItemDto {
     @ApiProperty({
         example: 'Comprehensive catalog for NC Rotary Table series',
-        description: '자료 설명 (영어)',
+        description: '자료 설명',
         required: false,
     })
     description?: string;
-
-    @ApiProperty({
-        example: 'NC 로터리 테이블 시리즈 종합 카탈로그',
-        description: '자료 설명 (한글)',
-        required: false,
-    })
-    descriptionKo?: string;
 
     @ApiProperty({
         example: 'https://youtube.com/watch?v=example',
@@ -190,109 +174,4 @@ export class ResourceTypeStatDto {
         description: '해당 타입의 자료 수',
     })
     count: number;
-}
-
-/**
- * 자료 목록 응답
- */
-export class ResourceListResponseDto extends PaginatedResponseDto<ResourceItemDto> {
-    @ApiProperty({
-        example: true,
-        description: '요청 성공 여부',
-    })
-    success: boolean;
-
-    @ApiProperty({
-        example: 200,
-        description: 'HTTP 상태 코드',
-    })
-    code: number;
-
-    @ApiProperty({
-        example: '자료 목록 조회 성공',
-        description: '응답 메시지',
-    })
-    message: string;
-}
-
-/**
- * 자료 상세 응답
- */
-export class ResourceDetailResponseDto extends StandardResponseDto<ResourceDetailDto> {
-    @ApiProperty({
-        example: true,
-        description: '요청 성공 여부',
-    })
-    success: boolean;
-
-    @ApiProperty({
-        example: 200,
-        description: 'HTTP 상태 코드',
-    })
-    code: number;
-
-    @ApiProperty({
-        example: '자료 조회 성공',
-        description: '응답 메시지',
-    })
-    message: string;
-
-    @ApiProperty({
-        type: ResourceDetailDto,
-        description: '자료 상세 정보',
-    })
-    data: ResourceDetailDto;
-}
-
-/**
- * 자료 타입별 통계 응답
- */
-export class ResourceTypeStatsResponseDto extends StandardResponseDto<ResourceTypeStatDto[]> {
-    @ApiProperty({
-        example: true,
-        description: '요청 성공 여부',
-    })
-    success: boolean;
-
-    @ApiProperty({
-        example: 200,
-        description: 'HTTP 상태 코드',
-    })
-    code: number;
-
-    @ApiProperty({
-        example: '자료 타입별 통계 조회 성공',
-        description: '응답 메시지',
-    })
-    message: string;
-
-    @ApiProperty({
-        type: [ResourceTypeStatDto],
-        description: '타입별 통계 데이터',
-        isArray: true,
-    })
-    data: ResourceTypeStatDto[];
-}
-
-/**
- * 다운로드 수 증가 응답
- */
-export class ResourceDownloadResponseDto extends StandardResponseDto<void> {
-    @ApiProperty({
-        example: true,
-        description: '요청 성공 여부',
-    })
-    success: boolean;
-
-    @ApiProperty({
-        example: 200,
-        description: 'HTTP 상태 코드',
-    })
-    code: number;
-
-    @ApiProperty({
-        example: '다운로드 수 증가 성공',
-        description: '응답 메시지',
-    })
-    message: string;
 }

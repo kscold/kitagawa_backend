@@ -1,5 +1,15 @@
-import { Controller, Get, Post, Body, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse } from '@nestjs/swagger';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    HttpStatus,
+    UseInterceptors,
+    UploadedFile,
+    BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 import { ContactService } from './contact.service';
 
@@ -15,6 +25,75 @@ import { ContactInfoResponseDto } from './dto/response/contact-info-response.dto
 @Controller('contact')
 export class ContactController {
     constructor(private readonly contactService: ContactService) {}
+
+    /**
+     * 문의 첨부파일 업로드 (공개 API)
+     */
+    @Post('upload-attachment')
+    @UseInterceptors(FileInterceptor('file'))
+    @ApiConsumes('multipart/form-data')
+    @ApiOperation({
+        summary: '문의 첨부파일 업로드 (공개)',
+        description: `
+Contact Us 페이지의 서비스 문의 폼에서 첨부파일을 업로드합니다.
+
+- 파일 크기 제한: 5MB
+- 지원 파일 형식: 이미지, PDF, 문서 파일
+- 인증 불필요 (공개 API)
+
+업로드된 파일은 GCS에 저장되며, 반환된 URL을 service-request API의 attachmentUrl로 전송하세요.
+        `,
+    })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            required: ['file'],
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                    description: '업로드할 첨부파일',
+                },
+            },
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '업로드 성공',
+        schema: {
+            example: {
+                success: true,
+                code: 200,
+                message: '파일 업로드 성공',
+                data: {
+                    url: 'https://storage.googleapis.com/kitagawa-cdn/contact/1234567890-document.pdf',
+                },
+            },
+        },
+    })
+    @SwaggerResponse({ status: HttpStatus.BAD_REQUEST, description: '파일 없음 또는 크기 초과' })
+    async uploadAttachment(@UploadedFile() file: Express.Multer.File) {
+        // 파일 검증
+        if (!file) {
+            throw new BadRequestException('파일이 필요합니다');
+        }
+
+        // 파일 크기 검증 (5MB 제한)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            throw new BadRequestException('파일 크기는 5MB를 초과할 수 없습니다');
+        }
+
+        // 업로드
+        const url = await this.contactService.uploadAttachment(file);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '파일 업로드 성공',
+            data: { url },
+        };
+    }
 
     /**
      * 서비스 문의 접수

@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
  * Series 정보 DTO
  * Level 2 카테고리 하위의 시리즈 정보
  */
-export class SeriesInfoDto {
+export class SeriesInfoResponseDto {
     @ApiProperty({
         example: 'MR series',
         description: '시리즈명',

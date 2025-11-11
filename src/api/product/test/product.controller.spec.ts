@@ -1,9 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
+
 import { ProductController } from '../product.controller';
+
 import { ProductService } from '../product.service';
-import { expectStandardResponse, expectPaginatedResponse } from '../../../../test/helpers/test-helpers';
+
+import { expectStandardResponse } from '../../../../test/helpers/test-helpers';
 
 describe('ProductController (e2e)', () => {
     let app: INestApplication;
@@ -113,9 +116,7 @@ describe('ProductController (e2e)', () => {
 
             mockProductService.getFeaturedProducts.mockResolvedValue(mockProducts);
 
-            const response = await request(app.getHttpServer())
-                .get('/api/products/featured')
-                .expect(HttpStatus.OK);
+            const response = await request(app.getHttpServer()).get('/api/products/featured').expect(HttpStatus.OK);
 
             expectStandardResponse(response);
             expect(Array.isArray(response.body.data)).toBe(true);
@@ -135,9 +136,7 @@ describe('ProductController (e2e)', () => {
 
             mockProductService.getPopularProducts.mockResolvedValue(mockProducts);
 
-            const response = await request(app.getHttpServer())
-                .get('/api/products/popular')
-                .expect(HttpStatus.OK);
+            const response = await request(app.getHttpServer()).get('/api/products/popular').expect(HttpStatus.OK);
 
             expectStandardResponse(response);
             expect(Array.isArray(response.body.data)).toBe(true);
@@ -157,9 +156,7 @@ describe('ProductController (e2e)', () => {
 
             mockProductService.getRecentProducts.mockResolvedValue(mockProducts);
 
-            const response = await request(app.getHttpServer())
-                .get('/api/products/recent')
-                .expect(HttpStatus.OK);
+            const response = await request(app.getHttpServer()).get('/api/products/recent').expect(HttpStatus.OK);
 
             expectStandardResponse(response);
             expect(Array.isArray(response.body.data)).toBe(true);
@@ -190,9 +187,7 @@ describe('ProductController (e2e)', () => {
 
             mockProductService.findBySlug.mockResolvedValue(mockProduct);
 
-            const response = await request(app.getHttpServer())
-                .get('/api/products/test-product')
-                .expect(HttpStatus.OK);
+            const response = await request(app.getHttpServer()).get('/api/products/test-product').expect(HttpStatus.OK);
 
             expectStandardResponse(response);
 

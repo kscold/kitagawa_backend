@@ -5,12 +5,8 @@ import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
 
 import { AuthService } from './auth.service';
 
-import {
-    LoginResponseDto,
-    GetMeResponseDto,
-    RegisterResponseDto,
-    GetAllAdminsResponseDto,
-} from './dto/response/auth-response.dto';
+import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
+import { AdminDto, LoginDataDto, RegisterDataDto } from './dto/response/auth-response.dto';
 
 @ApiTags('Auth - Admin')
 @Controller('auth-admin')
@@ -47,7 +43,7 @@ export class AuthController {
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '회원가입 성공',
-        type: RegisterResponseDto,
+        type: ApiResponseDto<RegisterDataDto>,
         schema: {
             example: {
                 success: true,
@@ -118,7 +114,7 @@ export class AuthController {
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '로그인 성공',
-        type: LoginResponseDto,
+        type: ApiResponseDto<LoginDataDto>,
         schema: {
             example: {
                 success: true,
@@ -186,7 +182,7 @@ export class AuthController {
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: GetMeResponseDto,
+        type: ApiResponseDto<AdminDto>,
         schema: {
             example: {
                 success: true,
@@ -248,7 +244,7 @@ export class AuthController {
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: GetAllAdminsResponseDto,
+        type: ApiResponseDto<AdminDto[]>,
         schema: {
             example: {
                 success: true,

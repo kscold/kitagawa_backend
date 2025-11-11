@@ -1,8 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
+
 import { CategoryController } from '../category.controller';
+
 import { CategoryService } from '../category.service';
+
 import { expectStandardResponse } from '../../../../test/helpers/test-helpers';
 
 describe('CategoryController (e2e)', () => {
@@ -52,9 +55,7 @@ describe('CategoryController (e2e)', () => {
 
             mockCategoryService.getLevel1Categories.mockResolvedValue(mockCategories);
 
-            const response = await request(app.getHttpServer())
-                .get('/api/categories/level1')
-                .expect(HttpStatus.OK);
+            const response = await request(app.getHttpServer()).get('/api/categories/level1').expect(HttpStatus.OK);
 
             expectStandardResponse(response);
 
