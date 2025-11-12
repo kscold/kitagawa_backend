@@ -7,6 +7,7 @@ import { ResourceRepository } from './repository/resource.repository';
 
 import { ResourceDocument, ResourceType } from '../../schemas/resource.schema';
 import { CategoryModel, CategoryDocument } from '../../schemas/category.schema';
+import { Product, ProductDocument } from '../../schemas/product.schema';
 
 /**
  * Resource Service
@@ -22,6 +23,8 @@ export class ResourceService {
         private readonly configService: ConfigService,
         @InjectModel(CategoryModel.name)
         private readonly categoryModel: Model<CategoryDocument>,
+        @InjectModel(Product.name)
+        private readonly productModel: Model<ProductDocument>,
     ) {
         this.isDevelopment = this.configService.get('NODE_ENV') !== 'production';
     }
@@ -225,7 +228,6 @@ export class ResourceService {
             name: string;
             slug: string;
             imageUrl: string;
-            content: string;
             order: number;
             count: number;
         }>
@@ -261,7 +263,6 @@ export class ResourceService {
                         name: category.name,
                         slug: category.slug,
                         imageUrl: category.imageUrl,
-                        content: category.content,
                         order: category.order,
                         count: total,
                     };
@@ -292,6 +293,7 @@ export class ResourceService {
         items: Array<{
             productName: string;
             model: string;
+            slug?: string;
             category?: string;
             pdfUrl?: string;
             dwgUrl?: string;
@@ -329,6 +331,7 @@ export class ResourceService {
                 {
                     productName: string;
                     model: string;
+                    slug?: string;
                     category?: string;
                     pdfUrl?: string;
                     dwgUrl?: string;
@@ -374,6 +377,29 @@ export class ResourceService {
                         entry.dwgUrl = fileUrl;
                     }
                 }
+            });
+
+            // productName으로 slug 찾기
+            const productNames = Array.from(new Set(Array.from(modelMap.values()).map((item) => item.productName)));
+            const products = await this.productModel
+                .find({
+                    'category.series': { $in: productNames },
+                    isActive: true,
+                })
+                .select('slug category.series')
+                .lean();
+
+            // productName -> slug 매핑 생성
+            const slugMap = new Map<string, string>();
+            products.forEach((product: any) => {
+                if (product.category?.series) {
+                    slugMap.set(product.category.series, product.slug);
+                }
+            });
+
+            // 각 항목에 slug 추가
+            modelMap.forEach((entry) => {
+                entry.slug = slugMap.get(entry.productName);
             });
 
             // Map을 배열로 변환하고 order로 정렬
@@ -472,6 +498,7 @@ export class ResourceService {
                 {
                     productName: string;
                     model: string;
+                    slug?: string;
                     pdfUrl?: string;
                     dwgUrl?: string;
                     imageUrl?: string;
@@ -517,6 +544,29 @@ export class ResourceService {
                         entry.dwgUrl = fileUrl;
                     }
                 }
+            });
+
+            // productName으로 slug 찾기
+            const productNames = Array.from(new Set(Array.from(modelMap.values()).map((item) => item.productName)));
+            const products = await this.productModel
+                .find({
+                    'category.series': { $in: productNames },
+                    isActive: true,
+                })
+                .select('slug category.series')
+                .lean();
+
+            // productName -> slug 매핑 생성
+            const slugMap = new Map<string, string>();
+            products.forEach((product: any) => {
+                if (product.category?.series) {
+                    slugMap.set(product.category.series, product.slug);
+                }
+            });
+
+            // 각 항목에 slug 추가
+            modelMap.forEach((entry) => {
+                entry.slug = slugMap.get(entry.productName);
             });
 
             // Map을 배열로 변환하고 order로 정렬

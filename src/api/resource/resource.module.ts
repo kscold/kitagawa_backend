@@ -9,6 +9,7 @@ import { ResourceRepository } from './repository/resource.repository';
 
 import { Resource, ResourceSchema } from '../../schemas/resource.schema';
 import { CategoryModel, CategorySchema } from '../../schemas/category.schema';
+import { Product, ProductSchema } from '../../schemas/product.schema';
 
 /**
  * 자료실 모듈
@@ -18,6 +19,7 @@ import { CategoryModel, CategorySchema } from '../../schemas/category.schema';
         MongooseModule.forFeature([
             { name: Resource.name, schema: ResourceSchema },
             { name: CategoryModel.name, schema: CategorySchema },
+            { name: Product.name, schema: ProductSchema },
         ]),
     ],
     controllers: [ResourceController],

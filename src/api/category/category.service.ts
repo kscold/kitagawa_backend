@@ -131,8 +131,8 @@ export class CategoryService {
                 'category.subCategory': subCategory,
                 isActive: true,
             })
-            .select('slug productName mainImageUrl category.series downloads order')
-            .sort({ order: 1, productName: 1 })
+            .select('slug productName mainImageUrl category.series downloads orderInLevel2')
+            .sort({ orderInLevel2: 1, productName: 1 })
             .lean();
 
         return products.map((product) => {
@@ -173,13 +173,20 @@ export class CategoryService {
                 'category.series': { $exists: true, $nin: [null, ''] },
                 isActive: true,
             })
-            .select('slug category.series mainImageUrl content contentDetail order')
-            .sort({ order: 1, 'category.series': 1 })
+            .select('slug category.series mainImageUrl content contentDetail orderInLevel2')
+            .sort({ orderInLevel2: 1, 'category.series': 1 })
             .lean();
 
         const seriesMap = new Map<
             string,
-            { slug: string; count: number; imageUrl?: string; content?: string; contentDetail?: string }
+            {
+                slug: string;
+                count: number;
+                imageUrl?: string;
+                content?: string;
+                contentDetail?: string;
+                orderInLevel2: number;
+            }
         >();
 
         products.forEach((product) => {
@@ -197,6 +204,10 @@ export class CategoryService {
                     if (!existing.contentDetail && product.contentDetail) {
                         existing.contentDetail = product.contentDetail;
                     }
+                    // orderInLevel2는 가장 작은 값을 사용 (시리즈의 첫 제품 기준)
+                    if (product.orderInLevel2 < existing.orderInLevel2) {
+                        existing.orderInLevel2 = product.orderInLevel2;
+                    }
                 } else {
                     seriesMap.set(seriesName, {
                         slug: product.slug, // 실제 제품의 slug를 slug로 사용
@@ -204,6 +215,7 @@ export class CategoryService {
                         imageUrl: product.mainImageUrl,
                         content: product.content,
                         contentDetail: product.contentDetail,
+                        orderInLevel2: product.orderInLevel2 || 999, // orderInLevel2가 없으면 끝으로
                     });
                 }
             }
@@ -218,7 +230,12 @@ export class CategoryService {
             contentDetail: data.contentDetail,
         }));
 
-        seriesArray.sort((a, b) => a.name.localeCompare(b.name));
+        // orderInLevel2 기준으로 정렬 (알파벳 정렬 제거)
+        seriesArray.sort((a, b) => {
+            const orderA = seriesMap.get(a.name)?.orderInLevel2 || 999;
+            const orderB = seriesMap.get(b.name)?.orderInLevel2 || 999;
+            return orderA - orderB;
+        });
 
         return seriesArray;
     }
@@ -231,8 +248,8 @@ export class CategoryService {
                 'category.subCategory': 'Gripper', // WORK GRIPPER의 실제 subCategory 값
                 isActive: true,
             })
-            .select('slug category.series mainImageUrl content contentDetail order')
-            .sort({ order: 1, 'category.series': 1 })
+            .select('slug category.series mainImageUrl content contentDetail orderInLevel2')
+            .sort({ orderInLevel2: 1, 'category.series': 1 })
             .lean();
 
         return products.map((product) => ({

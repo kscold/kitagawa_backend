@@ -1,49 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
     Min,
     IsUrl,
     IsEnum,
-    IsArray,
     IsString,
     IsNumber,
     IsBoolean,
     IsNotEmpty,
     IsOptional,
-    ValidateNested,
 } from 'class-validator';
 
 import { CategoryLevel } from '../../../../schemas/category.schema';
-
-/**
- * 다운로드 링크 DTO
- */
-export class CategoryDownloadLinkDto {
-    @ApiPropertyOptional({ description: '파일 타입', example: 'PDF' })
-    @IsString()
-    @IsOptional()
-    type?: string;
-
-    @ApiPropertyOptional({ description: '카테고리', example: 'Catalog' })
-    @IsString()
-    @IsOptional()
-    category?: string;
-
-    @ApiPropertyOptional({ description: '파일 제목', example: 'NC ROTARY TABLE Catalogue' })
-    @IsString()
-    @IsOptional()
-    title?: string;
-
-    @ApiPropertyOptional({ description: '다운로드 URL', example: 'https://example.com/file.pdf' })
-    @IsUrl()
-    @IsOptional()
-    url?: string;
-
-    @ApiPropertyOptional({ description: '해당 모델명', example: 'MK200' })
-    @IsString()
-    @IsOptional()
-    model?: string;
-}
 
 /**
  * 카테고리 생성 요청 DTO
@@ -53,6 +20,11 @@ export class CreateCategoryRequestDto {
     @IsString()
     @IsNotEmpty()
     name: string;
+
+    @ApiPropertyOptional({ description: '카테고리명 (한글)', example: 'NC 로터리 테이블' })
+    @IsString()
+    @IsOptional()
+    nameKo?: string;
 
     @ApiProperty({ description: 'URL용 슬러그 (고유값)', example: 'nc-rotary-table' })
     @IsString()
@@ -64,15 +36,10 @@ export class CreateCategoryRequestDto {
     @IsOptional()
     description?: string;
 
-    @ApiPropertyOptional({ description: '카테고리 상세 설명' })
+    @ApiPropertyOptional({ description: '카테고리 설명 (한글)' })
     @IsString()
     @IsOptional()
-    content?: string;
-
-    @ApiPropertyOptional({ description: '카테고리 소개 HTML (사양서, 설명 등)' })
-    @IsString()
-    @IsOptional()
-    specificationHtml?: string;
+    descriptionKo?: string;
 
     @ApiProperty({
         description: '카테고리 레벨',
@@ -102,19 +69,6 @@ export class CreateCategoryRequestDto {
     @IsUrl()
     @IsOptional()
     imageUrl?: string;
-
-    @ApiPropertyOptional({ description: 'YouTube 영상 URL 배열', type: [String] })
-    @IsArray()
-    @IsUrl({}, { each: true })
-    @IsOptional()
-    youtubeUrl?: string[];
-
-    @ApiPropertyOptional({ description: '다운로드 링크 배열', type: [CategoryDownloadLinkDto] })
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => CategoryDownloadLinkDto)
-    @IsOptional()
-    downloads?: CategoryDownloadLinkDto[];
 
     @ApiPropertyOptional({ description: '정렬 순서', example: 0, default: 0 })
     @IsNumber()

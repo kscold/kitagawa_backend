@@ -10,6 +10,7 @@ import {
 } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
+import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
 
 import { CategoryAdminService } from './category-admin.service';
 
@@ -18,6 +19,7 @@ import { CategoryLevel } from '../../../schemas/category.schema';
 import { CreateCategoryRequestDto } from '../dto/request/create-category-request.dto';
 import { UpdateCategoryRequestDto } from '../dto/request/update-category-request.dto';
 import { UpdateCategoryOrderRequestDto } from '../dto/request/update-category-order-request.dto';
+import { ReorderBatchCategoryDto } from '../dto/request/reorder-batch-category.dto';
 
 /**
  * 카테고리 관리자 API
@@ -36,7 +38,7 @@ export class CategoryAdminController {
     @Get()
     @ApiOperation({
         summary: '카테고리 목록 조회 (관리자)',
-        description: '모든 카테고리 목록을 조회합니다 (비활성화 카테고리 포함)',
+        description: '모든 카테고리 목록을 조회합니다 (비활성화 카테고리 포함). 페이지네이션 지원.',
     })
     @ApiQuery({
         name: 'level',
@@ -50,23 +52,69 @@ export class CategoryAdminController {
         type: Boolean,
         description: '활성화 상태 필터',
     })
+    @ApiQuery({
+        name: 'page',
+        required: false,
+        type: Number,
+        description: '페이지 번호 (기본값: 없음 - 전체 조회)',
+        example: 1,
+    })
+    @ApiQuery({
+        name: 'limit',
+        required: false,
+        type: Number,
+        description: '페이지당 항목 수 (기본값: 10)',
+        example: 10,
+    })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
     })
-    async findAll(@Query('level') level?: CategoryLevel, @Query('isActive') isActive?: boolean) {
-        const { categories, total } = await this.categoryAdminService.findAll({
-            level,
-            isActive: isActive !== undefined ? isActive === true : undefined,
-        });
+    async findAll(
+        @Query('level') level?: CategoryLevel,
+        @Query('isActive') isActive?: boolean,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+    ) {
+        // 페이지네이션 파라미터 파싱
+        const pageNum = page ? parseInt(page, 10) : undefined;
+        const limitNum = limit ? parseInt(limit, 10) : 10;
 
+        const pagination = pageNum ? { page: pageNum, limit: limitNum } : undefined;
+
+        const result = await this.categoryAdminService.findAll(
+            {
+                level,
+                isActive: isActive !== undefined ? isActive === true : undefined,
+            },
+            pagination,
+        );
+
+        // 페이지네이션이 있는 경우 표준 포맷 사용
+        if (pagination && result.page && result.limit) {
+            const paginatedData = PaginationResponseDto.fromPageLimit(
+                result.categories,
+                result.total,
+                result.page,
+                result.limit,
+            );
+
+            return {
+                success: true,
+                code: HttpStatus.OK,
+                message: '카테고리 목록 조회 성공',
+                data: paginatedData,
+            };
+        }
+
+        // 페이지네이션이 없는 경우
         return {
             success: true,
             code: HttpStatus.OK,
             message: '카테고리 목록 조회 성공',
             data: {
-                categories,
-                total,
+                items: result.categories,
+                total: result.total,
             },
         };
     }
@@ -295,6 +343,38 @@ export class CategoryAdminController {
             code: HttpStatus.OK,
             message: '카테고리 순서가 변경되었습니다',
             data: await this.categoryAdminService.updateOrder(slug, orderData.order),
+        };
+    }
+
+    /**
+     * 카테고리 순서 일괄 변경 (DND용, 관리자 전용)
+     */
+    @Patch('reorder')
+    @ApiOperation({
+        summary: '카테고리 순서 일괄 변경 (DND용)',
+        description: 'Drag and Drop으로 여러 카테고리의 순서를 한번에 변경합니다 (관리자 인증 필요)',
+    })
+    @ApiBody({ type: ReorderBatchCategoryDto })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '순서 일괄 변경 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '잘못된 요청 (카테고리가 존재하지 않거나 레벨이 맞지 않음)',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async reorderBatch(@Body() dto: ReorderBatchCategoryDto) {
+        await this.categoryAdminService.reorderBatch(dto.level, dto.parentName, dto.items);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '카테고리 순서가 일괄 변경되었습니다',
+            data: null,
         };
     }
 }

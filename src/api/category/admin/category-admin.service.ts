@@ -24,17 +24,48 @@ export class CategoryAdminService {
     /**
      * 모든 카테고리 조회 (관리자용 - 비활성화 포함)
      */
-    async findAll(filters?: {
-        level?: CategoryLevel;
-        isActive?: boolean;
-    }): Promise<{ categories: CategoryDocument[]; total: number }> {
+    async findAll(
+        filters?: {
+            level?: CategoryLevel;
+            isActive?: boolean;
+        },
+        pagination?: { page: number; limit: number },
+    ): Promise<{ categories: CategoryDocument[]; total: number; page?: number; limit?: number; totalPages?: number }> {
         const methodName = 'findAll';
 
         try {
             if (this.isDevelopment) {
-                this.logger.log(`[${methodName}] 요청 - filters: ${JSON.stringify(filters)}`);
+                this.logger.log(
+                    `[${methodName}] 요청 - filters: ${JSON.stringify(filters)}, pagination: ${JSON.stringify(pagination)}`,
+                );
             }
 
+            // 페이지네이션이 있는 경우
+            if (pagination) {
+                const { categories, total } = await this.categoryRepository.findAllWithPagination(
+                    filters || {},
+                    pagination.page,
+                    pagination.limit,
+                );
+
+                const totalPages = Math.ceil(total / pagination.limit);
+
+                if (this.isDevelopment) {
+                    this.logger.log(
+                        `[${methodName}] 성공 - count: ${categories.length}, total: ${total}, page: ${pagination.page}/${totalPages}`,
+                    );
+                }
+
+                return {
+                    categories,
+                    total,
+                    page: pagination.page,
+                    limit: pagination.limit,
+                    totalPages,
+                };
+            }
+
+            // 페이지네이션이 없는 경우
             const categories = await this.categoryRepository.findAll(filters);
 
             if (this.isDevelopment) {
@@ -340,6 +371,64 @@ export class CategoryAdminService {
         } catch (error) {
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
             throw new BadRequestException('카테고리 순서 변경 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
+     * 여러 카테고리의 순서를 일괄 업데이트 (DND용)
+     */
+    async reorderBatch(
+        level: 1 | 2,
+        parentName: string | undefined,
+        items: { slug: string; order: number }[],
+    ): Promise<void> {
+        const methodName = 'reorderBatch';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(
+                    `[${methodName}] 요청 - level: ${level}, parentName: ${parentName || 'N/A'}, items: ${items.length}개`,
+                );
+            }
+
+            // 모든 카테고리가 존재하는지 확인
+            for (const item of items) {
+                const category = await this.categoryRepository.findBySlug(item.slug);
+                if (!category) {
+                    throw new BadRequestException(`카테고리 슬러그 '${item.slug}'에 해당하는 카테고리를 찾을 수 없습니다`);
+                }
+
+                // 카테고리 레벨 확인
+                if (category.level !== level) {
+                    throw new BadRequestException(
+                        `카테고리 '${item.slug}'의 레벨이 Level ${level}이 아닙니다 (현재: Level ${category.level})`,
+                    );
+                }
+
+                // Level 2인 경우 parentName 확인
+                if (level === CategoryLevel.LEVEL_2 && parentName) {
+                    if (category.parentName !== parentName) {
+                        throw new BadRequestException(
+                            `카테고리 '${item.slug}'이(가) 부모 카테고리 '${parentName}'에 속하지 않습니다`,
+                        );
+                    }
+                }
+
+                // order 유효성 검사
+                if (item.order < 0) {
+                    throw new BadRequestException(`카테고리 '${item.slug}'의 order는 0 이상이어야 합니다`);
+                }
+            }
+
+            // 일괄 업데이트
+            await this.categoryRepository.updateOrdersBatch(items);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - ${items.length}개 카테고리 순서 업데이트 완료`);
+            }
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw new BadRequestException('카테고리 순서 일괄 업데이트 중 오류가 발생했습니다');
         }
     }
 }

@@ -107,7 +107,7 @@ export class ProductRepository {
      * slug로 제품 조회 (slug로도 사용됨)
      */
     async findBySlug(slug: string): Promise<ProductDocument | null> {
-        const query: any = this.productModel.findOne({ slug }).select('-productName -imageUrls -metadata -order');
+        const query: any = this.productModel.findOne({ slug }).select('-imageUrls -metadata -order');
         return (await query.exec()) as ProductDocument | null;
     }
 
@@ -115,7 +115,7 @@ export class ProductRepository {
      * 제품 ID로 조회
      */
     async findById(id: string): Promise<ProductDocument | null> {
-        const query: any = this.productModel.findById(id).select('-productName -imageUrls -metadata -order');
+        const query: any = this.productModel.findById(id).select('-imageUrls -metadata -order');
         return (await query.exec()) as ProductDocument | null;
     }
 
@@ -408,17 +408,19 @@ export class ProductRepository {
      */
     async create(productData: Partial<Product>): Promise<ProductDocument> {
         const newProduct = new this.productModel(productData);
-        return (await newProduct.save()) as ProductDocument;
+        const result: any = await newProduct.save();
+        return result as ProductDocument;
     }
 
     /**
      * 제품 수정 (레거시 - slug 기반)
      */
     async update(slug: string, productData: Partial<Product>): Promise<ProductDocument | null> {
-        const query: any = this.productModel
+        const result: any = await this.productModel
             .findOneAndUpdate({ slug }, { $set: productData }, { new: true })
-            .select('-productName -imageUrls -metadata -order');
-        return (await query.exec()) as ProductDocument | null;
+            .select('-imageUrls -metadata -order')
+            .exec();
+        return result as ProductDocument | null;
     }
 
     /**
