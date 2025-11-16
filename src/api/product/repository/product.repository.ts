@@ -259,9 +259,12 @@ export class ProductRepository {
     }): Promise<{ products: ProductDocument[]; total: number }> {
         const baseQuery: any = { isActive: true };
 
-        // 카테고리 필터 추가
+        // 카테고리 필터 추가 (CATALOGUE 카테고리 제외)
         if (params.category) {
             baseQuery['category.mainCategory'] = params.category;
+        } else {
+            // 카테고리 필터가 없으면 CATALOGUE 제외
+            baseQuery['category.mainCategory'] = { $ne: 'CATALOGUE' };
         }
 
         if (params.subCategory) {
