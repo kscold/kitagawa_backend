@@ -71,8 +71,8 @@ export class ResourceRepository {
         // Total count
         const total = await this.resourceModel.countDocuments(query).exec();
 
-        // Query builder (order는 오름차순으로 정렬)
-        let queryBuilder: any = this.resourceModel.find(query).sort({ isFeatured: -1, order: 1, publishedAt: -1 });
+        // Query builder (최신순으로 정렬: createdAt 내림차순)
+        let queryBuilder: any = this.resourceModel.find(query).sort({ createdAt: -1, isFeatured: -1, order: 1 });
 
         if (filters.skip !== undefined) {
             queryBuilder = queryBuilder.skip(filters.skip);

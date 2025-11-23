@@ -31,6 +31,10 @@ import { UpdateProductOrderDto } from '../dto/request/update-product-order.dto';
 import { ProductFilterRequestDto } from '../dto/request/product-filter-request.dto';
 import { CreateProductRequestDto } from '../dto/request/create-product-request.dto';
 import { UpdateProductRequestDto } from '../dto/request/update-product-request.dto';
+import { UpdateProductImageDto } from '../dto/request/update-product-image.dto';
+import { UpdateProductNameDto } from '../dto/request/update-product-name.dto';
+import { UpdateProductDescriptionDto } from '../dto/request/update-product-description.dto';
+import { UpdateProductFilesDto } from '../dto/request/update-product-files.dto';
 import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
 
 /**
@@ -400,6 +404,138 @@ export class ProductAdminController {
             code: HttpStatus.OK,
             message: `${dto.items.length}개 제품의 순서가 업데이트되었습니다`,
             data: null,
+        };
+    }
+
+    /**
+     * 제품 이미지 업데이트 (관리자 전용)
+     */
+    @Patch(':slug/image')
+    @ApiOperation({
+        summary: '제품 이미지 업데이트',
+        description: '제품의 메인 이미지를 업데이트합니다 (관리자 인증 필요)',
+    })
+    @ApiParam({ name: 'slug', description: '제품 slug', example: 'br-series' })
+    @ApiBody({ type: UpdateProductImageDto })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '이미지 업데이트 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async updateImage(@Param('slug') slug: string, @Body() dto: UpdateProductImageDto) {
+        const updated = await this.productAdminService.updateProductImage(slug, dto.mainImageUrl);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '제품 이미지가 업데이트되었습니다',
+            data: updated,
+        };
+    }
+
+    /**
+     * 제품명 업데이트 (관리자 전용)
+     */
+    @Patch(':slug/name')
+    @ApiOperation({
+        summary: '제품명 업데이트',
+        description: '제품명을 업데이트합니다 (관리자 인증 필요)',
+    })
+    @ApiParam({ name: 'slug', description: '제품 slug', example: 'br-series' })
+    @ApiBody({ type: UpdateProductNameDto })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '제품명 업데이트 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async updateName(@Param('slug') slug: string, @Body() dto: UpdateProductNameDto) {
+        const updated = await this.productAdminService.updateProductName(slug, dto.productName);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '제품명이 업데이트되었습니다',
+            data: updated,
+        };
+    }
+
+    /**
+     * 제품 설명 업데이트 (관리자 전용)
+     */
+    @Patch(':slug/description')
+    @ApiOperation({
+        summary: '제품 설명 업데이트',
+        description: '제품 설명을 업데이트합니다 (관리자 인증 필요)',
+    })
+    @ApiParam({ name: 'slug', description: '제품 slug', example: 'br-series' })
+    @ApiBody({ type: UpdateProductDescriptionDto })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '제품 설명 업데이트 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async updateDescription(@Param('slug') slug: string, @Body() dto: UpdateProductDescriptionDto) {
+        const updated = await this.productAdminService.updateProductDescription(slug, dto);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '제품 설명이 업데이트되었습니다',
+            data: updated,
+        };
+    }
+
+    /**
+     * 제품 자료 파일 업데이트 (관리자 전용)
+     */
+    @Patch(':slug/files')
+    @ApiOperation({
+        summary: '제품 자료 파일 업데이트',
+        description: '제품 자료 파일(PDF, DWG 등)을 업데이트합니다. CDN URL을 전송합니다 (관리자 인증 필요)',
+    })
+    @ApiParam({ name: 'slug', description: '제품 slug', example: 'br-series' })
+    @ApiBody({ type: UpdateProductFilesDto })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '제품 자료 업데이트 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async updateFiles(@Param('slug') slug: string, @Body() dto: UpdateProductFilesDto) {
+        const updated = await this.productAdminService.updateProductFiles(slug, dto.files);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '제품 자료가 업데이트되었습니다',
+            data: updated,
         };
     }
 }

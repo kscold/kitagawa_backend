@@ -10,16 +10,18 @@ import {
 } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
-import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
 
 import { CategoryAdminService } from './category-admin.service';
 
 import { CategoryLevel } from '../../../schemas/category.schema';
 
+import { PaginationQueryDto } from '../../../common/dto/pagination/pagination-query.dto';
 import { CreateCategoryRequestDto } from '../dto/request/create-category-request.dto';
 import { UpdateCategoryRequestDto } from '../dto/request/update-category-request.dto';
 import { UpdateCategoryOrderRequestDto } from '../dto/request/update-category-order-request.dto';
-import { ReorderBatchCategoryDto } from '../dto/request/reorder-batch-category.dto';
+import { ReorderBatchCategoryRequestDto } from '../dto/request/reorder-batch-category-request.dto';
+import { ReorderCategoryProductRequestDto } from '../dto/request/reorder-category-product-request.dto';
+import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
 
 /**
  * 카테고리 관리자 API
@@ -76,47 +78,17 @@ export class CategoryAdminController {
         @Query('page') page?: string,
         @Query('limit') limit?: string,
     ) {
-        // 페이지네이션 파라미터 파싱
         const pageNum = page ? parseInt(page, 10) : undefined;
         const limitNum = limit ? parseInt(limit, 10) : 10;
-
         const pagination = pageNum ? { page: pageNum, limit: limitNum } : undefined;
 
-        const result = await this.categoryAdminService.findAll(
+        return await this.categoryAdminService.findAll(
             {
                 level,
                 isActive: isActive !== undefined ? isActive === true : undefined,
             },
             pagination,
         );
-
-        // 페이지네이션이 있는 경우 표준 포맷 사용
-        if (pagination && result.page && result.limit) {
-            const paginatedData = PaginationResponseDto.fromPageLimit(
-                result.categories,
-                result.total,
-                result.page,
-                result.limit,
-            );
-
-            return {
-                success: true,
-                code: HttpStatus.OK,
-                message: '카테고리 목록 조회 성공',
-                data: paginatedData,
-            };
-        }
-
-        // 페이지네이션이 없는 경우
-        return {
-            success: true,
-            code: HttpStatus.OK,
-            message: '카테고리 목록 조회 성공',
-            data: {
-                items: result.categories,
-                total: result.total,
-            },
-        };
     }
 
     /**
@@ -299,10 +271,6 @@ export class CategoryAdminController {
         description: '이미 활성화된 카테고리',
     })
     @SwaggerResponse({
-        status: HttpStatus.NOT_FOUND,
-        description: '카테고리를 찾을 수 없음',
-    })
-    @SwaggerResponse({
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
@@ -330,7 +298,7 @@ export class CategoryAdminController {
         description: '순서 변경 성공',
     })
     @SwaggerResponse({
-        status: HttpStatus.NOT_FOUND,
+        status: HttpStatus.BAD_REQUEST,
         description: '카테고리를 찾을 수 없음',
     })
     @SwaggerResponse({
@@ -354,7 +322,7 @@ export class CategoryAdminController {
         summary: '카테고리 순서 일괄 변경 (DND용)',
         description: 'Drag and Drop으로 여러 카테고리의 순서를 한번에 변경합니다 (관리자 인증 필요)',
     })
-    @ApiBody({ type: ReorderBatchCategoryDto })
+    @ApiBody({ type: ReorderBatchCategoryRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '순서 일괄 변경 성공',
@@ -367,13 +335,92 @@ export class CategoryAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async reorderBatch(@Body() dto: ReorderBatchCategoryDto) {
+    async reorderBatch(@Body() dto: ReorderBatchCategoryRequestDto) {
         await this.categoryAdminService.reorderBatch(dto.level, dto.parentName, dto.items);
 
         return {
             success: true,
             code: HttpStatus.OK,
             message: '카테고리 순서가 일괄 변경되었습니다',
+            data: null,
+        };
+    }
+
+    /**
+     * 카테고리에 속한 제품 목록 조회 (관리자 전용)
+     */
+    @Get(':slug/products')
+    @ApiOperation({
+        summary: '카테고리에 속한 제품 목록 조회',
+        description: '특정 카테고리에 속한 제품 목록을 조회합니다 (순서대로 정렬, 관리자 인증 필요)',
+    })
+    @ApiParam({ name: 'slug', description: '카테고리 slug', example: 'nc-rotary-table' })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '조회 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '카테고리를 찾을 수 없음',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async getCategoryProducts(@Param('slug') slug: string, @Query() paginationQuery: PaginationQueryDto) {
+        const { products, total, category } = await this.categoryAdminService.getCategoryProducts(slug, {
+            limit: paginationQuery.limit,
+            skip: paginationQuery.offset,
+        });
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '카테고리 제품 목록 조회 성공',
+            data: {
+                category: {
+                    slug: category.slug,
+                    name: category.name,
+                    level: category.level,
+                },
+                ...PaginationResponseDto.fromPageLimit(products, total, paginationQuery.page, paginationQuery.limit),
+            },
+        };
+    }
+
+    /**
+     * 카테고리 내 제품 순서 일괄 변경 (DND용, 관리자 전용)
+     */
+    @Patch(':slug/products/reorder')
+    @ApiOperation({
+        summary: '카테고리 내 제품 순서 일괄 변경 (DND용)',
+        description: 'Drag and Drop으로 카테고리 내 제품의 순서를 한번에 변경합니다 (관리자 인증 필요)',
+    })
+    @ApiParam({ name: 'slug', description: '카테고리 slug', example: 'nc-rotary-table' })
+    @ApiBody({ type: ReorderCategoryProductRequestDto })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '순서 일괄 변경 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '잘못된 요청 (제품이 존재하지 않거나 카테고리에 속하지 않음)',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '카테고리를 찾을 수 없음',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+    })
+    async reorderCategoryProducts(@Param('slug') slug: string, @Body() dto: ReorderCategoryProductRequestDto) {
+        await this.categoryAdminService.reorderCategoryProducts(slug, dto.items);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: `${dto.items.length}개 제품의 순서가 업데이트되었습니다`,
             data: null,
         };
     }

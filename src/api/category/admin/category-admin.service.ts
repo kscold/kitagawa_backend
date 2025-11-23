@@ -1,9 +1,14 @@
-import { Injectable, Logger, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 import { CategoryRepository } from '../repository/category.repository';
 
+import { Product, ProductDocument } from '../../../schemas/product.schema';
 import { CategoryDocument, CategoryLevel } from '../../../schemas/category.schema';
+
+import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
 
 /**
  * Category Admin Service
@@ -17,8 +22,27 @@ export class CategoryAdminService {
     constructor(
         private readonly categoryRepository: CategoryRepository,
         private readonly configService: ConfigService,
+        @InjectModel(Product.name) private readonly productModel: Model<ProductDocument>,
     ) {
         this.isDevelopment = this.configService.get('NODE_ENV') !== 'production';
+    }
+
+    /**
+     * 카테고리 응답 정규화 (불필요한 필드 제거)
+     */
+    private normalizeCategoryResponse(category: CategoryDocument) {
+        const categoryObj = category.toObject ? category.toObject() : { ...category };
+
+        // 제거할 필드 목록
+        const fieldsToRemove = ['children', 'parentLevelCategory', 'parentLevelSlug'];
+
+        fieldsToRemove.forEach((field) => {
+            if (categoryObj[field] !== undefined) {
+                delete categoryObj[field];
+            }
+        });
+
+        return categoryObj;
     }
 
     /**
@@ -30,7 +54,7 @@ export class CategoryAdminService {
             isActive?: boolean;
         },
         pagination?: { page: number; limit: number },
-    ): Promise<{ categories: CategoryDocument[]; total: number; page?: number; limit?: number; totalPages?: number }> {
+    ) {
         const methodName = 'findAll';
 
         try {
@@ -56,12 +80,21 @@ export class CategoryAdminService {
                     );
                 }
 
-                return {
-                    categories,
+                // 카테고리 응답 정규화
+                const normalizedCategories = categories.map((cat) => this.normalizeCategoryResponse(cat));
+
+                const paginatedData = PaginationResponseDto.fromPageLimit(
+                    normalizedCategories,
                     total,
-                    page: pagination.page,
-                    limit: pagination.limit,
-                    totalPages,
+                    pagination.page,
+                    pagination.limit,
+                );
+
+                return {
+                    success: true,
+                    code: HttpStatus.OK,
+                    message: '카테고리 목록 조회 성공',
+                    data: paginatedData,
                 };
             }
 
@@ -72,9 +105,17 @@ export class CategoryAdminService {
                 this.logger.log(`[${methodName}] 성공 - count: ${categories.length}`);
             }
 
+            // 카테고리 응답 정규화
+            const normalizedCategories = categories.map((cat) => this.normalizeCategoryResponse(cat));
+
             return {
-                categories,
-                total: categories.length,
+                success: true,
+                code: HttpStatus.OK,
+                message: '카테고리 목록 조회 성공',
+                data: {
+                    items: normalizedCategories,
+                    total: normalizedCategories.length,
+                },
             };
         } catch (error) {
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
@@ -124,7 +165,7 @@ export class CategoryAdminService {
             // slug 중복 체크
             const existingCategory = await this.categoryRepository.findBySlug(categoryData.slug);
             if (existingCategory) {
-                throw new ConflictException(`slug '${categoryData.slug}'는 이미 존재합니다`);
+                throw new BadRequestException(`slug '${categoryData.slug}'는 이미 존재합니다`);
             }
 
             // Level 2인 경우 parentName과 mainCategory 검증
@@ -395,7 +436,9 @@ export class CategoryAdminService {
             for (const item of items) {
                 const category = await this.categoryRepository.findBySlug(item.slug);
                 if (!category) {
-                    throw new BadRequestException(`카테고리 슬러그 '${item.slug}'에 해당하는 카테고리를 찾을 수 없습니다`);
+                    throw new BadRequestException(
+                        `카테고리 슬러그 '${item.slug}'에 해당하는 카테고리를 찾을 수 없습니다`,
+                    );
                 }
 
                 // 카테고리 레벨 확인
@@ -429,6 +472,147 @@ export class CategoryAdminService {
         } catch (error) {
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
             throw new BadRequestException('카테고리 순서 일괄 업데이트 중 오류가 발생했습니다');
+        }
+    }
+
+    /**
+     * 카테고리에 속한 제품 목록 조회
+     */
+    async getCategoryProducts(
+        slug: string,
+        options?: { limit?: number; skip?: number },
+    ): Promise<{ products: ProductDocument[]; total: number; category: CategoryDocument }> {
+        const methodName = 'getCategoryProducts';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
+            }
+
+            // 카테고리 조회
+            const category = await this.categoryRepository.findBySlug(slug);
+            if (!category) {
+                throw new BadRequestException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
+            }
+
+            // 카테고리 레벨에 따라 쿼리 조건 설정
+            let query: any = {};
+            let orderField: string;
+
+            switch (category.level) {
+                case CategoryLevel.LEVEL_1:
+                    query = { 'category.mainCategory': category.name };
+                    orderField = 'order.level1';
+                    break;
+                case CategoryLevel.LEVEL_2:
+                    query = {
+                        'category.mainCategory': category.parentName,
+                        'category.subCategory': category.name,
+                    };
+                    orderField = 'order.level2';
+                    break;
+                default:
+                    throw new BadRequestException(`지원하지 않는 카테고리 레벨입니다: ${category.level}`);
+            }
+
+            // 제품 조회 (순서대로 정렬, 필요한 필드만 선택)
+            const total = await this.productModel.countDocuments(query).exec();
+
+            const productsQuery = this.productModel
+                .find(query)
+                .select('slug productName mainImageUrl content contentDetail order')
+                .sort({ [orderField]: 1, createdAt: -1 });
+
+            if (options?.skip !== undefined) {
+                productsQuery.skip(options.skip);
+            }
+
+            if (options?.limit !== undefined) {
+                productsQuery.limit(options.limit);
+            }
+
+            const products = await productsQuery.exec();
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - total: ${total}, count: ${products.length}`);
+            }
+
+            // 명시적으로 타입을 지정하여 반환
+            const result: { products: ProductDocument[]; total: number; category: CategoryDocument } = {
+                products,
+                total,
+                category,
+            };
+
+            return result;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw error;
+        }
+    }
+
+    /**
+     * 카테고리 내 제품 순서 일괄 변경 (DND용)
+     */
+    async reorderCategoryProducts(slug: string, items: Array<{ slug: string; order: number }>): Promise<void> {
+        const methodName = 'reorderCategoryProducts';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - categorySlug: ${slug}, items: ${items.length}개`);
+            }
+
+            // 카테고리 조회
+            const category = await this.categoryRepository.findBySlug(slug);
+            if (!category) {
+                throw new BadRequestException(`카테고리를 찾을 수 없습니다 (slug: ${slug})`);
+            }
+
+            const level = category.level;
+            const orderField = `order.level${level}`;
+
+            // 각 제품의 유효성 검사 및 순서 업데이트
+            for (const item of items) {
+                // 제품 조회
+                const product = await this.productModel.findOne({ slug: item.slug }).exec();
+                if (!product) {
+                    throw new BadRequestException(`제품을 찾을 수 없습니다 (slug: ${item.slug})`);
+                }
+
+                // 제품이 해당 카테고리에 속하는지 확인
+                let belongsToCategory = false;
+                switch (level) {
+                    case CategoryLevel.LEVEL_1:
+                        belongsToCategory = product.category?.mainCategory === category.name;
+                        break;
+                    case CategoryLevel.LEVEL_2:
+                        belongsToCategory =
+                            product.category?.mainCategory === category.parentName &&
+                            product.category?.subCategory === category.name;
+                        break;
+                    default:
+                        throw new BadRequestException(`지원하지 않는 카테고리 레벨입니다: ${level}`);
+                }
+
+                if (!belongsToCategory) {
+                    throw new BadRequestException(`제품 '${item.slug}'이(가) 카테고리 '${slug}'에 속하지 않습니다`);
+                }
+
+                // order 유효성 검사
+                if (item.order < 0) {
+                    throw new BadRequestException(`제품 '${item.slug}'의 order는 0 이상이어야 합니다`);
+                }
+
+                // 순서 업데이트
+                await this.productModel.updateOne({ slug: item.slug }, { [orderField]: item.order }).exec();
+            }
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - ${items.length}개 제품 순서 업데이트 완료`);
+            }
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw error;
         }
     }
 }

@@ -455,4 +455,136 @@ export class ProductAdminService {
             throw new BadRequestException('제품 순서 일괄 업데이트 중 오류가 발생했습니다');
         }
     }
+
+    /**
+     * 제품 이미지 업데이트
+     */
+    async updateProductImage(slug: string, mainImageUrl: string): Promise<ProductDocument> {
+        const methodName = 'updateProductImage';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, mainImageUrl: ${mainImageUrl}`);
+            }
+
+            const product = await this.productRepository.findBySlug(slug);
+
+            if (!product) {
+                throw new BadRequestException(`제품을 찾을 수 없습니다: ${slug}`);
+            }
+
+            const updated = await this.productRepository.update(slug, { mainImageUrl });
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
+            }
+
+            return updated;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw error;
+        }
+    }
+
+    /**
+     * 제품명 업데이트
+     */
+    async updateProductName(slug: string, productName: string): Promise<ProductDocument> {
+        const methodName = 'updateProductName';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, productName: ${productName}`);
+            }
+
+            const product = await this.productRepository.findBySlug(slug);
+
+            if (!product) {
+                throw new BadRequestException(`제품을 찾을 수 없습니다: ${slug}`);
+            }
+
+            const updated = await this.productRepository.update(slug, { productName });
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
+            }
+
+            return updated;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw error;
+        }
+    }
+
+    /**
+     * 제품 설명 업데이트
+     */
+    async updateProductDescription(
+        slug: string,
+        description: { content?: string; contentDetail?: string; description?: string },
+    ): Promise<ProductDocument> {
+        const methodName = 'updateProductDescription';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}`);
+            }
+
+            const product = await this.productRepository.findBySlug(slug);
+
+            if (!product) {
+                throw new BadRequestException(`제품을 찾을 수 없습니다: ${slug}`);
+            }
+
+            const updated = await this.productRepository.update(slug, description);
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
+            }
+
+            return updated;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw error;
+        }
+    }
+
+    /**
+     * 제품 자료 파일 업데이트
+     */
+    async updateProductFiles(slug: string, files: any[]): Promise<ProductDocument> {
+        const methodName = 'updateProductFiles';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 요청 - slug: ${slug}, files: ${files.length}개`);
+            }
+
+            const product = await this.productRepository.findBySlug(slug);
+
+            if (!product) {
+                throw new BadRequestException(`제품을 찾을 수 없습니다: ${slug}`);
+            }
+
+            // specificationFiles 형식으로 변환
+            const specificationFiles = files.map((file) => ({
+                title: file.title,
+                url: file.url,
+                type: file.type,
+                category: '2D', // 기본값, 필요시 수정 가능
+                model: file.title, // 모델명을 title로 사용
+            }));
+
+            const updated = await this.productRepository.update(slug, { specificationFiles });
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 성공 - slug: ${slug}`);
+            }
+
+            return updated;
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw error;
+        }
+    }
 }

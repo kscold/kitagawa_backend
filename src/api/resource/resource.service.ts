@@ -569,9 +569,26 @@ export class ResourceService {
                 entry.slug = slugMap.get(entry.productName);
             });
 
-            // Map을 배열로 변환하고 order로 정렬
+            // 모델명에서 숫자 추출하는 헬퍼 함수
+            const extractModelNumber = (model: string): number => {
+                const match = model.match(/\d+/);
+                return match ? parseInt(match[0], 10) : 0;
+            };
+
+            // Map을 배열로 변환하고 정렬
             const allItems = Array.from(modelMap.values()).sort((a, b) => {
-                // order가 낮을수록 앞으로 (오름차순) - 단, order가 0인 경우는 뒤로
+                // 1. 같은 productName인 경우, 모델 번호 기준 내림차순
+                if (a.productName === b.productName) {
+                    const aNum = extractModelNumber(a.model);
+                    const bNum = extractModelNumber(b.model);
+                    if (aNum !== bNum) {
+                        return bNum - aNum; // 내림차순 (큰 숫자가 먼저)
+                    }
+                    // 숫자가 같으면 모델명 전체로 비교
+                    return a.model.localeCompare(b.model);
+                }
+
+                // 2. 다른 productName인 경우, order 기준 정렬
                 if (a.order === 0 && b.order === 0) {
                     // 둘 다 0이면 productName으로 정렬
                     return a.productName.localeCompare(b.productName);
@@ -581,7 +598,7 @@ export class ResourceService {
                 if (a.order !== b.order) {
                     return a.order - b.order; // 오름차순
                 }
-                // order가 같으면 productName으로 정렬 (오름차순)
+                // order가 같으면 productName으로 정렬
                 return a.productName.localeCompare(b.productName);
             });
 

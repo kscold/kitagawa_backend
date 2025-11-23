@@ -27,7 +27,7 @@ export class CategoryOrderItemDto {
  * 카테고리 순서 일괄 변경 DTO
  * DND(Drag and Drop)로 여러 카테고리의 순서를 한번에 변경할 때 사용
  */
-export class ReorderBatchCategoryDto {
+export class ReorderBatchCategoryRequestDto {
     @ApiProperty({
         description: '카테고리 레벨 (1: 대분류, 2: 중분류)',
         enum: [1, 2],
