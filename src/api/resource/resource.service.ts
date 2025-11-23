@@ -569,36 +569,51 @@ export class ResourceService {
                 entry.slug = slugMap.get(entry.productName);
             });
 
-            // 모델명에서 숫자 추출하는 헬퍼 함수
+            // 모델명 분석 헬퍼 함수들
+            const extractModelPrefix = (model: string): string => {
+                // 알파벳 prefix 추출 (예: TS500HN -> TS, MR320AN -> MR)
+                const match = model.match(/^([A-Z]+)/);
+                return match ? match[1] : '';
+            };
+
             const extractModelNumber = (model: string): number => {
+                // 숫자 부분 추출 (예: TS500HN -> 500)
                 const match = model.match(/\d+/);
                 return match ? parseInt(match[0], 10) : 0;
             };
 
             // Map을 배열로 변환하고 정렬
             const allItems = Array.from(modelMap.values()).sort((a, b) => {
-                // 1. 같은 productName인 경우, 모델 번호 기준 내림차순
+                // 1. 같은 productName인 경우
                 if (a.productName === b.productName) {
+                    const aPrefix = extractModelPrefix(a.model);
+                    const bPrefix = extractModelPrefix(b.model);
+
+                    // 1-1. prefix가 다르면 prefix로 정렬 (알파벳순)
+                    if (aPrefix !== bPrefix) {
+                        return aPrefix.localeCompare(bPrefix);
+                    }
+
+                    // 1-2. prefix가 같으면 숫자로 내림차순
                     const aNum = extractModelNumber(a.model);
                     const bNum = extractModelNumber(b.model);
                     if (aNum !== bNum) {
                         return bNum - aNum; // 내림차순 (큰 숫자가 먼저)
                     }
-                    // 숫자가 같으면 모델명 전체로 비교
+
+                    // 1-3. 숫자도 같으면 모델명 전체로 비교
                     return a.model.localeCompare(b.model);
                 }
 
                 // 2. 다른 productName인 경우, order 기준 정렬
                 if (a.order === 0 && b.order === 0) {
-                    // 둘 다 0이면 productName으로 정렬
                     return a.productName.localeCompare(b.productName);
                 }
-                if (a.order === 0) return 1; // a를 뒤로
-                if (b.order === 0) return -1; // b를 뒤로
+                if (a.order === 0) return 1;
+                if (b.order === 0) return -1;
                 if (a.order !== b.order) {
-                    return a.order - b.order; // 오름차순
+                    return a.order - b.order;
                 }
-                // order가 같으면 productName으로 정렬
                 return a.productName.localeCompare(b.productName);
             });
 
