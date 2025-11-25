@@ -594,11 +594,11 @@ export class ResourceService {
                         return aPrefix.localeCompare(bPrefix);
                     }
 
-                    // 1-2. prefix가 같으면 숫자로 내림차순
+                    // 1-2. prefix가 같으면 숫자로 오름차순
                     const aNum = extractModelNumber(a.model);
                     const bNum = extractModelNumber(b.model);
                     if (aNum !== bNum) {
-                        return bNum - aNum; // 내림차순 (큰 숫자가 먼저)
+                        return aNum - bNum; // 오름차순 (작은 숫자가 먼저)
                     }
 
                     // 1-3. 숫자도 같으면 모델명 전체로 비교
