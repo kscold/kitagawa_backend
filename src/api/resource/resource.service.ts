@@ -584,36 +584,38 @@ export class ResourceService {
 
             // Map을 배열로 변환하고 정렬
             const allItems = Array.from(modelMap.values()).sort((a, b) => {
-                // 1. 같은 productName인 경우
+                // 1. order 값이 다르면 order로 정렬 (같은 productName이든 다르든)
+                if (a.order !== b.order && a.order !== 0 && b.order !== 0) {
+                    return a.order - b.order;
+                }
+
+                // 2. 같은 productName인 경우, 모델 기반 정렬
                 if (a.productName === b.productName) {
                     const aPrefix = extractModelPrefix(a.model);
                     const bPrefix = extractModelPrefix(b.model);
 
-                    // 1-1. prefix가 다르면 prefix로 정렬 (알파벳순)
+                    // 2-1. prefix가 다르면 prefix로 정렬 (알파벳순)
                     if (aPrefix !== bPrefix) {
                         return aPrefix.localeCompare(bPrefix);
                     }
 
-                    // 1-2. prefix가 같으면 숫자로 오름차순
+                    // 2-2. prefix가 같으면 숫자로 오름차순
                     const aNum = extractModelNumber(a.model);
                     const bNum = extractModelNumber(b.model);
                     if (aNum !== bNum) {
                         return aNum - bNum; // 오름차순 (작은 숫자가 먼저)
                     }
 
-                    // 1-3. 숫자도 같으면 모델명 전체로 비교
+                    // 2-3. 숫자도 같으면 모델명 전체로 비교
                     return a.model.localeCompare(b.model);
                 }
 
-                // 2. 다른 productName인 경우, order 기준 정렬
+                // 3. 다른 productName인 경우
                 if (a.order === 0 && b.order === 0) {
                     return a.productName.localeCompare(b.productName);
                 }
                 if (a.order === 0) return 1;
                 if (b.order === 0) return -1;
-                if (a.order !== b.order) {
-                    return a.order - b.order;
-                }
                 return a.productName.localeCompare(b.productName);
             });
 
