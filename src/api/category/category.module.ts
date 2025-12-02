@@ -11,8 +11,8 @@ import { AdminJwtModule } from '../../common/module/admin-jwt.module';
 
 import { CategoryRepository } from './repository/category.repository';
 
-import { Product, ProductSchema } from '../../schemas/product.schema';
-import { CategoryModel, CategorySchema } from '../../schemas/category.schema';
+import { Product, ProductSchema } from '../../schema/product.schema';
+import { CategoryModel, CategorySchema } from '../../schema/category.schema';
 
 @Module({
     imports: [

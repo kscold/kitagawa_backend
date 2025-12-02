@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-import { ContactRequestStatus } from '../../../../../schemas/contact-request.schema';
+import { ContactRequestStatus } from '../../../../../schema/contact-request.schema';
 
 /**
  * 문의 상세 응답 DTO

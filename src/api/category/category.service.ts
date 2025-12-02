@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { Product, ProductDocument } from '../../schemas/product.schema';
-import { CategoryModel, CategoryDocument, CategoryLevel } from '../../schemas/category.schema';
+import { Product, ProductDocument } from '../../schema/product.schema';
+import { CategoryModel, CategoryDocument, CategoryLevel } from '../../schema/category.schema';
 
 import { SeriesInfoResponseDto } from './dto/response/series-info-response.dto';
 import { Level1CategoryResponseDto } from './dto/response/level1-category-response.dto';

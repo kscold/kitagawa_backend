@@ -5,9 +5,9 @@ import { Model } from 'mongoose';
 
 import { ResourceRepository } from './repository/resource.repository';
 
-import { ResourceDocument, ResourceType } from '../../schemas/resource.schema';
-import { CategoryModel, CategoryDocument } from '../../schemas/category.schema';
-import { Product, ProductDocument } from '../../schemas/product.schema';
+import { ResourceDocument, ResourceType } from '../../schema/resource.schema';
+import { CategoryModel, CategoryDocument } from '../../schema/category.schema';
+import { Product, ProductDocument } from '../../schema/product.schema';
 
 /**
  * Resource Service

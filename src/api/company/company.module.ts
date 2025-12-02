@@ -7,7 +7,7 @@ import { CompanyAdminController } from './admin/company-admin.controller';
 import { CompanyService } from './company.service';
 import { CompanyAdminService } from './admin/company-admin.service';
 
-import { CompanyInfo, CompanyInfoSchema } from '../../schemas/company-info.schema';
+import { CompanyInfo, CompanyInfoSchema } from '../../schema/company-info.schema';
 
 @Module({
     imports: [MongooseModule.forFeature([{ name: CompanyInfo.name, schema: CompanyInfoSchema }])],

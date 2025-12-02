@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ProductDocument } from '../../schemas/product.schema';
+import { ProductDocument } from '../../schema/product.schema';
 
 import { ProductRepository } from './repository/product.repository';
 

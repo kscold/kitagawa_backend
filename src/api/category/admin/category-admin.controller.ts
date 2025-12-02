@@ -13,7 +13,7 @@ import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 
 import { CategoryAdminService } from './category-admin.service';
 
-import { CategoryLevel } from '../../../schemas/category.schema';
+import { CategoryLevel } from '../../../schema/category.schema';
 
 import { PaginationQueryDto } from '../../../common/dto/pagination/pagination-query.dto';
 import { CreateCategoryRequestDto } from '../dto/request/create-category-request.dto';

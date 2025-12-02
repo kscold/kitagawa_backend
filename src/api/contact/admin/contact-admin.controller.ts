@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Delete, Body, Param, Query, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, HttpStatus, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
@@ -8,7 +8,12 @@ import { ContactAdminService } from './contact-admin.service';
 import { ContactAdminFilterDto } from './dto/request/contact-admin-filter.dto';
 import { UpdateContactStatusDto } from './dto/request/update-contact-status.dto';
 import { UpdateContactInfoRequestDto } from './dto/request/update-contact-info-request.dto';
+import { CreateAdminContactRequestDto } from './dto/request/create-admin-contact-request.dto';
 import { ContactAdminDetailResponseDto, ContactAdminListResponseDto } from './dto/response/contact-admin-response.dto';
+import {
+    AdminContactRequestListResponseDto,
+    AdminContactRequestDetailResponseDto,
+} from './dto/response/admin-contact-request-response.dto';
 
 /**
  * 문의 Admin API
@@ -235,6 +240,168 @@ Singleton 패턴으로 작동하며, 문서가 없으면 자동으로 생성됩�
             code: HttpStatus.OK,
             message: '회사 연락처 정보 수정 성공',
             data: contactInfo,
+        };
+    }
+
+    /**
+     * ====================
+     * Admin Contact Request API (관리자 내부 요청)
+     * Figma: Admin Contact Here 페이지
+     * ====================
+     */
+
+    /**
+     * Admin Contact Request 생성
+     */
+    @Post('requests')
+    @ApiOperation({
+        summary: 'Admin 요청 생성 (관리자 내부)',
+        description: `
+관리자가 새 제품 추가 또는 요청사항을 제출합니다.
+Figma: Admin Contact Here 페이지
+
+제출 가능한 요청:
+1. 새로운 제품 추가 (제품명, 시리즈명, URL)
+2. 일반 요청사항 (요청 사항 텍스트)
+
+최소 1개 이상의 필드가 필수입니다.
+요청 유형은 자동으로 결정됩니다:
+- NEW_PRODUCT: 제품 정보만 입력
+- GENERAL_REQUEST: 요청사항만 입력
+- MIXED: 제품 정보 + 요청사항 모두 입력
+        `,
+    })
+    @SwaggerResponse({
+        status: HttpStatus.CREATED,
+        description: '요청 생성 성공',
+        type: AdminContactRequestDetailResponseDto,
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '1개 이상의 항목을 작성해 주시기 바랍니다',
+    })
+    async createAdminRequest(@Body() createDto: CreateAdminContactRequestDto, @Req() req: any) {
+        const adminId = req.user?.id || 'system'; // JWT에서 admin ID 추출
+
+        const request = await this.contactAdminService.createAdminContactRequest(createDto, adminId);
+
+        return {
+            success: true,
+            code: HttpStatus.CREATED,
+            message: 'Admin 요청 생성 성공',
+            data: request,
+        };
+    }
+
+    /**
+     * Admin Contact Request 목록 조회
+     */
+    @Get('requests')
+    @ApiOperation({
+        summary: 'Admin 요청 목록 조회',
+        description: `
+관리자 내부 요청 목록을 조회합니다.
+
+필터링:
+- keyword: 제품명, 시리즈명, 요청사항, 요청자 검색
+- status: 처리 상태 (PENDING, IN_PROGRESS, COMPLETED, REJECTED)
+
+페이지네이션:
+- page: 페이지 번호 (기본값: 1)
+- limit: 페이지당 아이템 수 (기본값: 20)
+
+최신 요청이 먼저 표시됩니다.
+        `,
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '조회 성공',
+        type: AdminContactRequestListResponseDto,
+    })
+    async findAllAdminRequests(@Query() filterDto: ContactAdminFilterDto) {
+        const { requests, pagination } = await this.contactAdminService.findAllAdminContactRequests(filterDto);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: 'Admin 요청 목록 조회 성공',
+            data: {
+                items: requests,
+                pagination,
+            },
+        };
+    }
+
+    /**
+     * Admin Contact Request 상세 조회
+     */
+    @Get('requests/:id')
+    @ApiOperation({
+        summary: 'Admin 요청 상세 조회',
+        description: 'ID로 관리자 요청 상세 정보를 조회합니다.',
+    })
+    @ApiParam({
+        name: 'id',
+        description: '요청 ID',
+        example: '507f1f77bcf86cd799439011',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '조회 성공',
+        type: AdminContactRequestDetailResponseDto,
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '요청을 찾을 수 없습니다',
+    })
+    async findAdminRequestById(@Param('id') id: string) {
+        const request = await this.contactAdminService.findAdminContactRequestById(id);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: 'Admin 요청 조회 성공',
+            data: request,
+        };
+    }
+
+    /**
+     * Admin Contact Request 수동 Import 실행
+     */
+    @Post('requests/:id/import')
+    @ApiOperation({
+        summary: 'Admin 요청 수동 Import',
+        description: `
+기존 Admin Contact Request에 대해 수동으로 Import를 실행합니다.
+URL이 있는 경우에만 가능하며, 자동으로 크롤링을 시작합니다.
+
+사용 시나리오:
+- autoImport: false로 생성된 요청을 나중에 Import
+- Import 실패한 요청을 재시도
+        `,
+    })
+    @ApiParam({
+        name: 'id',
+        description: '요청 ID',
+        example: '507f1f77bcf86cd799439011',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: 'Import 시작 성공',
+        type: AdminContactRequestDetailResponseDto,
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'URL이 없거나 이미 진행 중입니다',
+    })
+    async triggerManualImport(@Param('id') id: string) {
+        const request = await this.contactAdminService.triggerManualImport(id);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: 'Import가 시작되었습니다',
+            data: request,
         };
     }
 }

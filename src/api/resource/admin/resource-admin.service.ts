@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { Resource, ResourceDocument } from '../../../schemas/resource.schema';
+import { Resource, ResourceDocument } from '../../../schema/resource.schema';
 
 import { ResourceAdminFilterDto } from './dto/request/resource-admin-filter.dto';
 import { CreateResourceRequestDto } from './dto/request/create-resource-request.dto';

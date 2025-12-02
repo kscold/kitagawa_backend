@@ -1,16 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-    Min,
-    IsUrl,
-    IsEnum,
-    IsString,
-    IsNumber,
-    IsBoolean,
-    IsNotEmpty,
-    IsOptional,
-} from 'class-validator';
+import { Min, IsUrl, IsEnum, IsString, IsNumber, IsBoolean, IsNotEmpty, IsOptional } from 'class-validator';
 
-import { CategoryLevel } from '../../../../schemas/category.schema';
+import { CategoryLevel } from '../../../../schema/category.schema';
 
 /**
  * 카테고리 생성 요청 DTO

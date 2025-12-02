@@ -5,7 +5,7 @@ import { ResourceAdminController } from './resource-admin.controller';
 
 import { ResourceAdminService } from './resource-admin.service';
 
-import { Resource, ResourceSchema } from '../../../schemas/resource.schema';
+import { Resource, ResourceSchema } from '../../../schema/resource.schema';
 
 @Module({
     imports: [MongooseModule.forFeature([{ name: Resource.name, schema: ResourceSchema }])],

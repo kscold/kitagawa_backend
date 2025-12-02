@@ -3,7 +3,7 @@ import { IsOptional, IsString, IsEnum } from 'class-validator';
 
 import { PaginationQueryDto } from '../../../../common/dto/pagination/pagination-query.dto';
 
-import { ResourceType } from '../../../../schemas/resource.schema';
+import { ResourceType } from '../../../../schema/resource.schema';
 
 /**
  * 파일 타입 Enum

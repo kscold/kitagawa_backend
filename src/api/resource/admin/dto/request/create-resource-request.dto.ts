@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-import { ResourceType } from '../../../../../schemas/resource.schema';
+import { ResourceType } from '../../../../../schema/resource.schema';
 
 /**
  * 자료 파일 정보 DTO

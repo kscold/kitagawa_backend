@@ -5,8 +5,8 @@ import { Model } from 'mongoose';
 
 import { CategoryRepository } from '../repository/category.repository';
 
-import { Product, ProductDocument } from '../../../schemas/product.schema';
-import { CategoryDocument, CategoryLevel } from '../../../schemas/category.schema';
+import { Product, ProductDocument } from '../../../schema/product.schema';
+import { CategoryDocument, CategoryLevel } from '../../../schema/category.schema';
 
 import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
 

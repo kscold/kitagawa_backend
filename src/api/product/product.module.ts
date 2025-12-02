@@ -10,13 +10,21 @@ import { ProductService } from './product.service';
 import { ProductAdminService } from './admin/product-admin.service';
 
 import { ProductRepository } from './repository/product.repository';
+import { CategoryRepository } from '../category/repository/category.repository';
 
-import { Product, ProductSchema } from '../../schemas/product.schema';
+import { Product, ProductSchema } from '../../schema/product.schema';
+import { CategoryModel, CategorySchema } from '../../schema/category.schema';
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]), AdminJwtModule],
+    imports: [
+        MongooseModule.forFeature([
+            { name: Product.name, schema: ProductSchema },
+            { name: CategoryModel.name, schema: CategorySchema },
+        ]),
+        AdminJwtModule,
+    ],
     controllers: [ProductController, ProductAdminController],
-    providers: [ProductRepository, ProductService, ProductAdminService],
+    providers: [ProductRepository, CategoryRepository, ProductService, ProductAdminService],
     exports: [ProductService],
 })
 export class ProductModule {}

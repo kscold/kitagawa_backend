@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
 
-import { Product, ProductDocument } from '../../schemas/product.schema';
+import { Product, ProductDocument } from '../../schema/product.schema';
 
 @Injectable()
 export class CrawlerService {
@@ -219,7 +219,7 @@ export class CrawlerService {
             const productImages: string[] = [];
             $('figure img, .fancybox img, .product-image img, #main > img').each((_, img) => {
                 const src = $(img).attr('src');
-                if (src && !iconPatterns.some(pattern => src.includes(pattern))) {
+                if (src && !iconPatterns.some((pattern) => src.includes(pattern))) {
                     const fullSrc = src.startsWith('http') ? src : `${this.baseUrl}${src}`;
                     if (!productImages.includes(fullSrc)) {
                         productImages.push(fullSrc);
@@ -228,15 +228,17 @@ export class CrawlerService {
             });
 
             // figure 태그의 링크에서도 이미지 추출
-            $('figure a[href*=".jpg"], figure a[href*=".png"], .fancybox[href*=".jpg"], .fancybox[href*=".png"]').each((_, link) => {
-                const href = $(link).attr('href');
-                if (href && !iconPatterns.some(pattern => href.includes(pattern))) {
-                    const fullHref = href.startsWith('http') ? href : `${this.baseUrl}${href}`;
-                    if (!productImages.includes(fullHref)) {
-                        productImages.push(fullHref);
+            $('figure a[href*=".jpg"], figure a[href*=".png"], .fancybox[href*=".jpg"], .fancybox[href*=".png"]').each(
+                (_, link) => {
+                    const href = $(link).attr('href');
+                    if (href && !iconPatterns.some((pattern) => href.includes(pattern))) {
+                        const fullHref = href.startsWith('http') ? href : `${this.baseUrl}${href}`;
+                        if (!productImages.includes(fullHref)) {
+                            productImages.push(fullHref);
+                        }
                     }
-                }
-            });
+                },
+            );
 
             // 제품 이미지가 있으면 그것을 사용, 없으면 일반 이미지에서 필터링
             if (productImages.length > 0) {
@@ -245,7 +247,7 @@ export class CrawlerService {
                 // 일반 이미지 수집 (아이콘 제외)
                 $('#main img').each((_, img) => {
                     const src = $(img).attr('src');
-                    if (src && !iconPatterns.some(pattern => src.includes(pattern))) {
+                    if (src && !iconPatterns.some((pattern) => src.includes(pattern))) {
                         const fullSrc = src.startsWith('http') ? src : `${this.baseUrl}${src}`;
                         if (!imageUrls.includes(fullSrc)) {
                             imageUrls.push(fullSrc);
@@ -327,7 +329,9 @@ export class CrawlerService {
     private extractSeriesName(productName: string, slug: string): string {
         // 1. "Chuck", "table" 등의 단어 뒤에 나오는 시리즈 이름 추출
         // 예: "Power ChuckBR series" -> "BR series"
-        const afterKeywordMatch = productName.match(/(?:chuck|table|vise|cylinder|gripper)([A-Z0-9][A-Z0-9\-\/\(\)]*)\s*series/i);
+        const afterKeywordMatch = productName.match(
+            /(?:chuck|table|vise|cylinder|gripper)([A-Z0-9][A-Z0-9\-\/\(\)]*)\s*series/i,
+        );
         if (afterKeywordMatch) {
             let extracted = afterKeywordMatch[1].trim();
 
@@ -361,7 +365,11 @@ export class CrawlerService {
 
         // 3. "series" 키워드가 없는 경우 (예: "Tailstock Manual", "Tail Spindle")
         // productName이 짧으면 그대로 사용
-        if (productName.length < 30 && !productName.toLowerCase().includes('chuck') && !productName.toLowerCase().includes('table')) {
+        if (
+            productName.length < 30 &&
+            !productName.toLowerCase().includes('chuck') &&
+            !productName.toLowerCase().includes('table')
+        ) {
             return productName;
         }
 

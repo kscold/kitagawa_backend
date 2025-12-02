@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-import { ResourceType } from '../../../../../schemas/resource.schema';
+import { ResourceType } from '../../../../../schema/resource.schema';
 
 /**
  * 자료 파일 정보 응답 DTO

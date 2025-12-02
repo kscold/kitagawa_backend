@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsEnum, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ResourceType } from '../../../../../schemas/resource.schema';
+import { ResourceType } from '../../../../../schema/resource.schema';
 
 /**
  * 자료 관리 필터 DTO

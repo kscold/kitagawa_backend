@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 
 import { createSearchQuery } from '../../../common/utils/korean-search.util';
 
-import { Product, ProductDocument } from '../../../schemas/product.schema';
+import { Product, ProductDocument } from '../../../schema/product.schema';
 
 /**
  * Product Repository
@@ -456,10 +456,12 @@ export class ProductRepository {
         options?: { limit?: number; skip?: number },
     ): Promise<{ products: ProductDocument[]; total: number }> {
         // Level에 따라 다른 필터 적용
-        // Level 1: mainCategory로 필터링
+        // Level 1: mainCategory로 필터링 (대소문자 구분 없음)
         // Level 2: subCategory로 필터링
         const query: any =
-            level === 1 ? { 'category.mainCategory': categorySlug } : { 'category.subCategory': categorySlug };
+            level === 1
+                ? { 'category.mainCategory': { $regex: new RegExp(`^${categorySlug}$`, 'i') } }
+                : { 'category.subCategory': categorySlug };
 
         // Total count
         const total = await this.productModel.countDocuments(query).exec();

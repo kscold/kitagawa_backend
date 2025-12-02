@@ -14,7 +14,7 @@ export enum ContactRequestStatus {
  * Contact Request (서비스 문의/접수) Schema
  * 피그마 "Contact Us" 페이지의 서비스 접수 폼 데이터
  */
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'contact_requests' })
 export class ContactRequest {
     @Prop({ required: true })
     managerName: string; // 담당자명

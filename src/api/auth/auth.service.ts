@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
-import { Admin, AdminDocument } from '../../schemas/admin.schema';
+import { Admin, AdminDocument } from '../../schema/admin.schema';
 
 @Injectable()
 export class AuthService {

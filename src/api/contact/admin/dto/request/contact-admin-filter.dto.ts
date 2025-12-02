@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 
-import { ContactRequestStatus } from '../../../../../schemas/contact-request.schema';
+import { ContactRequestStatus } from '../../../../../schema/contact-request.schema';
 
 /**
  * 문의 관리 필터 DTO

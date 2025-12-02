@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { CompanyInfo, CompanyInfoDocument } from '../../../schemas/company-info.schema';
+import { CompanyInfo, CompanyInfoDocument } from '../../../schema/company-info.schema';
 
 import { UpdateCompanyInfoRequestDto } from '../dto/request/update-company-info-request.dto';
 import { UpdateGreetingRequestDto } from '../dto/request/update-greeting-request.dto';

@@ -2,14 +2,28 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { CompanyInfo, CompanyInfoDocument } from '../../../schemas/company-info.schema';
-import { ContactRequest, ContactRequestDocument } from '../../../schemas/contact-request.schema';
+import { DiscordWebhookService } from '../../../common/service/discord-webhook.service';
+import { ProductCrawlerService } from '../../../common/service/product-crawler.service';
+
+import { CompanyInfo, CompanyInfoDocument } from '../../../schema/company-info.schema';
+import { ContactRequest, ContactRequestDocument } from '../../../schema/contact-request.schema';
+import {
+    AdminContactRequest,
+    AdminContactRequestDocument,
+    AdminContactRequestType,
+    ImportStatus,
+} from '../../../schema/admin-contact-request.schema';
 
 import { ContactAdminFilterDto } from './dto/request/contact-admin-filter.dto';
 import { UpdateContactStatusDto } from './dto/request/update-contact-status.dto';
 import { UpdateContactInfoRequestDto } from './dto/request/update-contact-info-request.dto';
+import { CreateAdminContactRequestDto } from './dto/request/create-admin-contact-request.dto';
 import { ContactInfoResponseDto } from '../dto/response/contact-info-response.dto';
 import { ContactAdminDetailResponseDto } from './dto/response/contact-admin-response.dto';
+import {
+    AdminContactRequestDetailDto,
+    AdminContactRequestListDto,
+} from './dto/response/admin-contact-request-response.dto';
 
 /**
  * Contact Admin Service
@@ -22,6 +36,10 @@ export class ContactAdminService {
         private readonly contactRequestModel: Model<ContactRequestDocument>,
         @InjectModel(CompanyInfo.name)
         private readonly companyInfoModel: Model<CompanyInfoDocument>,
+        @InjectModel(AdminContactRequest.name)
+        private readonly adminContactRequestModel: Model<AdminContactRequestDocument>,
+        private readonly discordWebhookService: DiscordWebhookService,
+        private readonly productCrawlerService: ProductCrawlerService,
     ) {}
 
     /**
@@ -190,5 +208,246 @@ export class ContactAdminService {
             createdAt: contact.createdAt,
             updatedAt: contact.updatedAt,
         };
+    }
+
+    /**
+     * ====================
+     * Admin Contact Request 관련 메서드
+     * Figma: Admin Contact Here 페이지
+     * ====================
+     */
+
+    /**
+     * Admin Contact Request 생성
+     * 관리자가 새 제품 추가 또는 요청사항 제출
+     */
+    async createAdminContactRequest(
+        createDto: CreateAdminContactRequestDto,
+        adminId: string,
+    ): Promise<AdminContactRequestDetailDto> {
+        // 요청 유형 결정
+        const hasProductInfo = !!(createDto.productName || createDto.seriesName || createDto.url);
+        const hasRequestDetails = !!createDto.requestDetails;
+
+        let type: AdminContactRequestType;
+        if (hasProductInfo && hasRequestDetails) {
+            type = AdminContactRequestType.MIXED;
+        } else if (hasProductInfo) {
+            type = AdminContactRequestType.NEW_PRODUCT;
+        } else {
+            type = AdminContactRequestType.GENERAL_REQUEST;
+        }
+
+        // Import 상태 설정
+        const autoImport = createDto.autoImport || false;
+        const importStatus = autoImport ? ImportStatus.PENDING : ImportStatus.NONE;
+
+        // 요청 생성
+        const request = await this.adminContactRequestModel.create({
+            ...createDto,
+            type,
+            requestedBy: adminId,
+            autoImport,
+            importStatus,
+        });
+
+        const requestDto = this.toAdminContactRequestDto(request);
+
+        // Discord 웹훅 알림 전송 (비동기, 실패해도 요청 생성은 성공)
+        this.discordWebhookService
+            .sendAdminContactRequestNotification({
+                requestId: request._id.toString(),
+                type,
+                productName: createDto.productName,
+                seriesName: createDto.seriesName,
+                url: createDto.url,
+                requestDetails: createDto.requestDetails,
+                requestedBy: adminId,
+                autoImport,
+            })
+            .catch((err) => console.error('Discord 웹훅 전송 실패:', err));
+
+        // 자동 Import가 활성화된 경우 크롤링 시작 (비동기)
+        if (autoImport && createDto.url) {
+            this.startAutoImport(request._id.toString(), createDto.url).catch((err) =>
+                console.error('자동 Import 시작 실패:', err),
+            );
+        }
+
+        return requestDto;
+    }
+
+    /**
+     * 자동 Import 시작 (비동기)
+     */
+    private async startAutoImport(requestId: string, url: string): Promise<void> {
+        try {
+            // 상태를 IN_PROGRESS로 변경
+            await this.adminContactRequestModel.findByIdAndUpdate(requestId, {
+                importStatus: ImportStatus.IN_PROGRESS,
+            });
+
+            // 크롤링 실행
+            const resourceIds = await this.productCrawlerService.crawlAndImportProduct(url);
+
+            // 성공 시 상태를 COMPLETED로 변경
+            await this.adminContactRequestModel.findByIdAndUpdate(requestId, {
+                importStatus: ImportStatus.COMPLETED,
+                importedResourceIds: resourceIds,
+            });
+
+            // Discord 완료 알림
+            await this.discordWebhookService.sendImportCompletedNotification({
+                requestId,
+                success: true,
+                resourceCount: resourceIds.length,
+            });
+        } catch (error) {
+            // 실패 시 상태를 FAILED로 변경
+            await this.adminContactRequestModel.findByIdAndUpdate(requestId, {
+                importStatus: ImportStatus.FAILED,
+                importError: error.message,
+            });
+
+            // Discord 실패 알림
+            await this.discordWebhookService.sendImportCompletedNotification({
+                requestId,
+                success: false,
+                errorMessage: error.message,
+            });
+        }
+    }
+
+    /**
+     * Admin Contact Request 목록 조회
+     */
+    async findAllAdminContactRequests(
+        filterDto: ContactAdminFilterDto,
+    ): Promise<{ requests: AdminContactRequestListDto[]; pagination: any }> {
+        const { keyword, status, page = 1, limit = 20 } = filterDto;
+
+        // 필터 조건
+        const filter: any = {};
+
+        if (keyword) {
+            filter.$or = [
+                { productName: { $regex: keyword, $options: 'i' } },
+                { seriesName: { $regex: keyword, $options: 'i' } },
+                { requestDetails: { $regex: keyword, $options: 'i' } },
+                { requestedBy: { $regex: keyword, $options: 'i' } },
+            ];
+        }
+
+        if (status) {
+            filter.status = status;
+        }
+
+        // 페이지네이션
+        const skip = (page - 1) * limit;
+
+        const [requests, total] = await Promise.all([
+            this.adminContactRequestModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean().exec(),
+            this.adminContactRequestModel.countDocuments(filter).exec(),
+        ]);
+
+        return {
+            requests: requests.map(this.toAdminContactRequestListDto),
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(total / limit),
+                totalItems: total,
+                itemsPerPage: limit,
+                hasNextPage: skip + limit < total,
+                hasPreviousPage: page > 1,
+            },
+        };
+    }
+
+    /**
+     * Admin Contact Request 상세 조회
+     */
+    async findAdminContactRequestById(id: string): Promise<AdminContactRequestDetailDto> {
+        const request = await this.adminContactRequestModel.findById(id).lean().exec();
+
+        if (!request) {
+            throw new BadRequestException('요청을 찾을 수 없습니다');
+        }
+
+        return this.toAdminContactRequestDto(request);
+    }
+
+    /**
+     * Admin Contact Request Entity to DTO 변환
+     */
+    private toAdminContactRequestDto(request: any): AdminContactRequestDetailDto {
+        return {
+            _id: request._id.toString(),
+            type: request.type,
+            productName: request.productName,
+            seriesName: request.seriesName,
+            url: request.url,
+            requestDetails: request.requestDetails,
+            status: request.status,
+            requestedBy: request.requestedBy,
+            adminNote: request.adminNote,
+            processedAt: request.processedAt,
+            processedBy: request.processedBy,
+            createdAt: request.createdAt,
+            updatedAt: request.updatedAt,
+            autoImport: request.autoImport,
+            importStatus: request.importStatus,
+            importError: request.importError,
+            importedResourceIds: request.importedResourceIds || [],
+        };
+    }
+
+    /**
+     * Admin Contact Request Entity to List DTO 변환
+     */
+    private toAdminContactRequestListDto(request: any): AdminContactRequestListDto {
+        return {
+            _id: request._id.toString(),
+            type: request.type,
+            productName: request.productName,
+            seriesName: request.seriesName,
+            requestDetailsSummary: request.requestDetails
+                ? request.requestDetails.substring(0, 50) + (request.requestDetails.length > 50 ? '...' : '')
+                : undefined,
+            status: request.status,
+            requestedBy: request.requestedBy,
+            createdAt: request.createdAt,
+            importStatus: request.importStatus,
+        };
+    }
+
+    /**
+     * 수동 Import 실행
+     */
+    async triggerManualImport(requestId: string): Promise<AdminContactRequestDetailDto> {
+        const request = await this.adminContactRequestModel.findById(requestId);
+
+        if (!request) {
+            throw new BadRequestException('요청을 찾을 수 없습니다');
+        }
+
+        if (!request.url) {
+            throw new BadRequestException('URL이 없어 Import를 실행할 수 없습니다');
+        }
+
+        if (request.importStatus === ImportStatus.IN_PROGRESS) {
+            throw new BadRequestException('이미 Import가 진행 중입니다');
+        }
+
+        // Import 시작
+        this.startAutoImport(requestId, request.url).catch((err) => console.error('수동 Import 시작 실패:', err));
+
+        // 상태를 PENDING으로 변경하고 반환
+        const updated = await this.adminContactRequestModel.findByIdAndUpdate(
+            requestId,
+            { importStatus: ImportStatus.PENDING },
+            { new: true },
+        );
+
+        return this.toAdminContactRequestDto(updated);
     }
 }

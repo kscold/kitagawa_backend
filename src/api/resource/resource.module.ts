@@ -7,9 +7,9 @@ import { ResourceService } from './resource.service';
 
 import { ResourceRepository } from './repository/resource.repository';
 
-import { Resource, ResourceSchema } from '../../schemas/resource.schema';
-import { CategoryModel, CategorySchema } from '../../schemas/category.schema';
-import { Product, ProductSchema } from '../../schemas/product.schema';
+import { Resource, ResourceSchema } from '../../schema/resource.schema';
+import { CategoryModel, CategorySchema } from '../../schema/category.schema';
+import { Product, ProductSchema } from '../../schema/product.schema';
 
 /**
  * 자료실 모듈

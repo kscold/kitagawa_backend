@@ -5,7 +5,7 @@ import { CrawlerController } from './crawler.controller';
 
 import { CrawlerService } from './crawler.service';
 
-import { Product, ProductSchema } from '../../schemas/product.schema';
+import { Product, ProductSchema } from '../../schema/product.schema';
 
 @Module({
     imports: [MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }])],

@@ -3,8 +3,8 @@ import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam } from 
 
 import { ProductService } from './product.service';
 
-import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
 import { SearchProductQueryDto } from './dto/request/search-product-query.dto';
+import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
 import { ProductSearchDataDto } from './dto/response/product-search-response.dto';
 import { ProductDetailDto, ProductItemDto } from './dto/response/product-list-response.dto';
 

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { HomeSettings, HomeSettingsDocument, HomeImage, HomeIntroduction } from '../../../schemas/home-settings.schema';
+import { HomeSettings, HomeSettingsDocument, HomeImage, HomeIntroduction } from '../../../schema/home-settings.schema';
 
 /**
  * HomeSettings Repository

@@ -5,8 +5,8 @@ import { Model } from 'mongoose';
 import { UploadService } from '../upload/upload.service';
 import { EmailService } from '../../common/service/email.service';
 
-import { CompanyInfo, CompanyInfoDocument } from '../../schemas/company-info.schema';
-import { ContactRequest, ContactRequestDocument } from '../../schemas/contact-request.schema';
+import { CompanyInfo, CompanyInfoDocument } from '../../schema/company-info.schema';
+import { ContactRequest, ContactRequestDocument } from '../../schema/contact-request.schema';
 
 import { CreateContactRequestDto } from './dto/request/create-contact-request.dto';
 import { ContactInfoResponseDto } from './dto/response/contact-info-response.dto';

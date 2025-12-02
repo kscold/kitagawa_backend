@@ -7,7 +7,7 @@ import { HomeSettingsAdminController } from './admin/home-settings-admin.control
 import { HomeSettingsService } from './home-settings.service';
 import { HomeSettingsAdminService } from './admin/home-settings-admin.service';
 
-import { HomeSettings, HomeSettingsSchema } from '../../schemas/home-settings.schema';
+import { HomeSettings, HomeSettingsSchema } from '../../schema/home-settings.schema';
 
 import { HomeSettingsRepository } from './repository/home-settings.repository';
 

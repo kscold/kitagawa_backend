@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { HomeSettingsDocument } from '../../schemas/home-settings.schema';
+import { HomeSettingsDocument } from '../../schema/home-settings.schema';
 
 import { HomeSettingsRepository } from './repository/home-settings.repository';
 

@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { HomeSettingsRepository } from '../repository/home-settings.repository';
 
-import { HomeSettingsDocument, HomeImage } from '../../../schemas/home-settings.schema';
+import { HomeSettingsDocument, HomeImage } from '../../../schema/home-settings.schema';
 
 /**
  * HomeSettings Admin Service

@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-import { ContactRequestStatus } from '../../../../../schemas/contact-request.schema';
+import { ContactRequestStatus } from '../../../../../schema/contact-request.schema';
 
 /**
  * 문의 상태 업데이트 DTO
