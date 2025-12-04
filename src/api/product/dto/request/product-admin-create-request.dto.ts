@@ -61,7 +61,7 @@ export class DownloadLinkDto {
 /**
  * 제품 생성 요청 DTO
  */
-export class CreateProductRequestDto {
+export class ProductAdminCreateRequestDto {
     @ApiProperty({
         description: '제품 슬러그 (URL 친화적인 고유 식별자)',
         example: 'brbr-plus-series',

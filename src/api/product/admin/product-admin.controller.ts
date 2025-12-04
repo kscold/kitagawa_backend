@@ -13,13 +13,13 @@ import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 
 import { ProductAdminService } from './product-admin.service';
 
-import { UpdateProductFilesDto } from '../dto/request/update-product-files.dto';
+import { ProductAdminUpdateFilesRequestDto } from '../dto/request/product-admin-update-files-request.dto';
 
 /**
  * 제품 관리자 API
  * 관리자 JWT 인증 필요 (AdminJwtAuthGuard)
  */
-@ApiTags('Product - Admin')
+@ApiTags('제품 관리자')
 @Controller('product-admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiBearerAuth()
@@ -551,7 +551,7 @@ export class ProductAdminController {
         description: '제품 자료 파일(PDF, DWG 등)을 업데이트합니다. CDN URL을 전송합니다 (관리자 인증 필요)',
     })
     @ApiParam({ name: 'slug', description: '제품 slug', example: 'br-series' })
-    @ApiBody({ type: UpdateProductFilesDto })
+    @ApiBody({ type: ProductAdminUpdateFilesRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '제품 자료 업데이트 성공',
@@ -564,7 +564,7 @@ export class ProductAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async updateFiles(@Param('slug') slug: string, @Body() dto: UpdateProductFilesDto) {
+    async updateFiles(@Param('slug') slug: string, @Body() dto: ProductAdminUpdateFilesRequestDto) {
         const updated = await this.productAdminService.updateProductFiles(slug, dto.files);
 
         return {

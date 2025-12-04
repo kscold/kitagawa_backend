@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam } from 
 
 import { ProductService } from './product.service';
 
-import { SearchProductQueryDto } from './dto/request/search-product-query.dto';
+import { ProductAdminSearchQueryRequestDto } from './dto/request/product-admin-search-query-request.dto';
 import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
 import { ProductSearchDataDto } from './dto/response/product-search-response.dto';
 import { ProductDetailDto, ProductItemDto } from './dto/response/product-list-response.dto';
@@ -16,7 +16,7 @@ import { ProductDetailDto, ProductItemDto } from './dto/response/product-list-re
  * 1. 제품 검색
  * 2. 제품 상세 조회 (slug 기반)
  */
-@ApiTags('Products')
+@ApiTags('제품')
 @Controller('products')
 export class ProductController {
     constructor(private readonly productService: ProductService) {}
@@ -83,7 +83,7 @@ export class ProductController {
             },
         },
     })
-    async searchProducts(@Query() searchQuery: SearchProductQueryDto) {
+    async searchProducts(@Query() searchQuery: ProductAdminSearchQueryRequestDto) {
         // 기본 limit를 10으로 설정
         const limit = searchQuery.limit || 10;
         const page = searchQuery.page || 1;

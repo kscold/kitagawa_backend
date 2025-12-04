@@ -362,11 +362,31 @@ export class ProductAdminService {
             // 페이지네이션 계산
             const skip = (pagination.page - 1) * pagination.limit;
 
-            // 제품 목록 조회 (카테고리 이름으로 조회, 페이지네이션 적용)
-            const { products, total } = await this.productRepository.findByCategoryWithLevel(2, subCategory.name, {
-                limit: pagination.limit,
-                skip,
-            });
+            // WORK GRIPPER 특수 케이스 처리
+            // - DB 카테고리: name="WORK GRIPPER", parentName="WORK GRIPPER"
+            // - DB 제품: category.mainCategory="WORK GRIPPER", category.subCategory="Gripper"
+            const isWorkGripper = subCategory.parentName === 'WORK GRIPPER' && subCategory.name === 'WORK GRIPPER';
+
+            let products: ProductDocument[];
+            let total: number;
+
+            if (isWorkGripper) {
+                // WORK GRIPPER: mainCategory로 조회 (제품의 subCategory가 "Gripper"이므로 매칭 안됨)
+                const result = await this.productRepository.findByCategoryWithLevel(1, 'WORK GRIPPER', {
+                    limit: pagination.limit,
+                    skip,
+                });
+                products = result.products;
+                total = result.total;
+            } else {
+                // 일반 케이스: subCategory 이름으로 조회
+                const result = await this.productRepository.findByCategoryWithLevel(2, subCategory.name, {
+                    limit: pagination.limit,
+                    skip,
+                });
+                products = result.products;
+                total = result.total;
+            }
 
             // 총 페이지 수 계산
             const totalPages = Math.ceil(total / pagination.limit);

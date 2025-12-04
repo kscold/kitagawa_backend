@@ -29,7 +29,7 @@ class FileItemDto {
     type: string;
 }
 
-export class UpdateProductFilesDto {
+export class ProductAdminUpdateFilesRequestDto {
     @ApiProperty({
         description: '제품 자료 파일 목록',
         type: [FileItemDto],

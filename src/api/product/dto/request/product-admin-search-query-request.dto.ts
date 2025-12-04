@@ -10,7 +10,7 @@ import { PaginationQueryDto } from '../../../../common/dto/pagination/pagination
  * - 제품명, 제품코드, 시리즈, 카테고리 전체 검색
  * - 페이지네이션 지원
  */
-export class SearchProductQueryDto extends PaginationQueryDto {
+export class ProductAdminSearchQueryRequestDto extends PaginationQueryDto {
     @ApiProperty({
         description: '검색 키워드 (영어, 한글, 자음 모두 지원)',
         example: 'chuck',
