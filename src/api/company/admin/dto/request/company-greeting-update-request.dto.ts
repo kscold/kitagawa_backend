@@ -4,7 +4,7 @@ import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 /**
  * 인사말 수정 DTO
  */
-export class UpdateGreetingRequestDto {
+export class CompanyGreetingUpdateRequestDto {
     @ApiProperty({
         description: '제목 (영어)',
         example: 'CEO Greeting',

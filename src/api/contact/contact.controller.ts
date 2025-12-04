@@ -14,14 +14,12 @@ import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiConsumes, Api
 import { ContactService } from './contact.service';
 
 import { CreateContactRequestDto } from './dto/request/create-contact-request.dto';
-import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
-import { ContactInfoResponseDto } from './dto/response/contact-info-response.dto';
 
 /**
  * Contact Public API
  * 인증 없이 접근 가능한 서비스 문의 및 연락처 조회 API
  */
-@ApiTags('Contact')
+@ApiTags('연락처')
 @Controller('contact')
 export class ContactController {
     constructor(private readonly contactService: ContactService) {}

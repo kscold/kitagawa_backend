@@ -5,14 +5,14 @@ import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 
 import { CompanyAdminService } from './company-admin.service';
 
-import { UpdateGreetingRequestDto } from '../dto/request/update-greeting-request.dto';
-import { UpdateCompanyInfoRequestDto } from '../dto/request/update-company-info-request.dto';
+import { CompanyGreetingUpdateRequestDto } from './dto/request/company-greeting-update-request.dto';
+import { CompanyUpdateInfoRequestDto } from './dto/request/company-update-info-request.dto';
 
 /**
  * Company Admin API
  * 관리자 전용 회사 정보 관리 API
  */
-@ApiTags('Company - Admin')
+@ApiTags('회사 정보 관리자')
 @Controller('company-admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiBearerAuth()
@@ -43,12 +43,12 @@ export class CompanyAdminController {
         summary: '회사 기본 정보 수정',
         description: 'Vision, Mission 등 회사 기본 정보를 수정합니다',
     })
-    @ApiBody({ type: UpdateCompanyInfoRequestDto })
+    @ApiBody({ type: CompanyUpdateInfoRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '수정 성공',
     })
-    async updateCompanyInfo(@Body() updateDto: UpdateCompanyInfoRequestDto) {
+    async updateCompanyInfo(@Body() updateDto: CompanyUpdateInfoRequestDto) {
         const data = await this.companyAdminService.updateCompanyInfo(updateDto);
         return {
             success: true,
@@ -63,12 +63,12 @@ export class CompanyAdminController {
         summary: '인사말 수정',
         description: 'CEO 인사말을 수정합니다',
     })
-    @ApiBody({ type: UpdateGreetingRequestDto })
+    @ApiBody({ type: CompanyGreetingUpdateRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '수정 성공',
     })
-    async updateGreeting(@Body() greetingDto: UpdateGreetingRequestDto) {
+    async updateGreeting(@Body() greetingDto: CompanyGreetingUpdateRequestDto) {
         const data = await this.companyAdminService.updateGreeting(greetingDto);
         return {
             success: true,

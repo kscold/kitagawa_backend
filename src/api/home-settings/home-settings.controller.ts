@@ -7,7 +7,7 @@ import { HomeSettingsService } from './home-settings.service';
  * 홈페이지 설정 Public API
  * 인증 없이 접근 가능한 조회 API
  */
-@ApiTags('HomeSettings')
+@ApiTags('홈페이지 설정')
 @Controller('home-settings')
 export class HomeSettingsController {
     constructor(private readonly homeSettingsService: HomeSettingsService) {}

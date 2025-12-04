@@ -4,7 +4,7 @@ import { IsString, IsNotEmpty, IsOptional, IsUrl } from 'class-validator';
 /**
  * 대표 이미지 추가 요청 DTO
  */
-export class AddMainImageRequestDto {
+export class HomeSettingsAdminAddMainImageRequestDto {
     @ApiProperty({ description: '이미지 URL', example: 'https://example.com/image.jpg' })
     @IsUrl()
     @IsNotEmpty()

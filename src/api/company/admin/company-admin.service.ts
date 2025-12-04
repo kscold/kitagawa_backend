@@ -4,8 +4,8 @@ import { Model } from 'mongoose';
 
 import { CompanyInfo, CompanyInfoDocument } from '../../../schema/company-info.schema';
 
-import { UpdateCompanyInfoRequestDto } from '../dto/request/update-company-info-request.dto';
-import { UpdateGreetingRequestDto } from '../dto/request/update-greeting-request.dto';
+import { CompanyUpdateInfoRequestDto } from './dto/request/company-update-info-request.dto';
+import { CompanyGreetingUpdateRequestDto } from './dto/request/company-greeting-update-request.dto';
 
 /**
  * Company Admin Service
@@ -35,7 +35,7 @@ export class CompanyAdminService {
     /**
      * 회사 기본 정보 수정 (vision, mission)
      */
-    async updateCompanyInfo(updateDto: UpdateCompanyInfoRequestDto) {
+    async updateCompanyInfo(updateDto: CompanyUpdateInfoRequestDto) {
         let companyInfo = await this.companyInfoModel.findOne().exec();
 
         if (!companyInfo) {
@@ -52,7 +52,7 @@ export class CompanyAdminService {
     /**
      * 인사말 수정
      */
-    async updateGreeting(greetingDto: UpdateGreetingRequestDto) {
+    async updateGreeting(greetingDto: CompanyGreetingUpdateRequestDto) {
         let companyInfo = await this.companyInfoModel.findOne().exec();
 
         if (!companyInfo) {

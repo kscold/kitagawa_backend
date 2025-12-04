@@ -7,7 +7,7 @@ import { CompanyService } from './company.service';
  * Company Public API
  * 인증 없이 접근 가능한 회사 정보 조회 API
  */
-@ApiTags('Company')
+@ApiTags('회사 정보')
 @Controller('company')
 export class CompanyController {
     constructor(private readonly companyService: CompanyService) {}

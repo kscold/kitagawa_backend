@@ -1,8 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
+
 import { HomeSettingsController } from '../home-settings.controller';
+
 import { HomeSettingsService } from '../home-settings.service';
+
 import { expectStandardResponse } from '../../../../test/helpers/test-helpers';
 
 describe('HomeSettingsController (e2e)', () => {

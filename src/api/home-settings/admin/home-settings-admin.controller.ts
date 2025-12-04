@@ -12,15 +12,15 @@ import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 
 import { HomeSettingsAdminService } from './home-settings-admin.service';
 
-import { AddMainImageRequestDto } from '../dto/request/add-main-image-request.dto';
-import { UpdateImageOrderRequestDto } from '../dto/request/update-image-order-request.dto';
-import { UpdateHomeIntroductionRequestDto } from '../dto/request/update-home-introduction-request.dto';
+import { HomeSettingsAdminAddMainImageRequestDto } from '../dto/request/home-settings-admin-add-main-image-request.dto';
+import { HomeSettingsAdminUpdateImageOrderRequestDto } from '../dto/request/home-settings-admin-update-image-order-request.dto';
+import { HomeSettingsAdminUpdateHomeIntroductionRequestDto } from '../dto/request/home-settings-admin-update-home-introduction-request.dto';
 
 /**
  * 홈페이지 설정 관리자 API
  * 관리자 JWT 인증 필요 (AdminJwtAuthGuard)
  */
-@ApiTags('HomeSettings - Admin')
+@ApiTags('홈페이지 설정 관리자')
 @Controller('home-settings-admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiBearerAuth()
@@ -56,7 +56,7 @@ export class HomeSettingsAdminController {
         summary: '홈 소개 업데이트',
         description: '홈페이지 소개 텍스트를 업데이트합니다 (관리자 인증 필요)',
     })
-    @ApiBody({ type: UpdateHomeIntroductionRequestDto })
+    @ApiBody({ type: HomeSettingsAdminUpdateHomeIntroductionRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '업데이트 성공',
@@ -65,7 +65,7 @@ export class HomeSettingsAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async updateIntroduction(@Body() introductionData: UpdateHomeIntroductionRequestDto) {
+    async updateIntroduction(@Body() introductionData: HomeSettingsAdminUpdateHomeIntroductionRequestDto) {
         return {
             success: true,
             code: HttpStatus.OK,
@@ -82,7 +82,7 @@ export class HomeSettingsAdminController {
         summary: '대표 이미지 추가',
         description: '홈페이지 대표 이미지를 추가합니다 (최대 5개, 관리자 인증 필요)',
     })
-    @ApiBody({ type: AddMainImageRequestDto })
+    @ApiBody({ type: HomeSettingsAdminAddMainImageRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '이미지 추가 성공',
@@ -95,7 +95,7 @@ export class HomeSettingsAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async addMainImage(@Body() imageData: AddMainImageRequestDto) {
+    async addMainImage(@Body() imageData: HomeSettingsAdminAddMainImageRequestDto) {
         return {
             success: true,
             code: HttpStatus.CREATED,
@@ -149,7 +149,7 @@ export class HomeSettingsAdminController {
         summary: '이미지 순서 변경',
         description: '대표 이미지의 순서를 변경합니다 (드래그앤드롭, 관리자 인증 필요)',
     })
-    @ApiBody({ type: UpdateImageOrderRequestDto })
+    @ApiBody({ type: HomeSettingsAdminUpdateImageOrderRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '순서 변경 성공',
@@ -162,7 +162,7 @@ export class HomeSettingsAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async updateImageOrder(@Body() orderData: UpdateImageOrderRequestDto) {
+    async updateImageOrder(@Body() orderData: HomeSettingsAdminUpdateImageOrderRequestDto) {
         return {
             success: true,
             code: HttpStatus.OK,

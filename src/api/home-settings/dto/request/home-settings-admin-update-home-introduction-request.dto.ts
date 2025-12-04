@@ -4,7 +4,7 @@ import { IsString, IsOptional } from 'class-validator';
 /**
  * 홈 소개 수정 요청 DTO
  */
-export class UpdateHomeIntroductionRequestDto {
+export class HomeSettingsAdminUpdateHomeIntroductionRequestDto {
     @ApiPropertyOptional({ description: '제목 (영문)', example: 'Welcome to Kitagawa' })
     @IsString()
     @IsOptional()

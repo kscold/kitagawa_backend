@@ -4,7 +4,7 @@ import { IsString, IsOptional } from 'class-validator';
 /**
  * 회사 기본 정보 수정 DTO
  */
-export class UpdateCompanyInfoRequestDto {
+export class CompanyUpdateInfoRequestDto {
     @ApiPropertyOptional({
         description: '비전 (영어)',
         example: 'To be the leading provider of precision machining solutions in Korea',

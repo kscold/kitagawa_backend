@@ -7,7 +7,7 @@ import { CrawlerService } from './crawler.service';
 
 import { SwaggerResponse } from '../../common/decorator/swagger-response.decorator';
 
-@ApiTags('Crawler - Admin')
+@ApiTags('크롤러 관리자')
 @Controller('crawler-admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiBearerAuth()
