@@ -5,7 +5,7 @@ import { CategoryService } from './category.service';
 
 import { CategoryLevel1ListResponseDto, CategoryTreeResponseDto } from './dto/response/category-response.dto';
 
-@ApiTags('Categories')
+@ApiTags('카테고리')
 @Controller('categories')
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}

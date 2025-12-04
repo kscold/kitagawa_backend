@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
  * Level 1 카테고리 응답 DTO
  * 메인 페이지 카테고리 카드에 필요한 정보 포함
  */
-export class Level1CategoryResponseDto {
+export class CategoryLevel1ResponseDto {
     @ApiProperty({
         example: '68f3d059b9aaa2b9a0fb3559',
         description: '카테고리 ID',
@@ -70,7 +70,7 @@ export class Level1CategoryResponseDto {
     /**
      * MongoDB Document를 Level1CategoryResponseDto로 변환
      */
-    static fromDocument(doc: any): Level1CategoryResponseDto {
+    static fromDocument(doc: any): CategoryLevel1ResponseDto {
         return {
             _id: doc._id.toString(),
             name: doc.name,
@@ -88,7 +88,7 @@ export class Level1CategoryResponseDto {
     /**
      * 여러 Document를 변환
      */
-    static fromDocuments(docs: any[]): Level1CategoryResponseDto[] {
-        return docs.map((doc) => Level1CategoryResponseDto.fromDocument(doc));
+    static fromDocuments(docs: any[]): CategoryLevel1ResponseDto[] {
+        return docs.map((doc) => CategoryLevel1ResponseDto.fromDocument(doc));
     }
 }

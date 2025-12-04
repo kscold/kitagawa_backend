@@ -18,7 +18,7 @@ class ProductOrderItem {
     order: number;
 }
 
-export class ReorderCategoryProductRequestDto {
+export class CategoryAdminProductReorderRequestDto {
     @ApiProperty({
         description: '제품 목록 (순서대로)',
         type: [ProductOrderItem],

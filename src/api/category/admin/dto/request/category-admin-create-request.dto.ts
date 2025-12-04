@@ -1,12 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Min, IsUrl, IsEnum, IsString, IsNumber, IsBoolean, IsNotEmpty, IsOptional } from 'class-validator';
 
-import { CategoryLevel } from '../../../../schema/category.schema';
+import { CategoryLevel } from '../../../../../schema/category.schema';
 
 /**
  * 카테고리 생성 요청 DTO
  */
-export class CreateCategoryRequestDto {
+export class CategoryAdminCreateRequestDto {
     @ApiProperty({ description: '카테고리명', example: 'NC ROTARY TABLE' })
     @IsString()
     @IsNotEmpty()

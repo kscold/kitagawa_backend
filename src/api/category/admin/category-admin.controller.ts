@@ -16,18 +16,18 @@ import { CategoryAdminService } from './category-admin.service';
 import { CategoryLevel } from '../../../schema/category.schema';
 
 import { PaginationQueryDto } from '../../../common/dto/pagination/pagination-query.dto';
-import { CreateCategoryRequestDto } from '../dto/request/create-category-request.dto';
-import { UpdateCategoryRequestDto } from '../dto/request/update-category-request.dto';
-import { UpdateCategoryOrderRequestDto } from '../dto/request/update-category-order-request.dto';
-import { ReorderBatchCategoryRequestDto } from '../dto/request/reorder-batch-category-request.dto';
-import { ReorderCategoryProductRequestDto } from '../dto/request/reorder-category-product-request.dto';
+import { CategoryAdminCreateRequestDto } from './dto/request/category-admin-create-request.dto';
+import { CategoryAdminUpdateRequestDto } from './dto/request/category-admin-update-request.dto';
+import { CategoryAdminReorderRequestDto } from './dto/request/category-admin-reorder-request.dto';
+import { CategoryAdminOrderUpdateRequestDto } from './dto/request/category-admin-order-update-request.dto';
+import { CategoryAdminProductReorderRequestDto } from './dto/request/category-admin-product-reorder-request.dto';
 import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
 
 /**
  * 카테고리 관리자 API
  * 관리자 JWT 인증 필요 (AdminJwtAuthGuard)
  */
-@ApiTags('Category - Admin')
+@ApiTags('카테고리 관리자')
 @Controller('category-admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiBearerAuth()
@@ -125,7 +125,7 @@ export class CategoryAdminController {
         summary: '카테고리 생성',
         description: '새로운 카테고리를 생성합니다 (관리자 인증 필요)',
     })
-    @ApiBody({ type: CreateCategoryRequestDto })
+    @ApiBody({ type: CategoryAdminCreateRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '카테고리 생성 성공',
@@ -142,7 +142,7 @@ export class CategoryAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async create(@Body() categoryData: CreateCategoryRequestDto) {
+    async create(@Body() categoryData: CategoryAdminCreateRequestDto) {
         return {
             success: true,
             code: HttpStatus.CREATED,
@@ -160,7 +160,7 @@ export class CategoryAdminController {
         description: '카테고리 정보를 수정합니다 (관리자 인증 필요)',
     })
     @ApiParam({ name: 'slug', description: '카테고리 slug', example: 'nc-rotary-table' })
-    @ApiBody({ type: UpdateCategoryRequestDto })
+    @ApiBody({ type: CategoryAdminUpdateRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '카테고리 수정 성공',
@@ -173,7 +173,7 @@ export class CategoryAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async update(@Param('slug') slug: string, @Body() categoryData: UpdateCategoryRequestDto) {
+    async update(@Param('slug') slug: string, @Body() categoryData: CategoryAdminUpdateRequestDto) {
         return {
             success: true,
             code: HttpStatus.OK,
@@ -292,7 +292,7 @@ export class CategoryAdminController {
         description: '카테고리의 정렬 순서를 변경합니다 (관리자 인증 필요)',
     })
     @ApiParam({ name: 'slug', description: '카테고리 slug', example: 'nc-rotary-table' })
-    @ApiBody({ type: UpdateCategoryOrderRequestDto })
+    @ApiBody({ type: CategoryAdminOrderUpdateRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '순서 변경 성공',
@@ -305,7 +305,7 @@ export class CategoryAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async updateOrder(@Param('slug') slug: string, @Body() orderData: UpdateCategoryOrderRequestDto) {
+    async updateOrder(@Param('slug') slug: string, @Body() orderData: CategoryAdminOrderUpdateRequestDto) {
         return {
             success: true,
             code: HttpStatus.OK,
@@ -322,7 +322,7 @@ export class CategoryAdminController {
         summary: '카테고리 순서 일괄 변경 (DND용)',
         description: 'Drag and Drop으로 여러 카테고리의 순서를 한번에 변경합니다 (관리자 인증 필요)',
     })
-    @ApiBody({ type: ReorderBatchCategoryRequestDto })
+    @ApiBody({ type: CategoryAdminReorderRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '순서 일괄 변경 성공',
@@ -335,7 +335,7 @@ export class CategoryAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async reorderBatch(@Body() dto: ReorderBatchCategoryRequestDto) {
+    async reorderBatch(@Body() dto: CategoryAdminReorderRequestDto) {
         await this.categoryAdminService.reorderBatch(dto.level, dto.parentName, dto.items);
 
         return {
@@ -397,7 +397,7 @@ export class CategoryAdminController {
         description: 'Drag and Drop으로 카테고리 내 제품의 순서를 한번에 변경합니다 (관리자 인증 필요)',
     })
     @ApiParam({ name: 'slug', description: '카테고리 slug', example: 'nc-rotary-table' })
-    @ApiBody({ type: ReorderCategoryProductRequestDto })
+    @ApiBody({ type: CategoryAdminProductReorderRequestDto })
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '순서 일괄 변경 성공',
@@ -414,7 +414,7 @@ export class CategoryAdminController {
         status: HttpStatus.UNAUTHORIZED,
         description: '인증 실패',
     })
-    async reorderCategoryProducts(@Param('slug') slug: string, @Body() dto: ReorderCategoryProductRequestDto) {
+    async reorderCategoryProducts(@Param('slug') slug: string, @Body() dto: CategoryAdminProductReorderRequestDto) {
         await this.categoryAdminService.reorderCategoryProducts(slug, dto.items);
 
         return {

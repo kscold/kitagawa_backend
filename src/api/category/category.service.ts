@@ -5,8 +5,8 @@ import { Model } from 'mongoose';
 import { Product, ProductDocument } from '../../schema/product.schema';
 import { CategoryModel, CategoryDocument, CategoryLevel } from '../../schema/category.schema';
 
-import { SeriesInfoResponseDto } from './dto/response/series-info-response.dto';
-import { Level1CategoryResponseDto } from './dto/response/level1-category-response.dto';
+import { CategorySeriesInfoResponseDto } from './dto/response/category-series-info-response.dto';
+import { CategoryLevel1ResponseDto } from './dto/response/category-level1-response.dto';
 
 @Injectable()
 export class CategoryService {
@@ -18,13 +18,13 @@ export class CategoryService {
     ) {}
 
     // Level 1 카테고리만 조회 (대분류)
-    async getLevel1Categories(): Promise<Level1CategoryResponseDto[]> {
+    async getLevel1Categories(): Promise<CategoryLevel1ResponseDto[]> {
         const categories = await this.categoryModel
             .find({ level: CategoryLevel.LEVEL_1, isActive: true })
             .sort({ order: 1 })
             .lean();
 
-        return Level1CategoryResponseDto.fromDocuments(categories);
+        return CategoryLevel1ResponseDto.fromDocuments(categories);
     }
 
     // 특정 Level 1 카테고리의 하위 카테고리 조회 (슬러그 기반)
@@ -124,7 +124,7 @@ export class CategoryService {
     private async getProductsForCatalogueCategory(
         subCategory: string,
         categoryImageUrl?: string,
-    ): Promise<SeriesInfoResponseDto[]> {
+    ): Promise<CategorySeriesInfoResponseDto[]> {
         const products = await this.productModel
             .find({
                 'category.mainCategory': 'CATALOGUE',
@@ -165,7 +165,7 @@ export class CategoryService {
     private async getSeriesForLevel2Category(
         mainCategory: string,
         subCategory: string,
-    ): Promise<SeriesInfoResponseDto[]> {
+    ): Promise<CategorySeriesInfoResponseDto[]> {
         const products = await this.productModel
             .find({
                 'category.mainCategory': mainCategory,
@@ -221,7 +221,7 @@ export class CategoryService {
             }
         });
 
-        const seriesArray: SeriesInfoResponseDto[] = Array.from(seriesMap.entries()).map(([name, data]) => ({
+        const seriesArray: CategorySeriesInfoResponseDto[] = Array.from(seriesMap.entries()).map(([name, data]) => ({
             name,
             slug: data.slug, // slug를 slug로 사용
             productCount: data.count,
@@ -241,7 +241,7 @@ export class CategoryService {
     }
 
     // WORK GRIPPER 카테고리의 제품 정보 조회 (subCategory가 없는 경우)
-    private async getProductsForWorkGripper(): Promise<SeriesInfoResponseDto[]> {
+    private async getProductsForWorkGripper(): Promise<CategorySeriesInfoResponseDto[]> {
         const products = await this.productModel
             .find({
                 'category.mainCategory': 'WORK GRIPPER',

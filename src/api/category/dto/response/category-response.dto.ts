@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { HttpStatus } from '@nestjs/common';
 
 import { StandardResponseDto } from '../../../../common/dto/response/standard-response.dto';
-import { SeriesInfoResponseDto } from './series-info-response.dto';
-import { Level1CategoryResponseDto } from './level1-category-response.dto';
+import { CategoryLevel1ResponseDto } from './category-level1-response.dto';
+import { CategorySeriesInfoResponseDto } from './category-series-info-response.dto';
 
 /**
  * 하위 카테고리 DTO (Level 2)
@@ -52,11 +52,11 @@ export class SubCategoryDto {
     isActive: boolean;
 
     @ApiProperty({
-        type: [SeriesInfoResponseDto],
+        type: [CategorySeriesInfoResponseDto],
         description: '시리즈 정보 목록 (제품이 여러 개인 경우)',
         required: false,
     })
-    series?: SeriesInfoResponseDto[];
+    series?: CategorySeriesInfoResponseDto[];
 }
 
 /**
@@ -115,57 +115,9 @@ export class CategoryTreeDto {
 }
 
 /**
- * 카테고리 검색 결과 항목 DTO
- */
-export class CategorySearchItemDto {
-    @ApiProperty({
-        example: '68f3d059b9aaa2b9a0fb3559',
-        description: '카테고리 ID',
-    })
-    _id: string;
-
-    @ApiProperty({
-        example: 'Hydraulic Hollow Chuck',
-        description: '카테고리명 (영문)',
-    })
-    name: string;
-
-    @ApiProperty({
-        example: '유압 중공 척',
-        description: '카테고리명 (한글)',
-    })
-    nameKo: string;
-
-    @ApiProperty({
-        example: 'chuck-hydraulic-hollow-chuck',
-        description: 'URL 슬러그',
-    })
-    slug: string;
-
-    @ApiProperty({
-        example: 2,
-        description: '카테고리 레벨 (1: 대분류, 2: 중분류)',
-    })
-    level: number;
-
-    @ApiProperty({
-        example: 'Chuck',
-        description: '상위 카테고리명',
-        required: false,
-    })
-    parentName?: string;
-
-    @ApiProperty({
-        example: 8,
-        description: '제품 수',
-    })
-    productCount: number;
-}
-
-/**
  * Level 1 카테고리 목록 응답
  */
-export class CategoryLevel1ListResponseDto extends StandardResponseDto<Level1CategoryResponseDto[]> {
+export class CategoryLevel1ListResponseDto extends StandardResponseDto<CategoryLevel1ResponseDto[]> {
     @ApiProperty({
         example: true,
         description: '요청 성공 여부',
@@ -185,11 +137,11 @@ export class CategoryLevel1ListResponseDto extends StandardResponseDto<Level1Cat
     message: string;
 
     @ApiProperty({
-        type: [Level1CategoryResponseDto],
+        type: [CategoryLevel1ResponseDto],
         description: '대분류 카테고리 목록',
         isArray: true,
     })
-    data: Level1CategoryResponseDto[];
+    data: CategoryLevel1ResponseDto[];
 }
 
 /**
