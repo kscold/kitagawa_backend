@@ -33,7 +33,7 @@ export class HomeIntroduction {
  * 홈페이지 설정 스키마
  * 단일 document로 관리 (Singleton 패턴)
  */
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, collection: 'home_settings' })
 export class HomeSettings {
     @Prop({ type: [HomeImage], default: [] })
     mainImages: HomeImage[]; // 대표 이미지 목록 (최대 5개)

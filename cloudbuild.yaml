@@ -27,7 +27,7 @@ steps:
           - '--memory=512Mi'
           - '--cpu=1'
           - '--max-instances=10'
-          - '--set-env-vars=NODE_ENV=production,JWT_ADMIN_SECRET=${_JWT_ADMIN_SECRET},MONGODB_URI=${_MONGODB_URI},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SMTP_USER=${_SMTP_USER},SMTP_PASSWORD=${_SMTP_PASSWORD},SMTP_FROM=${_SMTP_FROM},ADMIN_EMAIL=${_ADMIN_EMAIL},GCP_PROJECT_ID=${PROJECT_ID},GCS_BUCKET_NAME=kitagawa-cdn'
+          - '--set-env-vars=NODE_ENV=production,JWT_ADMIN_SECRET=${_JWT_ADMIN_SECRET},MONGODB_URI=${_MONGODB_URI},SMTP_HOST=${_SMTP_HOST},SMTP_PORT=${_SMTP_PORT},SMTP_USER=${_SMTP_USER},SMTP_PASSWORD=${_SMTP_PASSWORD},SMTP_FROM=${_SMTP_FROM},ADMIN_EMAIL=${_ADMIN_EMAIL},GCP_PROJECT_ID=${PROJECT_ID},GCS_BUCKET_NAME=kitagawa-cdn,DISCORD_WEBHOOK_URL=${_DISCORD_WEBHOOK_URL}'
 
     # Discord 배포 성공 알림
     - name: 'gcr.io/cloud-builders/curl'
@@ -35,10 +35,10 @@ steps:
       args:
           - '-c'
           - |
-            curl -H "Content-Type: application/json" \
-            -X POST \
-            -d "{\"embeds\":[{\"title\":\"✅ Kitagawa Backend 배포 완료\",\"description\":\"Cloud Run 배포가 성공적으로 완료되었습니다.\",\"color\":5763719,\"fields\":[{\"name\":\"프로젝트\",\"value\":\"$PROJECT_ID\",\"inline\":true},{\"name\":\"리전\",\"value\":\"asia-northeast3\",\"inline\":true},{\"name\":\"빌드 ID\",\"value\":\"$BUILD_ID\",\"inline\":false}],\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}" \
-            "${_DISCORD_WEBHOOK_URL}"
+              curl -H "Content-Type: application/json" \
+              -X POST \
+              -d "{\"embeds\":[{\"title\":\"✅ Kitagawa Backend 배포 완료\",\"description\":\"Cloud Run 배포가 성공적으로 완료되었습니다.\",\"color\":5763719,\"fields\":[{\"name\":\"프로젝트\",\"value\":\"$PROJECT_ID\",\"inline\":true},{\"name\":\"리전\",\"value\":\"asia-northeast3\",\"inline\":true},{\"name\":\"빌드 ID\",\"value\":\"$BUILD_ID\",\"inline\":false}],\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}]}" \
+              "${_DISCORD_WEBHOOK_URL}"
 
 # Build images in Artifact Registry
 images:
