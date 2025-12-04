@@ -33,33 +33,37 @@ export class DiscordWebhookService {
         }
 
         try {
-            const embed = {
-                title: '🔔 새로운 Admin Contact Request',
-                color: data.autoImport ? 0x00ff00 : 0x0099ff, // 자동 import는 초록색, 일반은 파란색
-                fields: [
-                    {
-                        name: '📋 요청 ID',
-                        value: data.requestId,
-                        inline: true,
-                    },
-                    {
-                        name: '📊 요청 유형',
-                        value: data.type,
-                        inline: true,
-                    },
-                    {
-                        name: '👤 요청자',
-                        value: data.requestedBy,
-                        inline: true,
-                    },
-                ],
+            // 요청 유형에 따른 색상
+            const typeConfig = {
+                NEW_PRODUCT: { label: '새 제품 추가', color: 0x5865f2 },
+                GENERAL_REQUEST: { label: '일반 요청', color: 0xfee75c },
+                MIXED: { label: '제품 + 요청', color: 0x57f287 },
+            };
+
+            const config = typeConfig[data.type as keyof typeof typeConfig] || typeConfig.GENERAL_REQUEST;
+
+            // 설명 구성
+            const descriptionLines: string[] = [];
+            descriptionLines.push(`**${config.label}** 요청이 접수되었습니다.`);
+            if (data.autoImport) {
+                descriptionLines.push(`\n자동 Import가 활성화되어 크롤링이 진행됩니다.`);
+            }
+
+            const embed: any = {
+                title: '새로운 요청 접수',
+                description: descriptionLines.join(''),
+                color: config.color,
+                fields: [],
+                footer: {
+                    text: data.requestId,
+                },
                 timestamp: new Date().toISOString(),
             };
 
-            // 제품 정보 추가
+            // 제품 정보 (있는 경우)
             if (data.productName) {
                 embed.fields.push({
-                    name: '📦 제품명',
+                    name: '제품명',
                     value: data.productName,
                     inline: true,
                 });
@@ -67,38 +71,30 @@ export class DiscordWebhookService {
 
             if (data.seriesName) {
                 embed.fields.push({
-                    name: '🏷️ 시리즈명',
+                    name: '시리즈',
                     value: data.seriesName,
                     inline: true,
                 });
             }
 
+            // URL (있는 경우)
             if (data.url) {
                 embed.fields.push({
-                    name: '🔗 URL',
+                    name: 'URL',
                     value: data.url,
                     inline: false,
                 });
             }
 
-            // 요청사항 추가 (길이 제한)
+            // 요청사항 (있는 경우)
             if (data.requestDetails) {
                 const truncated =
-                    data.requestDetails.length > 200
-                        ? data.requestDetails.substring(0, 200) + '...'
+                    data.requestDetails.length > 300
+                        ? data.requestDetails.substring(0, 300) + '...'
                         : data.requestDetails;
                 embed.fields.push({
-                    name: '📝 요청 사항',
+                    name: '요청 사항',
                     value: truncated,
-                    inline: false,
-                });
-            }
-
-            // 자동 import 표시
-            if (data.autoImport) {
-                embed.fields.push({
-                    name: '🤖 자동 Import',
-                    value: '✅ 활성화 (자동 크롤링 진행 중)',
                     inline: false,
                 });
             }
@@ -110,6 +106,7 @@ export class DiscordWebhookService {
                 },
                 body: JSON.stringify({
                     username: 'Kitagawa Admin Bot',
+                    avatar_url: 'https://storage.googleapis.com/kitagawa-cdn/logo/kitagawa-logo.png',
                     embeds: [embed],
                 }),
             });
@@ -139,34 +136,25 @@ export class DiscordWebhookService {
         }
 
         try {
-            const embed = {
-                title: data.success ? '✅ Import 완료' : '❌ Import 실패',
-                color: data.success ? 0x00ff00 : 0xff0000,
-                fields: [
-                    {
-                        name: '📋 요청 ID',
-                        value: data.requestId,
-                        inline: true,
-                    },
-                ],
-                timestamp: new Date().toISOString(),
-            };
-
-            if (data.success && data.resourceCount !== undefined) {
-                embed.fields.push({
-                    name: '📊 등록된 리소스',
-                    value: `${data.resourceCount}개`,
-                    inline: true,
-                });
-            }
-
-            if (!data.success && data.errorMessage) {
-                embed.fields.push({
-                    name: '⚠️ 에러 메시지',
-                    value: data.errorMessage.substring(0, 500),
-                    inline: false,
-                });
-            }
+            const embed: any = data.success
+                ? {
+                      title: '크롤링 완료',
+                      description: `${data.resourceCount || 0}개 리소스가 등록되었습니다.`,
+                      color: 0x57f287,
+                      footer: {
+                          text: data.requestId,
+                      },
+                      timestamp: new Date().toISOString(),
+                  }
+                : {
+                      title: '크롤링 실패',
+                      description: (data.errorMessage || '알 수 없는 오류').substring(0, 400),
+                      color: 0xed4245,
+                      footer: {
+                          text: data.requestId,
+                      },
+                      timestamp: new Date().toISOString(),
+                  };
 
             await fetch(this.webhookUrl, {
                 method: 'POST',
@@ -175,6 +163,7 @@ export class DiscordWebhookService {
                 },
                 body: JSON.stringify({
                     username: 'Kitagawa Admin Bot',
+                    avatar_url: 'https://storage.googleapis.com/kitagawa-cdn/logo/kitagawa-logo.png',
                     embeds: [embed],
                 }),
             });

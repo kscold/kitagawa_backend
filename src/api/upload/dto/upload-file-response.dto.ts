@@ -5,7 +5,7 @@ import { StandardResponseDto } from '../../../common/dto/response/standard-respo
 /**
  * 파일 업로드 결과 DTO
  */
-export class FileUploadResultDto {
+export class UploadFileResultDto {
     @ApiProperty({
         example: 'https://storage.googleapis.com/kitagawa-cdn/product/1234567890-sample.jpg',
         description: '업로드된 파일의 공개 URL',
@@ -34,7 +34,7 @@ export class FileUploadResultDto {
 /**
  * 파일 업로드 응답
  */
-export class FileUploadResponseDto extends StandardResponseDto<FileUploadResultDto> {
+export class UploadFileResponseDto extends StandardResponseDto<UploadFileResultDto> {
     @ApiProperty({
         example: true,
         description: '요청 성공 여부',
@@ -54,8 +54,8 @@ export class FileUploadResponseDto extends StandardResponseDto<FileUploadResultD
     message: string;
 
     @ApiProperty({
-        type: FileUploadResultDto,
+        type: UploadFileResultDto,
         description: '업로드된 파일 정보',
     })
-    data: FileUploadResultDto;
+    data: UploadFileResultDto;
 }

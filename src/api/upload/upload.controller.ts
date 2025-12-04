@@ -17,13 +17,13 @@ import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
 
 import { UploadService } from './upload.service';
 
-import { FileUploadResponseDto } from './dto/upload-response.dto';
+import { UploadFileResponseDto } from './dto/upload-file-response.dto';
 
 /**
  * Upload API (Admin Only)
  * 파일 업로드 및 삭제
  */
-@ApiTags('Upload (Admin)')
+@ApiTags('파일 업로드 관리자')
 @Controller('upload-admin')
 @UseGuards(AdminJwtAuthGuard)
 export class UploadController {
@@ -77,7 +77,7 @@ export class UploadController {
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '업로드 성공',
-        type: FileUploadResponseDto,
+        type: UploadFileResponseDto,
         schema: {
             example: {
                 success: true,
