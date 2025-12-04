@@ -3,15 +3,15 @@ import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiParam } from 
 
 import { ResourceService } from './resource.service';
 
-import { ResourceFilterDto } from './dto/request/resource-filter.dto';
+import { ResourceFilterRequestDto } from './dto/request/resource-filter-request.dto';
+import { ResourceDetailResponseDto } from './dto/response/resource-detail-response.dto';
 import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
-import { ResourceDetailDto } from './dto/response/resource-response.dto';
 
 /**
  * 자료실 Public API
  * 인증 없이 접근 가능한 조회 API만 제공
  */
-@ApiTags('Resources')
+@ApiTags('자료실')
 @Controller('resources')
 export class ResourceController {
     constructor(private readonly resourceService: ResourceService) {}
@@ -111,7 +111,7 @@ export class ResourceController {
             },
         },
     })
-    async searchResources(@Query() filterDto: ResourceFilterDto) {
+    async searchResources(@Query() filterDto: ResourceFilterRequestDto) {
         // keyword가 없으면 에러
         if (!filterDto.keyword) {
             return {
@@ -314,7 +314,7 @@ Level2 카테고리(제품군)별 자료를 **제품 모델별로 그룹화**하
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: ApiResponseDto<ResourceDetailDto>,
+        type: ApiResponseDto<ResourceDetailResponseDto>,
         schema: {
             example: {
                 success: true,
@@ -347,7 +347,7 @@ Level2 카테고리(제품군)별 자료를 **제품 모델별로 그룹화**하
             },
         },
     })
-    async findByLevel2Category(@Param('slug') slug: string, @Query() filterDto: ResourceFilterDto) {
+    async findByLevel2Category(@Param('slug') slug: string, @Query() filterDto: ResourceFilterRequestDto) {
         const result = await this.resourceService.findResourcesByLevel2CategoryGrouped(slug, {
             keyword: filterDto.keyword,
             fileType: filterDto.fileType,

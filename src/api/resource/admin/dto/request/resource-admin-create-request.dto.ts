@@ -41,7 +41,7 @@ export class ResourceFileDto {
 /**
  * 자료 생성 요청 DTO
  */
-export class CreateResourceRequestDto {
+export class ResourceAdminCreateRequestDto {
     @ApiProperty({ description: '자료 제목', example: 'GT Series Catalog' })
     @IsString()
     @IsNotEmpty()

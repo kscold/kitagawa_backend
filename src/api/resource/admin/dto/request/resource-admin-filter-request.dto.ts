@@ -1,12 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsEnum, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
+
 import { ResourceType } from '../../../../../schema/resource.schema';
 
 /**
  * 자료 관리 필터 DTO
  */
-export class ResourceAdminFilterDto {
+export class ResourceAdminFilterRequestDto {
     @ApiPropertyOptional({ description: '검색 키워드 (제목, 설명)', example: 'catalog' })
     @IsString()
     @IsOptional()

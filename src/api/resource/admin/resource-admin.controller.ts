@@ -5,19 +5,19 @@ import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 
 import { ResourceAdminService } from './resource-admin.service';
 
-import { CreateResourceRequestDto } from './dto/request/create-resource-request.dto';
-import { UpdateResourceRequestDto } from './dto/request/update-resource-request.dto';
-import { ResourceAdminFilterDto } from './dto/request/resource-admin-filter.dto';
+import { ResourceAdminCreateRequestDto } from './dto/request/resource-admin-create-request.dto';
+import { ResourceAdminUpdateRequestDto } from './dto/request/resource-admin-update-request.dto';
+import { ResourceAdminFilterRequestDto } from './dto/request/resource-admin-filter-request.dto';
 import {
-    ResourceAdminDetailResponseDto,
     ResourceAdminListResponseDto,
+    ResourceAdminDetailResponseDto,
 } from './dto/response/resource-admin-response.dto';
 
 /**
  * 자료실 Admin API
  * 자료 관리 (CRUD)
  */
-@ApiTags('Resource Admin')
+@ApiTags('자료실 관리자')
 @Controller('resource-admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiBearerAuth()
@@ -50,7 +50,7 @@ export class ResourceAdminController {
         description: '조회 성공',
         type: ResourceAdminListResponseDto,
     })
-    async findAll(@Query() filterDto: ResourceAdminFilterDto) {
+    async findAll(@Query() filterDto: ResourceAdminFilterRequestDto) {
         const { resources, pagination } = await this.resourceAdminService.findAll(filterDto);
 
         return {
@@ -129,7 +129,7 @@ export class ResourceAdminController {
         status: HttpStatus.BAD_REQUEST,
         description: '입력 데이터 검증 실패',
     })
-    async create(@Body() createDto: CreateResourceRequestDto) {
+    async create(@Body() createDto: ResourceAdminCreateRequestDto) {
         const resource = await this.resourceAdminService.create(createDto);
 
         return {
@@ -162,7 +162,7 @@ export class ResourceAdminController {
         status: HttpStatus.NOT_FOUND,
         description: '자료를 찾을 수 없습니다',
     })
-    async update(@Param('id') id: string, @Body() updateDto: UpdateResourceRequestDto) {
+    async update(@Param('id') id: string, @Body() updateDto: ResourceAdminUpdateRequestDto) {
         const resource = await this.resourceAdminService.update(id, updateDto);
 
         return {

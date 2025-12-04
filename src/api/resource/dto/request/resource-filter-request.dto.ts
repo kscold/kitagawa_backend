@@ -21,7 +21,7 @@ export enum FileType {
 /**
  * 자료실 필터 DTO
  */
-export class ResourceFilterDto extends PaginationQueryDto {
+export class ResourceFilterRequestDto extends PaginationQueryDto {
     @ApiProperty({
         description: '자료 타입',
         enum: ResourceType,

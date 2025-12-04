@@ -123,7 +123,7 @@ export class ResourceItemDto {
 /**
  * 자료 상세 정보 DTO
  */
-export class ResourceDetailDto extends ResourceItemDto {
+export class ResourceDetailResponseDto extends ResourceItemDto {
     @ApiProperty({
         example: 'Comprehensive catalog for NC Rotary Table series',
         description: '자료 설명',
@@ -156,22 +156,4 @@ export class ResourceDetailDto extends ResourceItemDto {
         description: '수정일',
     })
     updatedAt: Date;
-}
-
-/**
- * 자료 타입별 통계 DTO
- */
-export class ResourceTypeStatDto {
-    @ApiProperty({
-        example: 'CATALOG',
-        description: '자료 타입',
-        enum: ['CATALOG', 'MANUAL', 'TECHNICAL', 'VIDEO', 'BROCHURE', 'CERTIFICATE', 'OTHER'],
-    })
-    type: string;
-
-    @ApiProperty({
-        example: 25,
-        description: '해당 타입의 자료 수',
-    })
-    count: number;
 }

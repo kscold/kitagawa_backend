@@ -4,9 +4,9 @@ import { Model } from 'mongoose';
 
 import { Resource, ResourceDocument } from '../../../schema/resource.schema';
 
-import { ResourceAdminFilterDto } from './dto/request/resource-admin-filter.dto';
-import { CreateResourceRequestDto } from './dto/request/create-resource-request.dto';
-import { UpdateResourceRequestDto } from './dto/request/update-resource-request.dto';
+import { ResourceAdminFilterRequestDto } from './dto/request/resource-admin-filter-request.dto';
+import { ResourceAdminCreateRequestDto } from './dto/request/resource-admin-create-request.dto';
+import { ResourceAdminUpdateRequestDto } from './dto/request/resource-admin-update-request.dto';
 import { ResourceAdminDetailResponseDto } from './dto/response/resource-admin-response.dto';
 
 /**
@@ -23,7 +23,7 @@ export class ResourceAdminService {
     /**
      * 자료 목록 조회
      */
-    async findAll(filterDto: ResourceAdminFilterDto) {
+    async findAll(filterDto: ResourceAdminFilterRequestDto) {
         const { keyword, type, category, isActive, isFeatured, page = 1, limit = 20 } = filterDto;
 
         // 필터 조건 구성
@@ -91,7 +91,7 @@ export class ResourceAdminService {
     /**
      * 자료 생성
      */
-    async create(createDto: CreateResourceRequestDto): Promise<ResourceAdminDetailResponseDto> {
+    async create(createDto: ResourceAdminCreateRequestDto): Promise<ResourceAdminDetailResponseDto> {
         const resource = new this.resourceModel(createDto);
         await resource.save();
 
@@ -101,7 +101,7 @@ export class ResourceAdminService {
     /**
      * 자료 수정
      */
-    async update(id: string, updateDto: UpdateResourceRequestDto): Promise<ResourceAdminDetailResponseDto> {
+    async update(id: string, updateDto: ResourceAdminUpdateRequestDto): Promise<ResourceAdminDetailResponseDto> {
         const resource = await this.resourceModel.findByIdAndUpdate(id, updateDto, { new: true }).lean().exec();
 
         if (!resource) {

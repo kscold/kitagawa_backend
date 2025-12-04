@@ -5,16 +5,20 @@ import request from 'supertest';
 import { MongooseModule } from '@nestjs/mongoose';
 import { execSync } from 'child_process';
 
+import { createDefaultResourceCategories } from '../../../../test/factories/category.factory';
+import { createMockResourcePair, createMockPdfResource } from '../../../../test/factories/resource.factory';
+
 import { ResourceController } from '../resource.controller';
+
 import { ResourceService } from '../resource.service';
+
+import { Resource, ResourceSchema } from '../../../schema/resource.schema';
+import { CategoryModel, CategorySchema } from '../../../schema/category.schema';
+
 import { ResourceRepository } from '../repository/resource.repository';
-import { Resource, ResourceSchema } from '../../../schemas/resource.schema';
-import { CategoryModel, CategorySchema } from '../../../schemas/category.schema';
 import { CategoryRepository } from '../../category/repository/category.repository';
 
 import { getTestMongoUri, clearCollection, seedCollection } from '../../../../test/e2e-helpers';
-import { createMockResourcePair, createMockPdfResource } from '../../../../test/factories/resource.factory';
-import { createDefaultResourceCategories } from '../../../../test/factories/category.factory';
 
 /**
  * Resource API E2E 테스트 (실제 DB 사용)
