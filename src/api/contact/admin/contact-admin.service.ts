@@ -14,16 +14,16 @@ import {
     ImportStatus,
 } from '../../../schema/admin-contact-request.schema';
 
-import { ContactAdminFilterDto } from './dto/request/contact-admin-filter.dto';
-import { UpdateContactStatusDto } from './dto/request/update-contact-status.dto';
-import { UpdateContactInfoRequestDto } from './dto/request/update-contact-info-request.dto';
-import { CreateAdminContactRequestDto } from './dto/request/create-admin-contact-request.dto';
+import { ContactAdminFilterRequestDto } from './dto/request/contact-admin-filter-request.dto';
+import { ContactAdminCreateRequestDto } from './dto/request/contact-admin-create-request.dto';
+import { ContactAdminInfoUpdateRequestDto } from './dto/request/contact-admin-info-update--request.dto';
+import { ContactAdminUpdateStatusRequestDto } from './dto/request/contact-admim-update-status-request.dto';
 import { ContactInfoResponseDto } from '../dto/response/contact-info-response.dto';
 import { ContactAdminDetailResponseDto } from './dto/response/contact-admin-response.dto';
 import {
-    AdminContactRequestDetailDto,
-    AdminContactRequestListDto,
-} from './dto/response/admin-contact-request-response.dto';
+    ContactAdminRequestDetailResponseDto,
+    ContactAdminRequestListResponseDto,
+} from './dto/response/contact-admin-request-response.dto';
 
 /**
  * Contact Admin Service
@@ -45,7 +45,7 @@ export class ContactAdminService {
     /**
      * 문의 목록 조회
      */
-    async findAll(filterDto: ContactAdminFilterDto) {
+    async findAll(filterDto: ContactAdminFilterRequestDto) {
         const { keyword, status, page = 1, limit = 20 } = filterDto;
 
         // 필터 조건 구성
@@ -103,7 +103,7 @@ export class ContactAdminService {
      */
     async updateStatus(
         id: string,
-        updateDto: UpdateContactStatusDto,
+        updateDto: ContactAdminUpdateStatusRequestDto,
         adminId?: string,
     ): Promise<ContactAdminDetailResponseDto> {
         const updateData: any = {
@@ -171,7 +171,7 @@ export class ContactAdminService {
     /**
      * 회사 연락처 정보 수정 (관리자용)
      */
-    async updateContactInfo(updateDto: UpdateContactInfoRequestDto): Promise<ContactInfoResponseDto> {
+    async updateContactInfo(updateDto: ContactAdminInfoUpdateRequestDto): Promise<ContactInfoResponseDto> {
         // Singleton 패턴 - 기존 문서 찾기 또는 생성
         let companyInfo = await this.companyInfoModel.findOne().exec();
 
@@ -222,9 +222,9 @@ export class ContactAdminService {
      * 관리자가 새 제품 추가 또는 요청사항 제출
      */
     async createAdminContactRequest(
-        createDto: CreateAdminContactRequestDto,
+        createDto: ContactAdminCreateRequestDto,
         adminId: string,
-    ): Promise<AdminContactRequestDetailDto> {
+    ): Promise<ContactAdminRequestDetailResponseDto> {
         // 요청 유형 결정
         const hasProductInfo = !!(createDto.productName || createDto.seriesName || createDto.url);
         const hasRequestDetails = !!createDto.requestDetails;
@@ -322,8 +322,8 @@ export class ContactAdminService {
      * Admin Contact Request 목록 조회
      */
     async findAllAdminContactRequests(
-        filterDto: ContactAdminFilterDto,
-    ): Promise<{ requests: AdminContactRequestListDto[]; pagination: any }> {
+        filterDto: ContactAdminFilterRequestDto,
+    ): Promise<{ requests: ContactAdminRequestListResponseDto[]; pagination: any }> {
         const { keyword, status, page = 1, limit = 20 } = filterDto;
 
         // 필터 조건
@@ -366,7 +366,7 @@ export class ContactAdminService {
     /**
      * Admin Contact Request 상세 조회
      */
-    async findAdminContactRequestById(id: string): Promise<AdminContactRequestDetailDto> {
+    async findAdminContactRequestById(id: string): Promise<ContactAdminRequestDetailResponseDto> {
         const request = await this.adminContactRequestModel.findById(id).lean().exec();
 
         if (!request) {
@@ -379,7 +379,7 @@ export class ContactAdminService {
     /**
      * Admin Contact Request Entity to DTO 변환
      */
-    private toAdminContactRequestDto(request: any): AdminContactRequestDetailDto {
+    private toAdminContactRequestDto(request: any): ContactAdminRequestDetailResponseDto {
         return {
             _id: request._id.toString(),
             type: request.type,
@@ -404,7 +404,7 @@ export class ContactAdminService {
     /**
      * Admin Contact Request Entity to List DTO 변환
      */
-    private toAdminContactRequestListDto(request: any): AdminContactRequestListDto {
+    private toAdminContactRequestListDto(request: any): ContactAdminRequestListResponseDto {
         return {
             _id: request._id.toString(),
             type: request.type,
@@ -423,7 +423,7 @@ export class ContactAdminService {
     /**
      * 수동 Import 실행
      */
-    async triggerManualImport(requestId: string): Promise<AdminContactRequestDetailDto> {
+    async triggerManualImport(requestId: string): Promise<ContactAdminRequestDetailResponseDto> {
         const request = await this.adminContactRequestModel.findById(requestId);
 
         if (!request) {

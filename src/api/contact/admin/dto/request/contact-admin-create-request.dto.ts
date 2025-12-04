@@ -8,7 +8,7 @@ import { IsOptional, IsString, MaxLength, IsUrl, ValidateIf, IsBoolean } from 'c
  * 새로운 제품 추가 또는 요청사항 제출
  * - 최소 1개 이상의 필드가 필수
  */
-export class CreateAdminContactRequestDto {
+export class ContactAdminCreateRequestDto {
     /**
      * 제품명 (선택)
      * 새로운 제품 추가시 제품명

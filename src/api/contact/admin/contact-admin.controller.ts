@@ -5,21 +5,21 @@ import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 
 import { ContactAdminService } from './contact-admin.service';
 
-import { ContactAdminFilterDto } from './dto/request/contact-admin-filter.dto';
-import { UpdateContactStatusDto } from './dto/request/update-contact-status.dto';
-import { UpdateContactInfoRequestDto } from './dto/request/update-contact-info-request.dto';
-import { CreateAdminContactRequestDto } from './dto/request/create-admin-contact-request.dto';
+import { ContactAdminFilterRequestDto } from './dto/request/contact-admin-filter-request.dto';
+import { ContactAdminUpdateStatusRequestDto } from './dto/request/contact-admim-update-status-request.dto';
+import { ContactAdminInfoUpdateRequestDto } from './dto/request/contact-admin-info-update--request.dto';
+import { ContactAdminCreateRequestDto } from './dto/request/contact-admin-create-request.dto';
 import { ContactAdminDetailResponseDto, ContactAdminListResponseDto } from './dto/response/contact-admin-response.dto';
 import {
-    AdminContactRequestListResponseDto,
-    AdminContactRequestDetailResponseDto,
-} from './dto/response/admin-contact-request-response.dto';
+    ContactAdminRequestListResponseDto,
+    ContactAdminRequestDetailResponseDto,
+} from './dto/response/contact-admin-request-response.dto';
 
 /**
  * 문의 Admin API
  * 문의 관리 (조회, 상태 업데이트, 삭제)
  */
-@ApiTags('Contact Admin')
+@ApiTags('연락처 관리자')
 @Controller('contact-admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiBearerAuth()
@@ -51,7 +51,7 @@ export class ContactAdminController {
         description: '조회 성공',
         type: ContactAdminListResponseDto,
     })
-    async findAll(@Query() filterDto: ContactAdminFilterDto) {
+    async findAll(@Query() filterDto: ContactAdminFilterRequestDto) {
         const { contacts, pagination } = await this.contactAdminService.findAll(filterDto);
 
         return {
@@ -131,7 +131,7 @@ COMPLETED나 REJECTED로 변경 시 자동으로 처리 완료 시간이 기록�
         status: HttpStatus.NOT_FOUND,
         description: '문의를 찾을 수 없습니다',
     })
-    async updateStatus(@Param('id') id: string, @Body() updateDto: UpdateContactStatusDto) {
+    async updateStatus(@Param('id') id: string, @Body() updateDto: ContactAdminUpdateStatusRequestDto) {
         const contact = await this.contactAdminService.updateStatus(id, updateDto);
 
         return {
@@ -232,7 +232,7 @@ Singleton 패턴으로 작동하며, 문서가 없으면 자동으로 생성됩�
         status: HttpStatus.OK,
         description: '수정 성공',
     })
-    async updateContactInfo(@Body() updateDto: UpdateContactInfoRequestDto) {
+    async updateContactInfo(@Body() updateDto: ContactAdminInfoUpdateRequestDto) {
         const contactInfo = await this.contactAdminService.updateContactInfo(updateDto);
 
         return {
@@ -274,13 +274,13 @@ Figma: Admin Contact Here 페이지
     @SwaggerResponse({
         status: HttpStatus.CREATED,
         description: '요청 생성 성공',
-        type: AdminContactRequestDetailResponseDto,
+        type: ContactAdminRequestDetailResponseDto,
     })
     @SwaggerResponse({
         status: HttpStatus.BAD_REQUEST,
         description: '1개 이상의 항목을 작성해 주시기 바랍니다',
     })
-    async createAdminRequest(@Body() createDto: CreateAdminContactRequestDto, @Req() req: any) {
+    async createAdminRequest(@Body() createDto: ContactAdminCreateRequestDto, @Req() req: any) {
         const adminId = req.user?.id || 'system'; // JWT에서 admin ID 추출
 
         const request = await this.contactAdminService.createAdminContactRequest(createDto, adminId);
@@ -316,9 +316,9 @@ Figma: Admin Contact Here 페이지
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: AdminContactRequestListResponseDto,
+        type: ContactAdminRequestListResponseDto,
     })
-    async findAllAdminRequests(@Query() filterDto: ContactAdminFilterDto) {
+    async findAllAdminRequests(@Query() filterDto: ContactAdminFilterRequestDto) {
         const { requests, pagination } = await this.contactAdminService.findAllAdminContactRequests(filterDto);
 
         return {
@@ -348,7 +348,7 @@ Figma: Admin Contact Here 페이지
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: '조회 성공',
-        type: AdminContactRequestDetailResponseDto,
+        type: ContactAdminRequestDetailResponseDto,
     })
     @SwaggerResponse({
         status: HttpStatus.NOT_FOUND,
@@ -388,7 +388,7 @@ URL이 있는 경우에만 가능하며, 자동으로 크롤링을 시작합니�
     @SwaggerResponse({
         status: HttpStatus.OK,
         description: 'Import 시작 성공',
-        type: AdminContactRequestDetailResponseDto,
+        type: ContactAdminRequestDetailResponseDto,
     })
     @SwaggerResponse({
         status: HttpStatus.BAD_REQUEST,

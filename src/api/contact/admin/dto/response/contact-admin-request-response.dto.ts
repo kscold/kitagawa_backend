@@ -8,7 +8,7 @@ import {
 /**
  * Admin Contact Request 상세 응답 DTO
  */
-export class AdminContactRequestDetailDto {
+export class ContactAdminRequestDetailResponseDto {
     @ApiProperty({ description: 'ID', example: '507f1f77bcf86cd799439011' })
     _id: string;
 
@@ -80,7 +80,7 @@ export class AdminContactRequestDetailDto {
 /**
  * Admin Contact Request 목록 응답 DTO
  */
-export class AdminContactRequestListDto {
+export class ContactAdminRequestListResponseDto {
     @ApiProperty({ description: 'ID', example: '507f1f77bcf86cd799439011' })
     _id: string;
 
@@ -119,64 +119,4 @@ export class AdminContactRequestListDto {
 
     @ApiProperty({ description: 'Import 상태', enum: ImportStatus, example: ImportStatus.NONE })
     importStatus: ImportStatus;
-}
-
-/**
- * Pagination 정보
- */
-export class PaginationDto {
-    @ApiProperty({ description: '현재 페이지', example: 1 })
-    currentPage: number;
-
-    @ApiProperty({ description: '전체 페이지 수', example: 5 })
-    totalPages: number;
-
-    @ApiProperty({ description: '전체 아이템 수', example: 47 })
-    totalItems: number;
-
-    @ApiProperty({ description: '페이지당 아이템 수', example: 10 })
-    itemsPerPage: number;
-
-    @ApiProperty({ description: '다음 페이지 존재 여부', example: true })
-    hasNextPage: boolean;
-
-    @ApiProperty({ description: '이전 페이지 존재 여부', example: false })
-    hasPreviousPage: boolean;
-}
-
-/**
- * Admin Contact Request 목록 응답
- */
-export class AdminContactRequestListResponseDto {
-    @ApiProperty({ description: '성공 여부', example: true })
-    success: boolean;
-
-    @ApiProperty({ description: '상태 코드', example: 200 })
-    code: number;
-
-    @ApiProperty({ description: '메시지', example: 'Admin 요청 목록 조회 성공' })
-    message: string;
-
-    @ApiProperty({ description: '데이터' })
-    data: {
-        items: AdminContactRequestListDto[];
-        pagination: PaginationDto;
-    };
-}
-
-/**
- * Admin Contact Request 상세 응답
- */
-export class AdminContactRequestDetailResponseDto {
-    @ApiProperty({ description: '성공 여부', example: true })
-    success: boolean;
-
-    @ApiProperty({ description: '상태 코드', example: 200 })
-    code: number;
-
-    @ApiProperty({ description: '메시지', example: 'Admin 요청 조회 성공' })
-    message: string;
-
-    @ApiProperty({ description: '데이터', type: AdminContactRequestDetailDto })
-    data: AdminContactRequestDetailDto;
 }

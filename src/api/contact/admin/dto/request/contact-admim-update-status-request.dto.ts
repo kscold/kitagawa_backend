@@ -6,7 +6,7 @@ import { ContactRequestStatus } from '../../../../../schema/contact-request.sche
 /**
  * 문의 상태 업데이트 DTO
  */
-export class UpdateContactStatusDto {
+export class ContactAdminUpdateStatusRequestDto {
     @ApiProperty({ description: '처리 상태', enum: ContactRequestStatus, example: ContactRequestStatus.IN_PROGRESS })
     @IsEnum(ContactRequestStatus)
     @IsNotEmpty()

@@ -7,7 +7,7 @@ import { ContactRequestStatus } from '../../../../../schema/contact-request.sche
 /**
  * 문의 관리 필터 DTO
  */
-export class ContactAdminFilterDto {
+export class ContactAdminFilterRequestDto {
     @ApiPropertyOptional({ description: '검색 키워드 (담당자명, 업체명, 이메일, 메시지)', example: '홍길동' })
     @IsString()
     @IsOptional()

@@ -49,7 +49,7 @@ export class LocationInfoDto {
 /**
  * Update Contact Info Request DTO
  */
-export class UpdateContactInfoRequestDto {
+export class ContactAdminInfoUpdateRequestDto {
     @ApiPropertyOptional({ description: 'Company name', example: 'Korea Kitagawa Co., Ltd.' })
     @IsString()
     @IsOptional()
