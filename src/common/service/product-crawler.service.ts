@@ -191,9 +191,13 @@ export class ProductCrawlerService {
 
         // Extract main image (from fancybox figure)
         let mainImageUrl = '';
-        const fancyboxMatch = html.match(/<figure[^>]*>.*?<a[^>]*class="fancybox"[^>]*>.*?<img[^>]*src="([^"]*)"[^>]*>.*?<\/a>.*?<\/figure>/is);
+        const fancyboxMatch = html.match(
+            /<figure[^>]*>.*?<a[^>]*class="fancybox"[^>]*>.*?<img[^>]*src="([^"]*)"[^>]*>.*?<\/a>.*?<\/figure>/is,
+        );
         if (fancyboxMatch) {
-            mainImageUrl = fancyboxMatch[1].startsWith('http') ? fancyboxMatch[1] : `https://www.kitagawa.com${fancyboxMatch[1]}`;
+            mainImageUrl = fancyboxMatch[1].startsWith('http')
+                ? fancyboxMatch[1]
+                : `https://www.kitagawa.com${fancyboxMatch[1]}`;
         }
 
         // Extract all images
@@ -209,7 +213,9 @@ export class ProductCrawlerService {
 
         // Extract specification HTML
         let specificationHtml = '';
-        const specMatch = html.match(/<h3[^>]*class="midashi01"[^>]*>Product Specifications<\/h3>([\s\S]*?)(?=<h3|<div class="pagetop"|$)/i);
+        const specMatch = html.match(
+            /<h3[^>]*class="midashi01"[^>]*>Product Specifications<\/h3>([\s\S]*?)(?=<h3|<div class="pagetop"|$)/i,
+        );
         if (specMatch) {
             specificationHtml = specMatch[0];
         }
@@ -239,7 +245,9 @@ export class ProductCrawlerService {
         // Extract instruction manual
         const manualMatch = html.match(/<a[^>]*href="([^"]*manu[^"]*\.pdf)"[^>]*>[\s\S]*?<span>([^<]*)<\/span>/i);
         if (manualMatch) {
-            const url = manualMatch[1].startsWith('http') ? manualMatch[1] : `https://www.kitagawa.com${manualMatch[1]}`;
+            const url = manualMatch[1].startsWith('http')
+                ? manualMatch[1]
+                : `https://www.kitagawa.com${manualMatch[1]}`;
             downloads.push({
                 type: 'PDF',
                 category: 'Manual',

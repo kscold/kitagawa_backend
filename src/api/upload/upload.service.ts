@@ -77,7 +77,9 @@ export class UploadService {
                 blobStream.on('finish', async () => {
                     // 파일을 공개 접근 가능하도록 설정 (이미 버킷 레벨에서 설정되어 있지만 확실하게)
                     await blob.makePublic().catch((err) => {
-                        this.logger.warn(`[${methodName}] makePublic 실패 (버킷이 이미 공개일 수 있음) - ${err.message}`);
+                        this.logger.warn(
+                            `[${methodName}] makePublic 실패 (버킷이 이미 공개일 수 있음) - ${err.message}`,
+                        );
                     });
 
                     // 공개 URL 생성

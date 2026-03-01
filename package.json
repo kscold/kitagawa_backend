@@ -7,6 +7,8 @@
         "node": ">=20.0.0"
     },
     "scripts": {
+        "format": "prettier --write \"src/**/*.ts\"",
+        "format:check": "prettier --check \"src/**/*.ts\"",
         "build": "nest build",
         "start": "node dist/main.js",
         "start:dev": "nest start --watch",

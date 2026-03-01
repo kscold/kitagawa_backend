@@ -88,10 +88,7 @@ describe('AuthController (e2e)', () => {
         it.skip('should validate required fields', async () => {
             // Skip: Controller uses individual @Body() params instead of DTO,
             // so ValidationPipe doesn't apply. Validation is handled by the service layer.
-            await request(app.getHttpServer())
-                .post('/api/auth-admin/register')
-                .send({})
-                .expect(HttpStatus.BAD_REQUEST);
+            await request(app.getHttpServer()).post('/api/auth-admin/register').send({}).expect(HttpStatus.BAD_REQUEST);
         });
     });
 
