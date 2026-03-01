@@ -75,6 +75,26 @@ export class ContactAdminRequestDetailResponseDto {
 
     @ApiProperty({ description: 'Import된 Resource ID 목록', type: [String], example: [] })
     importedResourceIds: string[];
+
+    @ApiProperty({
+        description: '제품 대표 이미지 URL',
+        example: 'https://storage.googleapis.com/kitagawa-cdn/contact/product-image.png',
+        required: false,
+    })
+    productImageUrl?: string;
+
+    @ApiProperty({
+        description: '제품 이미지 URL 배열',
+        type: [String],
+        example: ['https://storage.googleapis.com/kitagawa-cdn/contact/img1.png'],
+    })
+    productImageUrls: string[];
+
+    @ApiProperty({
+        description: '첨부 파일 목록 (PDF, DWG 등)',
+        example: [{ url: 'https://...', fileName: 'spec.pdf', fileType: 'PDF' }],
+    })
+    attachedFiles: { url: string; fileName: string; fileType: string }[];
 }
 
 /**

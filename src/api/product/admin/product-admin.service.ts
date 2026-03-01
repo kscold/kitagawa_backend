@@ -598,10 +598,14 @@ export class ProductAdminService {
             productTitle?: string;
             productName?: string;
             mainImageUrl?: string;
+            imageUrls?: string[];
             description?: string;
             content?: string;
             contentDetail?: string;
             isActive?: boolean;
+            downloads?: any[];
+            pdfUrl?: string;
+            youtubeUrl?: string[];
         },
     ) {
         const methodName = 'updateLevel3Product';
@@ -669,6 +673,7 @@ export class ProductAdminService {
                 category: product.category,
                 sourceUrl: product.sourceUrl,
                 mainImageUrl: product.mainImageUrl,
+                imageUrls: product.imageUrls,
                 content: product.content,
                 contentDetail: product.contentDetail,
                 description: product.description,

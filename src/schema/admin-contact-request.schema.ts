@@ -123,6 +123,35 @@ export class AdminContactRequest {
      */
     @Prop({ type: [String], default: [] })
     importedResourceIds: string[];
+
+    /**
+     * 제품 대표 이미지 URL (선택)
+     * URL 없이 직접 제품 이미지를 첨부할 때 사용
+     */
+    @Prop()
+    productImageUrl?: string;
+
+    /**
+     * 제품 이미지 URL 배열 (선택)
+     */
+    @Prop({ type: [String], default: [] })
+    productImageUrls: string[];
+
+    /**
+     * 첨부 파일 목록 (선택)
+     * PDF, DWG 등 제품 관련 파일 직접 첨부
+     */
+    @Prop({
+        type: [
+            {
+                url: { type: String, required: true },
+                fileName: { type: String, required: true },
+                fileType: { type: String, required: true },
+            },
+        ],
+        default: [],
+    })
+    attachedFiles: { url: string; fileName: string; fileType: string }[];
 }
 
 export const AdminContactRequestSchema = SchemaFactory.createForClass(AdminContactRequest);

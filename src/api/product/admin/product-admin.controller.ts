@@ -418,10 +418,25 @@ export class ProductAdminController {
                 productTitle: { type: 'string', example: 'CK-R Series' },
                 productName: { type: 'string', example: 'CK-R' },
                 mainImageUrl: { type: 'string', example: 'https://...' },
+                imageUrls: { type: 'array', items: { type: 'string' }, example: ['https://...'] },
                 description: { type: 'string', example: 'Product description' },
                 content: { type: 'string', example: 'Product content' },
                 contentDetail: { type: 'string', example: 'Detailed content' },
                 isActive: { type: 'boolean', example: true },
+                downloads: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            type: { type: 'string', example: 'PDF' },
+                            category: { type: 'string', example: 'Catalog' },
+                            title: { type: 'string', example: 'Download PDF' },
+                            url: { type: 'string', example: 'https://...' },
+                        },
+                    },
+                },
+                pdfUrl: { type: 'string', example: 'https://...' },
+                youtubeUrl: { type: 'array', items: { type: 'string' }, example: ['https://youtube.com/...'] },
             },
         },
     })
@@ -440,10 +455,14 @@ export class ProductAdminController {
             productTitle?: string;
             productName?: string;
             mainImageUrl?: string;
+            imageUrls?: string[];
             description?: string;
             content?: string;
             contentDetail?: string;
             isActive?: boolean;
+            downloads?: any[];
+            pdfUrl?: string;
+            youtubeUrl?: string[];
         },
     ) {
         const data = await this.productAdminService.updateLevel3Product(slug, body);
@@ -504,10 +523,25 @@ export class ProductAdminController {
                 productTitle: { type: 'string', example: 'MR Series' },
                 productName: { type: 'string', example: 'MR' },
                 mainImageUrl: { type: 'string', example: 'https://...' },
+                imageUrls: { type: 'array', items: { type: 'string' }, example: ['https://...'] },
                 description: { type: 'string', example: 'Product description' },
                 content: { type: 'string', example: 'Product content' },
                 contentDetail: { type: 'string', example: 'Detailed content' },
                 isActive: { type: 'boolean', example: true },
+                downloads: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            type: { type: 'string', example: 'PDF' },
+                            category: { type: 'string', example: 'Catalog' },
+                            title: { type: 'string', example: 'Download PDF' },
+                            url: { type: 'string', example: 'https://...' },
+                        },
+                    },
+                },
+                pdfUrl: { type: 'string', example: 'https://...' },
+                youtubeUrl: { type: 'array', items: { type: 'string' }, example: ['https://youtube.com/...'] },
             },
         },
     })
@@ -526,10 +560,14 @@ export class ProductAdminController {
             productTitle?: string;
             productName?: string;
             mainImageUrl?: string;
+            imageUrls?: string[];
             description?: string;
             content?: string;
             contentDetail?: string;
             isActive?: boolean;
+            downloads?: any[];
+            pdfUrl?: string;
+            youtubeUrl?: string[];
         },
     ) {
         const data = await this.productAdminService.updateLevel3Product(slug, body);

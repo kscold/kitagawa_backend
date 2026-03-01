@@ -44,7 +44,11 @@ tmp/
 
 # Backups
 backups/
+backup/
 *.dump
+
+# Docs
+docs/
 
 # SSL certificates (for development)
 ssl/

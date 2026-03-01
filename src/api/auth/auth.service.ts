@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
@@ -95,5 +95,25 @@ export class AuthService {
      */
     async getAllAdmins(): Promise<AdminDocument[]> {
         return (await this.adminModel.find().select('-password').exec()) as any;
+    }
+
+    /**
+     * 비밀번호 변경
+     */
+    async changePassword(adminId: string, currentPassword: string, newPassword: string): Promise<void> {
+        const admin: any = await this.adminModel.findById(adminId).exec();
+        if (!admin) {
+            throw new BadRequestException('관리자를 찾을 수 없습니다');
+        }
+
+        // 현재 비밀번호 확인
+        const isPasswordValid = await admin.comparePassword(currentPassword);
+        if (!isPasswordValid) {
+            throw new BadRequestException('현재 비밀번호가 올바르지 않습니다');
+        }
+
+        // 새 비밀번호 설정 (pre-save hook에서 자동 해싱)
+        admin.password = newPassword;
+        await admin.save();
     }
 }

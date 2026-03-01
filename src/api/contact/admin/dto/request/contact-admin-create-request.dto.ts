@@ -1,5 +1,6 @@
 import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength, IsUrl, ValidateIf, IsBoolean } from 'class-validator';
+import { IsOptional, IsString, MaxLength, IsUrl, ValidateIf, IsBoolean, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 /**
  * Admin Contact Request 생성 DTO
@@ -80,11 +81,82 @@ export class ContactAdminCreateRequestDto {
     autoImport?: boolean;
 
     /**
+     * 제품 대표 이미지 URL (선택)
+     * URL 없이 직접 제품 이미지를 첨부할 때 사용
+     * 파일은 POST /upload-admin?folder=contact 로 먼저 업로드
+     */
+    @ApiProperty({
+        description: '제품 대표 이미지 URL (업로드 후 CDN URL)',
+        example: 'https://storage.googleapis.com/kitagawa-cdn/contact/product-image.png',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    productImageUrl?: string;
+
+    /**
+     * 제품 이미지 URL 배열 (선택)
+     */
+    @ApiProperty({
+        description: '제품 이미지 URL 배열',
+        example: ['https://storage.googleapis.com/kitagawa-cdn/contact/img1.png'],
+        required: false,
+    })
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    productImageUrls?: string[];
+
+    /**
+     * 첨부 파일 목록 (선택)
+     * PDF, DWG 등 제품 관련 파일
+     */
+    @ApiProperty({
+        description: '첨부 파일 목록 (PDF, DWG 등)',
+        example: [
+            {
+                url: 'https://storage.googleapis.com/kitagawa-cdn/contact/spec.pdf',
+                fileName: 'spec.pdf',
+                fileType: 'PDF',
+            },
+        ],
+        required: false,
+    })
+    @IsOptional()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => AttachedFileDto)
+    attachedFiles?: AttachedFileDto[];
+
+    /**
      * 커스텀 validator: 최소 1개 필드는 필수
      * Figma 디자인: "1개 이상의 항목을 작성해 주시기 바랍니다."
      */
     @ApiHideProperty()
-    @ValidateIf((o) => !o.productName && !o.seriesName && !o.url && !o.requestDetails)
+    @ValidateIf(
+        (o) =>
+            !o.productName &&
+            !o.seriesName &&
+            !o.url &&
+            !o.requestDetails &&
+            !o.productImageUrl &&
+            (!o.productImageUrls || o.productImageUrls.length === 0) &&
+            (!o.attachedFiles || o.attachedFiles.length === 0),
+    )
     @IsString({ message: '1개 이상의 항목을 작성해 주시기 바랍니다' })
     _atLeastOneField?: never;
+}
+
+class AttachedFileDto {
+    @ApiProperty({ description: '파일 URL', example: 'https://...' })
+    @IsString()
+    url: string;
+
+    @ApiProperty({ description: '파일명', example: 'spec.pdf' })
+    @IsString()
+    fileName: string;
+
+    @ApiProperty({ description: '파일 타입', example: 'PDF', enum: ['PDF', 'DWG', 'DXF', 'IMAGE', 'OTHER'] })
+    @IsString()
+    fileType: string;
 }

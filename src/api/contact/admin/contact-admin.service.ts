@@ -226,7 +226,14 @@ export class ContactAdminService {
         adminId: string,
     ): Promise<ContactAdminRequestDetailResponseDto> {
         // 요청 유형 결정
-        const hasProductInfo = !!(createDto.productName || createDto.seriesName || createDto.url);
+        const hasProductInfo = !!(
+            createDto.productName ||
+            createDto.seriesName ||
+            createDto.url ||
+            createDto.productImageUrl ||
+            (createDto.productImageUrls && createDto.productImageUrls.length > 0) ||
+            (createDto.attachedFiles && createDto.attachedFiles.length > 0)
+        );
         const hasRequestDetails = !!createDto.requestDetails;
 
         let type: AdminContactRequestType;
@@ -398,6 +405,9 @@ export class ContactAdminService {
             importStatus: request.importStatus,
             importError: request.importError,
             importedResourceIds: request.importedResourceIds || [],
+            productImageUrl: request.productImageUrl,
+            productImageUrls: request.productImageUrls || [],
+            attachedFiles: request.attachedFiles || [],
         };
     }
 

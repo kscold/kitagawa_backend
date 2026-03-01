@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Patch, Body, Get, UseGuards, Request, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 
 import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
 import { AdminDto, LoginDataDto, RegisterDataDto } from './dto/response/auth-response.dto';
+import { ChangePasswordRequestDto } from './dto/request/change-password-request.dto';
 
 @ApiTags('Auth - Admin')
 @Controller('auth-admin')
@@ -288,6 +289,69 @@ export class AuthController {
             code: HttpStatus.OK,
             message: '모든 관리자 조회 성공',
             data: admins,
+        };
+    }
+
+    /**
+     * 비밀번호 변경
+     */
+    @Patch('change-password')
+    @UseGuards(AdminJwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: '비밀번호 변경 (JWT 필요)',
+        description: `
+현재 로그인한 관리자의 비밀번호를 변경합니다.
+
+요청:
+- currentPassword: 현재 비밀번호
+- newPassword: 새 비밀번호 (최소 4자)
+
+인증:
+- Authorization 헤더에 "Bearer {token}" 형식으로 JWT 토큰 필요
+        `,
+    })
+    @ApiBody({ type: ChangePasswordRequestDto })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '비밀번호 변경 성공',
+        schema: {
+            example: {
+                success: true,
+                code: 200,
+                message: '비밀번호가 변경되었습니다',
+            },
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '현재 비밀번호 불일치',
+        schema: {
+            example: {
+                success: false,
+                code: 400,
+                message: '현재 비밀번호가 올바르지 않습니다',
+            },
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.UNAUTHORIZED,
+        description: '인증 실패',
+        schema: {
+            example: {
+                success: false,
+                code: 401,
+                message: 'Unauthorized',
+            },
+        },
+    })
+    async changePassword(@Request() req: any, @Body() dto: ChangePasswordRequestDto) {
+        await this.authService.changePassword(req.user.id, dto.currentPassword, dto.newPassword);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '비밀번호가 변경되었습니다',
         };
     }
 }
