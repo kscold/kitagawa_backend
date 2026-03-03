@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
@@ -115,5 +115,46 @@ export class AuthService {
         // 새 비밀번호 설정 (pre-save hook에서 자동 해싱)
         admin.password = newPassword;
         await admin.save();
+    }
+
+    /**
+     * 아이디(username) 변경
+     */
+    async changeUsername(adminId: string, newUsername: string): Promise<void> {
+        const admin = await this.adminModel.findById(adminId).exec();
+        if (!admin) {
+            throw new BadRequestException('관리자를 찾을 수 없습니다');
+        }
+
+        // 새 아이디 중복 체크
+        const existing = await this.adminModel.findOne({ username: newUsername }).exec();
+        if (existing && existing._id.toString() !== adminId) {
+            throw new ConflictException('이미 사용 중인 아이디입니다');
+        }
+
+        admin.username = newUsername;
+        await admin.save();
+    }
+
+    /**
+     * 관리자 삭제 (dev 역할은 삭제 불가)
+     */
+    async deleteAdmin(targetId: string, requesterId: string): Promise<void> {
+        // 자기 자신 삭제 방지
+        if (targetId === requesterId) {
+            throw new BadRequestException('자기 자신의 계정은 삭제할 수 없습니다');
+        }
+
+        const targetAdmin = await this.adminModel.findById(targetId).exec();
+        if (!targetAdmin) {
+            throw new NotFoundException('삭제할 관리자를 찾을 수 없습니다');
+        }
+
+        // dev 역할 보호
+        if (targetAdmin.role === 'dev') {
+            throw new ForbiddenException('개발자 계정은 삭제할 수 없습니다');
+        }
+
+        await this.adminModel.findByIdAndDelete(targetId).exec();
     }
 }

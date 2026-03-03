@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ProductDocument } from '../../../schema/product.schema';
+import { ProductDocument, DownloadCategory } from '../../../schema/product.schema';
 import { CategoryDocument } from '../../../schema/category.schema';
 
 import { ProductRepository } from '../repository/product.repository';
@@ -114,7 +114,7 @@ export class ProductAdminService {
                 title: file.title,
                 url: file.url,
                 type: file.type,
-                category: '2D', // 기본값, 필요시 수정 가능
+                category: file.category || DownloadCategory.TECHNICAL, // 기본값 Technical
                 model: file.title, // 모델명을 title로 사용
             }));
 
@@ -641,6 +641,166 @@ export class ProductAdminService {
                 orderInLevel2: updatedProduct.orderInLevel2,
                 viewCount: updatedProduct.viewCount,
             };
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw error;
+        }
+    }
+
+    /**
+     * 제품 직접 등록 (크롤링 없이)
+     */
+    async createProduct(productData: {
+        slug: string;
+        productName: string;
+        productTitle?: string;
+        category: {
+            mainCategory: string;
+            subCategory: string;
+            series?: string;
+        };
+        sourceUrl?: string;
+        mainImageUrl?: string;
+        imageUrls?: string[];
+        content?: string;
+        contentDetail?: string;
+        description?: string;
+        specificationHtml?: string;
+        downloads?: any[];
+        specificationFiles?: any[];
+        additionalInfo?: Record<string, any>;
+        tags?: string[];
+        isActive?: boolean;
+        isFeatured?: boolean;
+        pdfUrl?: string;
+        youtubeUrl?: string[];
+    }) {
+        const methodName = 'createProduct';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 제품 등록 - slug: ${productData.slug}`);
+            }
+
+            // 필수 필드 검증
+            if (!productData.slug || !productData.productName || !productData.category) {
+                throw new BadRequestException('slug, productName, category는 필수입니다');
+            }
+
+            // slug 중복 확인
+            const existing = await this.productRepository.findBySlug(productData.slug);
+            if (existing) {
+                throw new BadRequestException(`이미 존재하는 slug입니다: ${productData.slug}`);
+            }
+
+            // 해당 서브카테고리의 현재 최대 order 조회
+            let orderInLevel2 = 0;
+            if (productData.category.subCategory) {
+                const result = await this.productRepository.findByCategoryWithLevel(
+                    2,
+                    productData.category.subCategory,
+                    { limit: 1 },
+                );
+                orderInLevel2 = result.total; // 기존 제품 수 = 새 제품의 order
+            }
+
+            // 해당 메인카테고리의 현재 최대 order 조회
+            let orderInLevel1 = 0;
+            if (productData.category.mainCategory) {
+                const result = await this.productRepository.findByCategoryWithLevel(
+                    1,
+                    productData.category.mainCategory,
+                    { limit: 1 },
+                );
+                orderInLevel1 = result.total;
+            }
+
+            // 제품 생성
+            const newProduct = await this.productRepository.create({
+                slug: productData.slug,
+                productName: productData.productName,
+                productTitle: productData.productTitle || productData.productName,
+                category: {
+                    mainCategory: productData.category.mainCategory,
+                    subCategory: productData.category.subCategory,
+                    series: productData.category.series || productData.productName,
+                },
+                sourceUrl: productData.sourceUrl,
+                mainImageUrl: productData.mainImageUrl || '',
+                imageUrls: productData.imageUrls || [],
+                content: productData.content || '',
+                contentDetail: productData.contentDetail || '',
+                description: productData.description || '',
+                specificationHtml: productData.specificationHtml || '',
+                downloads: productData.downloads || [],
+                specificationFiles: productData.specificationFiles || [],
+                additionalInfo: productData.additionalInfo || {},
+                tags: productData.tags || [productData.category.mainCategory, productData.productName].filter(Boolean),
+                isActive: productData.isActive !== undefined ? productData.isActive : true,
+                isFeatured: productData.isFeatured || false,
+                pdfUrl: productData.pdfUrl || '',
+                youtubeUrl: productData.youtubeUrl || [],
+                orderInLevel1,
+                orderInLevel2,
+                viewCount: 0,
+                metadata: {
+                    lastCrawled: new Date(),
+                    crawlSource: 'manual',
+                },
+            });
+
+            if (this.isDevelopment) {
+                this.logger.log(
+                    `[${methodName}] 제품 등록 성공 - slug: ${newProduct.slug}, orderInLevel2: ${orderInLevel2}`,
+                );
+            }
+
+            return {
+                _id: newProduct._id.toString(),
+                slug: newProduct.slug,
+                productName: newProduct.productName,
+                productTitle: newProduct.productTitle,
+                category: newProduct.category,
+                mainImageUrl: newProduct.mainImageUrl,
+                description: newProduct.description,
+                content: newProduct.content,
+                contentDetail: newProduct.contentDetail,
+                isActive: newProduct.isActive,
+                orderInLevel2: newProduct.orderInLevel2,
+                viewCount: newProduct.viewCount,
+            };
+        } catch (error) {
+            this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
+            throw error;
+        }
+    }
+
+    /**
+     * 제품 삭제 (slug 기반)
+     */
+    async deleteProduct(slug: string) {
+        const methodName = 'deleteProduct';
+
+        try {
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 제품 삭제 - slug: ${slug}`);
+            }
+
+            // 제품 존재 확인
+            const product = await this.productRepository.findBySlug(slug);
+            if (!product) {
+                throw new NotFoundException(`제품을 찾을 수 없습니다: ${slug}`);
+            }
+
+            // 제품 삭제
+            const deleted = await this.productRepository.delete(slug);
+            if (!deleted) {
+                throw new BadRequestException('제품 삭제에 실패했습니다');
+            }
+
+            if (this.isDevelopment) {
+                this.logger.log(`[${methodName}] 제품 삭제 성공 - slug: ${slug}`);
+            }
         } catch (error) {
             this.logger.error(`[${methodName}] 실패 - ${error.message}`, error.stack);
             throw error;

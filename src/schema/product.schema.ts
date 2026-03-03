@@ -3,6 +3,28 @@ import { Document } from 'mongoose';
 
 export type ProductDocument = Product & Document;
 
+/**
+ * 다운로드 파일 타입
+ */
+export enum DownloadFileType {
+    PDF = 'PDF',
+    DWG = 'DWG',
+    DXF = 'DXF',
+    TIF = 'TIF',
+}
+
+/**
+ * 다운로드 카테고리
+ */
+export enum DownloadCategory {
+    CATALOG = 'Catalog',
+    CATALOGUE = 'Catalogue',
+    MANUAL = 'Manual',
+    TECHNICAL = 'Technical',
+    TWO_D = '2D',
+    THREE_D = '3D',
+}
+
 // 카테고리 스키마
 @Schema({ _id: false })
 export class Category {
@@ -29,11 +51,11 @@ export class DownloadItem {
 // 다운로드 링크 스키마
 @Schema({ _id: false })
 export class DownloadLink {
-    @Prop()
-    type: string; // 예: "PDF", "DXF", "DWG", "Parasolid", "STEP"
+    @Prop({ enum: DownloadFileType })
+    type: DownloadFileType; // 예: "PDF", "DXF", "DWG", "Parasolid", "STEP"
 
-    @Prop()
-    category: string; // 예: "Catalog", "Manual", "2D", "3D"
+    @Prop({ enum: DownloadCategory })
+    category: DownloadCategory; // 예: "Catalog", "Manual", "2D", "3D"
 
     @Prop()
     title: string; // 다운로드 버튼 이름 (예: "Down load Catalogue pages (PDF)", "Download instruction manual (PDF)")

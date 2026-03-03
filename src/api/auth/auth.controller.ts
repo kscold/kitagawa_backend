@@ -1,4 +1,4 @@
-import { Controller, Post, Patch, Body, Get, UseGuards, Request, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Patch, Delete, Body, Get, Param, UseGuards, Request, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse as SwaggerResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
@@ -352,6 +352,107 @@ export class AuthController {
             success: true,
             code: HttpStatus.OK,
             message: '비밀번호가 변경되었습니다',
+        };
+    }
+
+    /**
+     * 아이디 변경
+     */
+    @Patch('change-username')
+    @UseGuards(AdminJwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: '아이디 변경 (JWT 필요)',
+        description: '현재 로그인한 관리자의 아이디를 변경합니다.',
+    })
+    @ApiBody({
+        schema: {
+            properties: {
+                newUsername: { type: 'string', example: 'new_admin', description: '새 아이디' },
+            },
+            required: ['newUsername'],
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '아이디 변경 성공',
+        schema: {
+            example: {
+                success: true,
+                code: 200,
+                message: '아이디가 변경되었습니다',
+            },
+        },
+    })
+    async changeUsername(@Request() req: any, @Body('newUsername') newUsername: string) {
+        await this.authService.changeUsername(req.user.id, newUsername);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '아이디가 변경되었습니다',
+        };
+    }
+
+    /**
+     * 관리자 삭제
+     */
+    @Delete(':id')
+    @UseGuards(AdminJwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: '관리자 삭제 (JWT 필요)',
+        description: `
+관리자 계정을 삭제합니다.
+
+제한 사항:
+- 자기 자신의 계정은 삭제 불가
+- dev 역할(개발자 슈퍼계정)은 삭제 불가
+
+인증:
+- Authorization 헤더에 "Bearer {token}" 형식으로 JWT 토큰 필요
+        `,
+    })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '삭제 성공',
+        schema: {
+            example: {
+                success: true,
+                code: 200,
+                message: '관리자가 삭제되었습니다',
+            },
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.FORBIDDEN,
+        description: '개발자 계정 삭제 시도',
+        schema: {
+            example: {
+                success: false,
+                code: 403,
+                message: '개발자 계정은 삭제할 수 없습니다',
+            },
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '자기 자신 삭제 시도',
+        schema: {
+            example: {
+                success: false,
+                code: 400,
+                message: '자기 자신의 계정은 삭제할 수 없습니다',
+            },
+        },
+    })
+    async deleteAdmin(@Param('id') id: string, @Request() req: any) {
+        await this.authService.deleteAdmin(id, req.user.id);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '관리자가 삭제되었습니다',
         };
     }
 }

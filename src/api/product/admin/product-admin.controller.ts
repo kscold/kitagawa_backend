@@ -1,4 +1,4 @@
-import { Get, Body, Patch, Param, Query, UseGuards, HttpStatus, Controller } from '@nestjs/common';
+import { Get, Post, Delete, Body, Patch, Param, Query, UseGuards, HttpStatus, Controller } from '@nestjs/common';
 import {
     ApiTags,
     ApiBody,
@@ -428,8 +428,16 @@ export class ProductAdminController {
                     items: {
                         type: 'object',
                         properties: {
-                            type: { type: 'string', example: 'PDF' },
-                            category: { type: 'string', example: 'Catalog' },
+                            type: {
+                                type: 'string',
+                                enum: ['PDF', 'DWG', 'DXF', 'TIF'],
+                                example: 'PDF',
+                            },
+                            category: {
+                                type: 'string',
+                                enum: ['Catalog', 'Catalogue', 'Manual', 'Technical'],
+                                example: 'Catalog',
+                            },
                             title: { type: 'string', example: 'Download PDF' },
                             url: { type: 'string', example: 'https://...' },
                         },
@@ -472,6 +480,144 @@ export class ProductAdminController {
             code: HttpStatus.OK,
             message: '제품이 수정되었습니다',
             data,
+        };
+    }
+
+    /**
+     * 제품 직접 등록 (크롤링 없이)
+     */
+    @Post()
+    @ApiOperation({
+        summary: '제품 직접 등록',
+        description:
+            '크롤링 없이 관리자가 직접 제품을 등록합니다. 한국 특화 제품 등 일본 사이트에 없는 제품을 추가할 때 사용합니다.',
+    })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            required: ['slug', 'productName', 'category'],
+            properties: {
+                slug: { type: 'string', example: 'quante-controller', description: 'URL용 고유 식별자' },
+                productName: { type: 'string', example: 'Quinte Controller', description: '제품명 (영문)' },
+                productTitle: { type: 'string', example: 'Quinte Series', description: '제품 타이틀' },
+                category: {
+                    type: 'object',
+                    properties: {
+                        mainCategory: { type: 'string', example: 'NC ROTARY TABLE' },
+                        subCategory: { type: 'string', example: '퀸테 컨트롤러' },
+                        series: { type: 'string', example: 'Quinte Series' },
+                    },
+                },
+                sourceUrl: { type: 'string', example: 'https://kitagawa.co.kr/...' },
+                mainImageUrl: { type: 'string', example: 'https://storage.googleapis.com/kitagawa-cdn/...' },
+                imageUrls: { type: 'array', items: { type: 'string' } },
+                content: { type: 'string', description: '제품 소개 텍스트' },
+                contentDetail: { type: 'string', description: '제품 상세 설명' },
+                description: { type: 'string', description: '제품 특징 리스트' },
+                specificationHtml: { type: 'string', description: '스펙 테이블 HTML' },
+                downloads: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            type: { type: 'string', enum: ['PDF', 'DWG', 'DXF', 'TIF'] },
+                            category: { type: 'string', enum: ['Catalog', 'Catalogue', 'Manual', 'Technical'] },
+                            title: { type: 'string' },
+                            url: { type: 'string' },
+                        },
+                    },
+                },
+                specificationFiles: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            type: { type: 'string' },
+                            category: { type: 'string' },
+                            title: { type: 'string' },
+                            url: { type: 'string' },
+                        },
+                    },
+                },
+                tags: { type: 'array', items: { type: 'string' } },
+                isActive: { type: 'boolean', default: true },
+                isFeatured: { type: 'boolean', default: false },
+                pdfUrl: { type: 'string' },
+                youtubeUrl: { type: 'array', items: { type: 'string' } },
+            },
+        },
+    })
+    @SwaggerResponse({
+        status: HttpStatus.CREATED,
+        description: '제품 등록 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: '필수 필드 누락 또는 slug 중복',
+    })
+    async createProduct(
+        @Body()
+        body: {
+            slug: string;
+            productName: string;
+            productTitle?: string;
+            category: {
+                mainCategory: string;
+                subCategory: string;
+                series?: string;
+            };
+            sourceUrl?: string;
+            mainImageUrl?: string;
+            imageUrls?: string[];
+            content?: string;
+            contentDetail?: string;
+            description?: string;
+            specificationHtml?: string;
+            downloads?: any[];
+            specificationFiles?: any[];
+            additionalInfo?: Record<string, any>;
+            tags?: string[];
+            isActive?: boolean;
+            isFeatured?: boolean;
+            pdfUrl?: string;
+            youtubeUrl?: string[];
+        },
+    ) {
+        const data = await this.productAdminService.createProduct(body);
+
+        return {
+            success: true,
+            code: HttpStatus.CREATED,
+            message: '제품이 등록되었습니다',
+            data,
+        };
+    }
+
+    /**
+     * 제품 삭제
+     */
+    @Delete(':slug')
+    @ApiOperation({
+        summary: '제품 삭제',
+        description: '제품을 삭제합니다. 되돌릴 수 없으므로 주의해주세요.',
+    })
+    @ApiParam({ name: 'slug', description: '제품 슬러그', example: 'quante-controller' })
+    @SwaggerResponse({
+        status: HttpStatus.OK,
+        description: '삭제 성공',
+    })
+    @SwaggerResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: '제품을 찾을 수 없음',
+    })
+    async deleteProduct(@Param('slug') slug: string) {
+        await this.productAdminService.deleteProduct(slug);
+
+        return {
+            success: true,
+            code: HttpStatus.OK,
+            message: '제품이 삭제되었습니다',
+            data: null,
         };
     }
 
@@ -533,8 +679,16 @@ export class ProductAdminController {
                     items: {
                         type: 'object',
                         properties: {
-                            type: { type: 'string', example: 'PDF' },
-                            category: { type: 'string', example: 'Catalog' },
+                            type: {
+                                type: 'string',
+                                enum: ['PDF', 'DWG', 'DXF', 'TIF'],
+                                example: 'PDF',
+                            },
+                            category: {
+                                type: 'string',
+                                enum: ['Catalog', 'Catalogue', 'Manual', 'Technical'],
+                                example: 'Catalog',
+                            },
                             title: { type: 'string', example: 'Download PDF' },
                             url: { type: 'string', example: 'https://...' },
                         },

@@ -117,13 +117,29 @@ export class ProductCrawlerService {
     /**
      * URL에서 slug 추출
      * 예: https://www.kitagawa.com/en/mtools/csd/br-ajc-m.html -> br-ajc-m
+     * 예: https://www.kitagawa.com/en/mtools/detail/MR200R/ -> mr200r
      */
     private extractSlug(url: string): string {
-        const match = url.match(/\/([^/]+)\.html?$/);
-        if (!match) {
-            throw new Error('URL에서 slug를 추출할 수 없습니다.');
+        // .html 또는 .htm으로 끝나는 경우
+        const htmlMatch = url.match(/\/([^/]+)\.html?$/);
+        if (htmlMatch) {
+            return htmlMatch[1];
         }
-        return match[1];
+
+        // /detail/SLUG/ 또는 /detail/SLUG 형태
+        const detailMatch = url.match(/\/detail\/([^/?#]+)\/?$/);
+        if (detailMatch) {
+            return detailMatch[1].toLowerCase();
+        }
+
+        // 마지막 경로 세그먼트를 slug로 사용 (trailing slash 제거 후)
+        const cleanUrl = url.replace(/[?#].*$/, '').replace(/\/+$/, '');
+        const lastSegment = cleanUrl.split('/').pop();
+        if (lastSegment && lastSegment.length > 0) {
+            return lastSegment.toLowerCase();
+        }
+
+        throw new Error('URL에서 slug를 추출할 수 없습니다.');
     }
 
     /**
