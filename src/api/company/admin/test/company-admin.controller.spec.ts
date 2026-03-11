@@ -4,12 +4,11 @@ import request from 'supertest';
 
 import { AdminJwtAuthGuard } from '../../../../common/guard/admin-jwt-auth.guard';
 import { MockAdminJwtAuthGuard } from '../../../../../test/helpers/mock-auth-guard';
+import { expectStandardResponse } from '../../../../../test/helpers/test-helpers';
 
 import { CompanyAdminController } from '../company-admin.controller';
 
 import { CompanyAdminService } from '../company-admin.service';
-
-import { expectStandardResponse } from '../../../../../test/helpers/test-helpers';
 
 describe('CompanyAdminController (e2e)', () => {
     let app: INestApplication;

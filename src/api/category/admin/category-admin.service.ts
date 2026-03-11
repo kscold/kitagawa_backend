@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { CategoryRepository } from '../repository/category.repository';
-
 import { Product, ProductDocument } from '../../../schema/product.schema';
 import { CategoryDocument, CategoryLevel } from '../../../schema/category.schema';
+
+import { CategoryRepository } from '../repository/category.repository';
 
 import { PaginationResponseDto } from '../../../common/dto/pagination/pagination-response.dto';
 

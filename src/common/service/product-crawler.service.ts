@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Resource, ResourceDocument } from '../../schema/resource.schema';
+
 import { Product, ProductDocument } from '../../schema/product.schema';
+import { Resource, ResourceDocument } from '../../schema/resource.schema';
 
 interface FileInfo {
     url: string;
@@ -70,12 +71,7 @@ export class ProductCrawlerService {
         }
     }
 
-    /**
-     * ====================
-     * Helper Methods
-     * ====================
-     */
-
+    // Helper Methods
     /**
      * Extract file ID from URL
      */

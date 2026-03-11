@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
 
+import { expectStandardResponse } from '../../../../test/helpers/test-helpers';
+
 import { CategoryController } from '../category.controller';
 
 import { CategoryService } from '../category.service';
-
-import { expectStandardResponse } from '../../../../test/helpers/test-helpers';
 
 describe('CategoryController (e2e)', () => {
     let app: INestApplication;

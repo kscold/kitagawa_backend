@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { UploadService } from '../upload/upload.service';
 import { EmailService } from '../../common/service/email.service';
+import { UploadService } from '../upload/upload.service';
 
 import { CompanyInfo, CompanyInfoDocument } from '../../schema/company-info.schema';
 import { ContactRequest, ContactRequestDocument } from '../../schema/contact-request.schema';

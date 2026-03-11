@@ -5,9 +5,9 @@ import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
 
 import { AuthService } from './auth.service';
 
+import { ChangePasswordRequestDto } from './dto/request/change-password-request.dto';
 import { ApiResponseDto } from '../../common/dto/response/api-response.dto';
 import { AdminDto, LoginDataDto, RegisterDataDto } from './dto/response/auth-response.dto';
-import { ChangePasswordRequestDto } from './dto/request/change-password-request.dto';
 
 @ApiTags('Auth - Admin')
 @Controller('auth-admin')

@@ -1,14 +1,15 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { EmailModule } from '../../common/module/email.module';
+import { UploadModule } from '../upload/upload.module';
+
 import { ContactController } from './contact.controller';
 
 import { ContactService } from './contact.service';
 
-import { ContactRequest, ContactRequestSchema } from '../../schema/contact-request.schema';
 import { CompanyInfo, CompanyInfoSchema } from '../../schema/company-info.schema';
-import { EmailModule } from '../../common/module/email.module';
-import { UploadModule } from '../upload/upload.module';
+import { ContactRequest, ContactRequestSchema } from '../../schema/contact-request.schema';
 
 @Module({
     imports: [

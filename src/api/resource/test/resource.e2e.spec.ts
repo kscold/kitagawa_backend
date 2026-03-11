@@ -7,6 +7,7 @@ import { execSync } from 'child_process';
 
 import { createDefaultResourceCategories } from '../../../../test/factories/category.factory';
 import { createMockResourcePair, createMockPdfResource } from '../../../../test/factories/resource.factory';
+import { getTestMongoUri, clearCollection, seedCollection } from '../../../../test/e2e-helpers';
 
 import { ResourceController } from '../resource.controller';
 
@@ -17,8 +18,6 @@ import { CategoryModel, CategorySchema } from '../../../schema/category.schema';
 
 import { ResourceRepository } from '../repository/resource.repository';
 import { CategoryRepository } from '../../category/repository/category.repository';
-
-import { getTestMongoUri, clearCollection, seedCollection } from '../../../../test/e2e-helpers';
 
 /**
  * Resource API E2E 테스트 (실제 DB 사용)
@@ -69,9 +68,9 @@ describe('ResourceController E2E (Real DB)', () => {
         await app.close();
 
         // 기본 데이터 복원 (프로덕션 Product → 테스트 Resource)
-        console.log('\n📦 테스트 DB 기본 데이터 복원 중...');
+        console.log('\n테스트 DB 기본 데이터 복원 중...');
         execSync('npx ts-node scripts/seed-test-categories-resources.ts', { stdio: 'inherit' });
-        console.log('✅ 기본 데이터 복원 완료\n');
+        console.log('기본 데이터 복원 완료\n');
     });
 
     beforeEach(async () => {

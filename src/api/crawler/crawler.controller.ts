@@ -2,10 +2,9 @@ import { Controller, Post, Body, UseGuards, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 import { AdminJwtAuthGuard } from '../../common/guard/admin-jwt-auth.guard';
+import { SwaggerResponse } from '../../common/decorator/swagger-response.decorator';
 
 import { CrawlerService } from './crawler.service';
-
-import { SwaggerResponse } from '../../common/decorator/swagger-response.decorator';
 
 @ApiTags('크롤러 관리자')
 @Controller('crawler-admin')

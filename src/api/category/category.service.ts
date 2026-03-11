@@ -5,8 +5,8 @@ import { Model } from 'mongoose';
 import { Product, ProductDocument } from '../../schema/product.schema';
 import { CategoryModel, CategoryDocument, CategoryLevel } from '../../schema/category.schema';
 
-import { CategorySeriesInfoResponseDto } from './dto/response/category-series-info-response.dto';
 import { CategoryLevel1ResponseDto } from './dto/response/category-level1-response.dto';
+import { CategorySeriesInfoResponseDto } from './dto/response/category-series-info-response.dto';
 
 @Injectable()
 export class CategoryService {

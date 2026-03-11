@@ -1,12 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
-import { AuthController } from '../auth.controller';
-import { AuthService } from '../auth.service';
 import { JwtService } from '@nestjs/jwt';
+
 import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 import { MockAdminJwtAuthGuard } from '../../../../test/helpers/mock-auth-guard';
 import { expectStandardResponse } from '../../../../test/helpers/test-helpers';
+
+import { AuthController } from '../auth.controller';
+
+import { AuthService } from '../auth.service';
 
 describe('AuthController (e2e)', () => {
     let app: INestApplication;

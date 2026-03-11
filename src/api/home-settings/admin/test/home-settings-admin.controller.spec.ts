@@ -1,11 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
-import { HomeSettingsAdminController } from '../home-settings-admin.controller';
-import { HomeSettingsAdminService } from '../home-settings-admin.service';
+
 import { AdminJwtAuthGuard } from '../../../../common/guard/admin-jwt-auth.guard';
 import { MockAdminJwtAuthGuard } from '../../../../../test/helpers/mock-auth-guard';
 import { expectStandardResponse } from '../../../../../test/helpers/test-helpers';
+
+import { HomeSettingsAdminController } from '../home-settings-admin.controller';
+
+import { HomeSettingsAdminService } from '../home-settings-admin.service';
 
 describe('HomeSettingsAdminController (e2e)', () => {
     let app: INestApplication;

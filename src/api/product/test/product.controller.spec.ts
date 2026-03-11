@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
 
+import { expectStandardResponse } from '../../../../test/helpers/test-helpers';
+
 import { ProductController } from '../product.controller';
 
 import { ProductService } from '../product.service';
-
-import { expectStandardResponse } from '../../../../test/helpers/test-helpers';
 
 describe('ProductController (e2e)', () => {
     let app: INestApplication;

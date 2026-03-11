@@ -4,12 +4,11 @@ import request from 'supertest';
 
 import { AdminJwtAuthGuard } from '../../../../common/guard/admin-jwt-auth.guard';
 import { MockAdminJwtAuthGuard } from '../../../../../test/helpers/mock-auth-guard';
+import { expectStandardResponse } from '../../../../../test/helpers/test-helpers';
 
 import { ResourceAdminController } from '../resource-admin.controller';
 
 import { ResourceAdminService } from '../resource-admin.service';
-
-import { expectStandardResponse } from '../../../../../test/helpers/test-helpers';
 
 describe('ResourceAdminController (e2e)', () => {
     let app: INestApplication;

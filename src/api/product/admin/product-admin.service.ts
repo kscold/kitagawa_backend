@@ -1,8 +1,8 @@
 import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ProductDocument, DownloadCategory } from '../../../schema/product.schema';
 import { CategoryDocument } from '../../../schema/category.schema';
+import { ProductDocument, DownloadCategory } from '../../../schema/product.schema';
 
 import { ProductRepository } from '../repository/product.repository';
 import { CategoryRepository } from '../../category/repository/category.repository';

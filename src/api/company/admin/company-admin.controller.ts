@@ -5,8 +5,8 @@ import { AdminJwtAuthGuard } from '../../../common/guard/admin-jwt-auth.guard';
 
 import { CompanyAdminService } from './company-admin.service';
 
-import { CompanyGreetingUpdateRequestDto } from './dto/request/company-greeting-update-request.dto';
 import { CompanyUpdateInfoRequestDto } from './dto/request/company-update-info-request.dto';
+import { CompanyGreetingUpdateRequestDto } from './dto/request/company-greeting-update-request.dto';
 
 /**
  * Company Admin API
